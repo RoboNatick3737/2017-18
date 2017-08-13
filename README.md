@@ -1,3 +1,6 @@
+# Team 3737 2017-18 Repository
+This forked repository holds the code that runs both auto and teleop for the 2017-18 FTC challenge for Hank's Tanks.  
+
 # ftc_app
 FTC Android Studio project to create FTC Robot Controller app.
 
