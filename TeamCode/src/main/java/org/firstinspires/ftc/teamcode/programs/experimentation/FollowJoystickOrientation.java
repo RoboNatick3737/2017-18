@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode.programs.experimentation;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cColorSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.programs.Core;
 import org.firstinspires.ftc.teamcode.sdkextensions.logging.ProcessConsole;
@@ -10,9 +13,8 @@ import org.firstinspires.ftc.teamcode.sdkextensions.threading.Flow;
 @Autonomous(name="Follow Joystick Orientation", group="Experimentation")
 public class FollowJoystickOrientation extends Core
 {
-    /*** CONFIGURE ALL ROBOT ELEMENTS HERE ***/
-    //Drive motors (they are lists because it helps when we add on new motors.
-    protected DcMotor toTurn;
+    private DcMotor toTurn;
+    private ModernRoboticsI2cColorSensor calibrationSensor;
 
     private void setMotorMode(DcMotor motor, DcMotor.RunMode runMode)
     {
@@ -98,6 +100,13 @@ public class FollowJoystickOrientation extends Core
         return desiredHeadingInt;
     }
 
+    private void resetEncoder() {
+        // Used to set the encoder to the appropriate position.
+        setMotorMode(toTurn, DcMotor.RunMode.RUN_USING_ENCODER);
+        setMotorMode(toTurn, DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setMotorMode(toTurn, DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
     int offsetRevolutions = 0;
     protected final void START() throws InterruptedException {
         final int encoderRevolution = 1680;
@@ -105,14 +114,33 @@ public class FollowJoystickOrientation extends Core
         log.lines("Started");
 
         toTurn = initHardwareDevice(DcMotor.class, "Left Motor");
+        toTurn.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        // Used to set the encoder to the appropriate position.
-        setMotorMode(toTurn, DcMotor.RunMode.RUN_USING_ENCODER);
-        setMotorMode(toTurn, DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        setMotorMode(toTurn, DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        resetEncoder();
+
+        calibrationSensor = initHardwareDevice(ModernRoboticsI2cColorSensor.class, "Calibration Sensor");
 
         ProcessConsole processConsole = log.newProcessConsole("Position Console");
-        while (!gamepad1.x) {
+        ProcessConsole calibrationConsole = log.newProcessConsole("Motor Calibration");
+        while (!gamepad1.x)
+        {
+            if (gamepad1.start)
+            {
+                // Recalibrate the motor position.
+                toTurn.setPower(-.05);
+                calibrationSensor.enableLed(true);
+                while (calibrationSensor.alpha() <= 5)
+                {
+                    calibrationConsole.updateWith("Alpha is " + calibrationSensor.alpha() + " threshold is 5");
+                    Flow.yield();
+                }
+                calibrationSensor.enableLed(true);
+                previousVal = 0;
+                offsetRevolutions = 0;
+                toTurn.setPower(0);
+                resetEncoder();
+            }
+
             int currentPosition = toTurn.getCurrentPosition();
             int desiredMotorPosition = (int)(getDesiredJoystickHeading() / 360.0 * encoderRevolution) + offsetRevolutions * encoderRevolution;
 
