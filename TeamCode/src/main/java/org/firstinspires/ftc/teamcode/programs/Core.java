@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.programs;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.HardwareDevice;
 
 import org.firstinspires.ftc.teamcode.sdkextensions.logging.Log;
 import org.firstinspires.ftc.teamcode.sdkextensions.music.Tunes;
@@ -47,9 +48,9 @@ public abstract class Core extends LinearOpMode
         catch (InterruptedException e) {} //If this is caught, then the user requested program stop.
         catch (Exception e) //If this is caught, it wasn't an InterruptedException and wasn't requested, so the user is notified.
         {
-            log.newLine("UH OH!  An error was just thrown!");
-            log.newLine(e.getMessage ());
-            log.newLine("Will end upon tapping stop...");
+            log.lines("UH OH!  An error was just thrown!");
+            log.lines(e.getMessage ());
+            log.lines("Will end upon tapping stop...");
 
             //Wait until stop is requested.
             try
@@ -63,6 +64,22 @@ public abstract class Core extends LinearOpMode
         {
             Tunes.silence();
             STOP();
+        }
+    }
+
+    /**
+     * Use by calling DcMotor dcMotor = NiFTInitializer.initialize(DcMotor.class, "name in config");
+     */
+    public <T extends HardwareDevice> T initHardwareDevice (Class<T> hardwareDevice, String name)
+    {
+        try
+        {
+            //Returns the last subclass (if this were a DcMotor it would pass back a Dc Motor.
+            return hardwareDevice.cast (hardwareMap.get (name));
+        }
+        catch (Exception e) //There might be other exceptions that this throws, not entirely sure about which so I am general here.
+        {
+            throw new NullPointerException ("Couldn't find " + name + " in the configuration file!");
         }
     }
 

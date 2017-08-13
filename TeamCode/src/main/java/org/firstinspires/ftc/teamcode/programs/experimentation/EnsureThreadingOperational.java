@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.programs.experimentation;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.programs.Core;
-import org.firstinspires.ftc.teamcode.sdkextensions.logging.Log;
 import org.firstinspires.ftc.teamcode.sdkextensions.threading.ComplexTask;
 import org.firstinspires.ftc.teamcode.sdkextensions.threading.Flow;
 
@@ -39,7 +38,7 @@ public class EnsureThreadingOperational extends Core
         task1.run();
         task2.run();
 
-        log.newLine("Task 1 updating per 200 ms, Task 2 every 500");
+        log.lines("Task 1 updating per 200 ms, Task 2 every 500");
 
         while (true)
         {

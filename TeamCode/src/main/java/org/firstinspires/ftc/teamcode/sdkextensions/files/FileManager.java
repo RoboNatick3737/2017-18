@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.sdkextensions.files;
 import android.os.Environment;
 
 import org.firstinspires.ftc.teamcode.programs.Core;
-import org.firstinspires.ftc.teamcode.sdkextensions.logging.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,7 +17,7 @@ public class FileManager
 
         if (new File(actualPath).exists())
         {
-            Core.log.newLine("Can't copy " + internalPath + " since it already exists.");
+            Core.log.lines("Can't copy " + internalPath + " since it already exists.");
         }
 
         InputStream in = Core.current.hardwareMap.appContext.getResources().openRawResource(id);

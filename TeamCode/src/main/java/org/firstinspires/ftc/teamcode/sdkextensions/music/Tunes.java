@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.sdkextensions.music;
 import android.media.MediaPlayer;
 
 import org.firstinspires.ftc.teamcode.programs.Core;
-import org.firstinspires.ftc.teamcode.sdkextensions.logging.Log;
 import org.firstinspires.ftc.teamcode.sdkextensions.threading.Flow;
 
 /**
@@ -50,14 +49,14 @@ public class Tunes
                 }
             });
 
-            Core.log.newLine ("Playing " + choice.toString ());
+            Core.log.lines("Playing " + choice.toString ());
 
             Flow.msPause (1000); //Give the MediaPlayer some time to initialize, and register that a song is being played.
         } catch (InterruptedException e)
         {/**/} //Exit immediately.
         catch (Exception e)
         {
-            Core.log.newLine ("Music error: " + e.getMessage ());
+            Core.log.lines("Music error: " + e.getMessage ());
         }
     }
 

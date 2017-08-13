@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.sdkextensions.threading;
 import android.os.AsyncTask;
 
 import org.firstinspires.ftc.teamcode.programs.Core;
-import org.firstinspires.ftc.teamcode.sdkextensions.logging.Log;
 import org.firstinspires.ftc.teamcode.sdkextensions.logging.ProcessConsole;
 
 /**
@@ -47,7 +46,7 @@ public abstract class ComplexTask extends AsyncTask <Void, Void, Void>
         }
         catch (InterruptedException e) //Upon stop requested by NiFTFlow
         {
-            Core.log.newLine(taskName + " task was stopped!");
+            Core.log.lines(taskName + " task was stopped!");
         }
         finally
         {
@@ -100,9 +99,9 @@ public abstract class ComplexTask extends AsyncTask <Void, Void, Void>
         }
         catch (Exception e)
         {
-            Core.log.newLine("Uh oh! " + taskName + " can't run!");
-            Core.log.newLine(e.getMessage ());
-            Core.log.newLine("Proceeding normally.");
+            Core.log.lines("Uh oh! " + taskName + " can't run!");
+            Core.log.lines(e.getMessage ());
+            Core.log.lines("Proceeding normally.");
         }
     }
     /**
@@ -116,9 +115,9 @@ public abstract class ComplexTask extends AsyncTask <Void, Void, Void>
         }
         catch (Exception e)
         {
-            Core.log.newLine("Uh oh! " + taskName + " couldn't be stopped!");
-            Core.log.newLine(e.getMessage ());
-            Core.log.newLine("Proceeding normally.");
+            Core.log.lines("Uh oh! " + taskName + " couldn't be stopped!");
+            Core.log.lines(e.getMessage ());
+            Core.log.lines("Proceeding normally.");
         }
     }
 }

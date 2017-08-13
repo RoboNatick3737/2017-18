@@ -37,12 +37,13 @@ public class Log
     }
 
     final int maxSequentialLines = 13;
-    public void newLine(String newLine)
+    public void lines(String... newLines)
     {
         //Add new line at beginning of the lines.
-        sequentialConsoleData.add (0, newLine);
+        for (String line: newLines)
+            sequentialConsoleData.add (0, line);
         //If there is more than 5 lines there, remove one.
-        if (sequentialConsoleData.size () > maxSequentialLines)
+        while (sequentialConsoleData.size () > maxSequentialLines)
             sequentialConsoleData.remove (maxSequentialLines);
     }
 

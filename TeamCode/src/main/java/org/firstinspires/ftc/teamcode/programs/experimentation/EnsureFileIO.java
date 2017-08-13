@@ -8,7 +8,6 @@ import java.io.File;
 
 import org.firstinspires.ftc.teamcode.programs.Core;
 import org.firstinspires.ftc.teamcode.sdkextensions.files.FileManager;
-import org.firstinspires.ftc.teamcode.sdkextensions.logging.Log;
 import org.firstinspires.ftc.teamcode.sdkextensions.threading.Flow;
 
 @Autonomous(name="Ensure File IO", group="Experimentation")
@@ -18,18 +17,18 @@ public class EnsureFileIO extends Core
     {
         try
         {
-            log.newLine("Beginning copy...");
+            log.lines("Beginning copy...");
             FileManager.CopyRAWtoSDCard(com.qualcomm.ftcrobotcontroller.R.raw.ussranthem, "FIRST/ussranthem.mp3");
-            log.newLine("Checking for " + Environment.getExternalStorageDirectory() + "/FIRST/ussranthem.mp3");
+            log.lines("Checking for " + Environment.getExternalStorageDirectory() + "/FIRST/ussranthem.mp3");
             if (new File(Environment.getExternalStorageDirectory() + "/FIRST/ussranthem.mp3").exists()) {
-                log.newLine("Success!");
+                log.lines("Success!");
             } else {
-                log.newLine("Not found.");
+                log.lines("Not found.");
             }
         }
         catch (Exception e)
         {
-            log.newLine("Failed :( exception");
+            log.lines("Failed :( exception");
         }
 
         while (true)
