@@ -1,8 +1,7 @@
-package org.firstinspires.ftc.teamcode.programs.experimentation;
+package org.firstinspires.ftc.teamcode.experimentation;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cColorSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
@@ -131,7 +130,7 @@ public class FollowJoystickOrientation extends Core
                 calibrationSensor.enableLed(true);
                 while (calibrationSensor.alpha() <= 5)
                 {
-                    calibrationConsole.updateWith("Alpha is " + calibrationSensor.alpha() + " threshold is 5");
+                    calibrationConsole.write("Alpha is " + calibrationSensor.alpha() + " threshold is 5");
                     Flow.yield();
                 }
                 calibrationSensor.enableLed(true);
@@ -161,7 +160,7 @@ public class FollowJoystickOrientation extends Core
                 toTurn.setPower(0);
             }
 
-            processConsole.updateWith(
+            processConsole.write(
                     "X=" + gamepad1.left_stick_x + " Y=" + -gamepad1.left_stick_y + " so degree is " + getDesiredJoystickHeading(),
                     "Current Pos=" + currentPosition + " and desired=" + desiredMotorPosition + " offset=" + offsetRevolutions);
 

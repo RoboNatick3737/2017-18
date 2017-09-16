@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.programs.experimentation;
+package org.firstinspires.ftc.teamcode.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.sdkextensions.threading.Flow;
 @Autonomous(name="Ensure Threading Works", group="Experimentation")
 public class EnsureThreadingOperational extends Core
 {
+
     protected void START() throws InterruptedException
     {
         ComplexTask task1 = new ComplexTask("Task 1") {
@@ -16,7 +17,7 @@ public class EnsureThreadingOperational extends Core
             protected void onDoTask() throws InterruptedException {
                 int i = 0;
                 while (true) {
-                    processConsole.updateWith("Task 1 Update" + i + "!");
+                    processConsole.write("Task 1 Update" + i + "!");
                     i++;
                     Flow.msPause(200);
                 }
@@ -28,7 +29,7 @@ public class EnsureThreadingOperational extends Core
             protected void onDoTask() throws InterruptedException {
                 int i = 0;
                 while (true) {
-                    processConsole.updateWith("Task 1 Update" + i + "!");
+                    processConsole.write("Task 1 Update" + i + "!");
                     i++;
                     Flow.msPause(500);
                 }

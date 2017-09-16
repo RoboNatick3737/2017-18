@@ -1,23 +1,16 @@
+/**
+ * Used to divvy up SimpleTasks into certain groups, depending on their function.
+ */
+
 package org.firstinspires.ftc.teamcode.sdkextensions.threading;
 
-import org.firstinspires.ftc.teamcode.sdkextensions.logging.Log;
+import org.firstinspires.ftc.teamcode.programs.Core;
 import org.firstinspires.ftc.teamcode.sdkextensions.logging.ProcessConsole;
 
 import java.util.ArrayList;
 
-/**
- * Used to divvy up SimpleTasks into certain groups.
- */
 public class SimpleTaskPackage
 {
-    /**
-     * Where they would generally go.
-     */
-    public static SimpleTaskPackage generalTaskPool;
-
-    /**
-     * Might as well include a name for the group of tasks!
-     */
     public final String groupName;
     private ProcessConsole processConsole;
     public SimpleTaskPackage (String groupName)
@@ -26,11 +19,16 @@ public class SimpleTaskPackage
     }
     public SimpleTaskPackage(String groupName, SimpleTask... tasks)
     {
+        processConsole = Core.log.newProcessConsole(groupName);
+
         this.groupName = groupName;
 
         //Populate task list.
         for (SimpleTask task : tasks)
+        {
             add(task);
+            task.containingPackage = this;
+        }
     }
 
     /**
@@ -40,22 +38,21 @@ public class SimpleTaskPackage
     public void add(SimpleTask simpleTask)
     {
         taskList.add (simpleTask);
-        simpleTask.activate ();
     }
     public void remove(SimpleTask simpleTask)
     {
         taskList.remove (simpleTask);
-        simpleTask.deactivate ();
     }
 
     /**
-     * The SimpleTaskUpdater is a ComplexTask which takes up one AsyncTask spot but runs more than one task.
+     * The TaskPackageRunner is a ComplexTask which just loops through the list of simple tasks that it needs to run and runs each
+     * depending on the pause they ask for.
      */
-    private class SimpleTaskUpdater extends ComplexTask
+    private class TaskPackageRunner extends ComplexTask
     {
-        public SimpleTaskUpdater(String taskName)
+        public TaskPackageRunner()
         {
-            super(taskName);
+            super(groupName + " Task Package");
         }
 
         @Override
@@ -68,7 +65,7 @@ public class SimpleTaskPackage
                 {
                     //Run if possible.
                     SimpleTask task = taskList.get(i);
-                    if (task.nextRunTime < System.currentTimeMillis ())
+                    if (task.isRunning() && task.nextRunTime < System.currentTimeMillis ())
                         task.nextRunTime = task.onContinueTask () + System.currentTimeMillis ();
                 }
 
@@ -77,21 +74,21 @@ public class SimpleTaskPackage
             }
         }
     }
-    private SimpleTaskUpdater taskUpdaterInstance = null;
-    public void startTaskUpdater()
+    private TaskPackageRunner taskPackageRunner = null;
+    public void start()
     {
-        if (taskUpdaterInstance == null)
+        if (taskPackageRunner == null)
         {
-            taskUpdaterInstance = new SimpleTaskUpdater (groupName + " Task");
-            taskUpdaterInstance.run ();
+            taskPackageRunner = new TaskPackageRunner();
+            taskPackageRunner.run ();
         }
     }
-    public void stopTaskUpdater()
+    public void pause()
     {
-        if (taskUpdaterInstance != null)
+        if (taskPackageRunner != null)
         {
-            taskUpdaterInstance.stop ();
-            taskUpdaterInstance = null;
+            taskPackageRunner.stop ();
+            taskPackageRunner = null;
         }
     }
 }

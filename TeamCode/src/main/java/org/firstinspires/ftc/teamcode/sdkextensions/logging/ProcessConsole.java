@@ -6,29 +6,29 @@ public class ProcessConsole
 {
     public final String processName;
     public String[] processData;
-    private ArrayList<ProcessConsole> mainList;
 
-    public ProcessConsole (String processName, ArrayList<ProcessConsole> mainList)
+    private ArrayList<ProcessConsole> parentList;
+
+    public ProcessConsole (String processName, ArrayList<ProcessConsole> parentList)
     {
         this.processName = processName;
         processData = new String[0];
-        this.mainList = mainList;
 
-        this.mainList.add (this);
+        this.parentList = parentList;
+        this.parentList.add (this);
     }
 
-    public void updateWith (String... processData)
+    public void write(String... data)
     {
-        this.processData = processData;
+        this.processData = data;
     }
 
     public void destroy ()
     {
-        mainList.remove (this);
+        parentList.remove (this);
     }
-
     public void revive ()
     {
-        mainList.add (this);
+        parentList.add (this);
     }
 }

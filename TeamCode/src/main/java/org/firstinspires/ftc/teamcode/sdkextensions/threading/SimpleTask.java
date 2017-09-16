@@ -10,31 +10,33 @@ import org.firstinspires.ftc.teamcode.sdkextensions.logging.ProcessConsole;
 public abstract class SimpleTask
 {
     public final String taskName;
-    protected ProcessConsole processConsole;
+    public SimpleTaskPackage containingPackage;
+    private boolean running = true;
+    public long nextRunTime = 0;
+
     public SimpleTask ()
     {
-        this ("Unnamed Simple NiFTComplexTask");
+        this ("Unnamed Simple Task");
     }
     public SimpleTask (String taskName)
     {
         this.taskName = taskName;
     }
 
-    public void activate()
+    // Used to start/pause the task.
+    public void resume()
     {
-        if (processConsole == null)
-            processConsole = Core.log.newProcessConsole(taskName);
+        running = true;
     }
-    public void deactivate()
+    public void pause()
     {
-        if (processConsole != null)
-        {
-            processConsole.destroy ();
-            processConsole = null;
-        }
+        running = false;
+    }
+    public boolean isRunning()
+    {
+        return running;
     }
 
-    //The long returned indicates the amount of time to wait before running the task again.
-    public long nextRunTime = 0;
+    // The long returned indicates the amount of time to wait before running the task again.
     protected abstract long onContinueTask () throws InterruptedException;
 }

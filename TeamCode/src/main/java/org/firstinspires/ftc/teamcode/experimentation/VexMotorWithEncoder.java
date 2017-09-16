@@ -1,6 +1,5 @@
-package org.firstinspires.ftc.teamcode.programs.experimentation;
+package org.firstinspires.ftc.teamcode.experimentation;
 
-import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cColorSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -27,7 +26,7 @@ public class VexMotorWithEncoder extends Core
 
         ProcessConsole processConsole = log.newProcessConsole("Position Log");
         while (true) {
-            processConsole.updateWith("Position " + toTurnEncoder.getCurrentPosition());
+            processConsole.write("Position " + toTurnEncoder.getCurrentPosition());
             Flow.yield();
         }
     }

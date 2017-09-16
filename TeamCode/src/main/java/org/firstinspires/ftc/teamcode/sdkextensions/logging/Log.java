@@ -55,7 +55,7 @@ public class Log
     }
 
     /**
-     * To get a private process console, create a new Log.ProcessConsole(<name here>) and then run updateWith() to provide new content.
+     * To get a private process console, create a new Log.ProcessConsole(<name here>) and then run write() to provide new content.
      */
 
     public ProcessConsole newProcessConsole(String name)
