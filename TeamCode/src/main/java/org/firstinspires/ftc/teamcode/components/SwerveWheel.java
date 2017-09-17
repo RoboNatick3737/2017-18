@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.sdkextensions.hardware.EncoderMotor;
 import org.firstinspires.ftc.teamcode.sdkextensions.threading.SimpleTask;
 
-public class SwerveMotor
+public class SwerveWheel
 {
     private final String motorName;
     private final EncoderMotor driveMotor;
@@ -29,7 +29,7 @@ public class SwerveMotor
 
     private final double ENCODER_TICKS_PER_REVOLUTION = 0;
 
-    public SwerveMotor(String motorName, EncoderMotor driveMotor, Servo turnMotor, EncoderMotor turnMotorPosition)
+    public SwerveWheel(String motorName, EncoderMotor driveMotor, Servo turnMotor, EncoderMotor turnMotorPosition)
     {
         this.motorName = motorName;
         this.driveMotor = driveMotor;
@@ -79,7 +79,7 @@ public class SwerveMotor
     /**
      * Takes the desired rectangular coordinates for this motor, and converts them to polar coordinates.
      */
-    private void setVectorTarget(Vector2D target)
+    public void setVectorTarget(Vector2D target)
     {
         // We could store the vector, but then we'd be re-calculating these values over and over.
         mag = target.magnitude();

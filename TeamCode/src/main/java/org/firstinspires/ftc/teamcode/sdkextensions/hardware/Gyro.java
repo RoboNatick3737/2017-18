@@ -54,17 +54,4 @@ public class Gyro
         //Get the heading.
         return sensor.getHeading ();
     }
-
-    //Set this value before attempting a turn with the method below.
-    private int desiredHeading = 0;
-    public void setDesiredHeading(int desiredHeading)
-    {
-        this.desiredHeading = desiredHeading;
-    }
-    public int getDesiredHeading() { return desiredHeading; }
-
-    public int getOffFromHeading()
-    {
-        return desiredHeading - heading();
-    }
 }

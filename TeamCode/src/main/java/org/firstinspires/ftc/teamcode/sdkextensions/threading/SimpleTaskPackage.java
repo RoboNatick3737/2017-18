@@ -1,26 +1,20 @@
 /**
- * Used to divvy up SimpleTasks into certain groups, depending on their function.
+ * Used to separate SimpleTasks into certain groups, depending on their function.
  */
 
 package org.firstinspires.ftc.teamcode.sdkextensions.threading;
-
-import org.firstinspires.ftc.teamcode.programs.Core;
-import org.firstinspires.ftc.teamcode.sdkextensions.logging.ProcessConsole;
 
 import java.util.ArrayList;
 
 public class SimpleTaskPackage
 {
     public final String groupName;
-    private ProcessConsole processConsole;
     public SimpleTaskPackage (String groupName)
     {
         this(groupName, null);
     }
     public SimpleTaskPackage(String groupName, SimpleTask... tasks)
     {
-        processConsole = Core.log.newProcessConsole(groupName);
-
         this.groupName = groupName;
 
         //Populate task list.
@@ -45,8 +39,10 @@ public class SimpleTaskPackage
     }
 
     /**
-     * The TaskPackageRunner is a ComplexTask which just loops through the list of simple tasks that it needs to run and runs each
-     * depending on the pause they ask for.
+     * The TaskPackageRunner is a ComplexTask which just loops through the list of simple tasks that it
+     * needs to run and runs each depending on the pause they ask for.
+     *
+     * Since ComplexTasks already include a ProcessConsole, don't bother making one in here.
      */
     private class TaskPackageRunner extends ComplexTask
     {
