@@ -2,6 +2,8 @@ package ftc.vision;
 
 import android.view.SurfaceView;
 
+import com.qualcomm.robotcore.util.RobotLog;
+
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Mat;
 

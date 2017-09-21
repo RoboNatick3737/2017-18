@@ -117,7 +117,6 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import android.view.WindowManager;
 import ftc.vision.FrameGrabber;
-import android.util.Log;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -149,10 +148,10 @@ public class FtcRobotControllerActivity extends Activity {
 
   void myOnResume(){
     if (!OpenCVLoader.initDebug()) {
-      Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-      OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+      RobotLog.vv(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+      OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_3_0, this, mLoaderCallback);
     } else {
-      Log.d(TAG, "OpenCV library found inside package. Using it!");
+      RobotLog.vv(TAG, "OpenCV library found inside package. Using it!");
       mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
     }
   }
@@ -168,25 +167,25 @@ public class FtcRobotControllerActivity extends Activity {
     public void onManagerConnected(int status) {
       switch (status) {
         case LoaderCallbackInterface.SUCCESS:
-          Log.i(TAG, "OpenCV Manager Connected");
+          RobotLog.vv(TAG, "OpenCV Manager Connected");
           //from now onwards, you can use OpenCV API
 //          Mat m = new Mat(5, 10, CvType.CV_8UC1, new Scalar(0));
           cameraBridgeViewBase.enableView();
           break;
         case LoaderCallbackInterface.INIT_FAILED:
-          Log.i(TAG, "Init Failed");
+          RobotLog.vv(TAG, "Init Failed");
           break;
         case LoaderCallbackInterface.INSTALL_CANCELED:
-          Log.i(TAG, "Install Cancelled");
+          RobotLog.vv(TAG, "Install Cancelled");
           break;
         case LoaderCallbackInterface.INCOMPATIBLE_MANAGER_VERSION:
-          Log.i(TAG, "Incompatible Version");
+          RobotLog.vv(TAG, "Incompatible Version");
           break;
         case LoaderCallbackInterface.MARKET_ERROR:
-          Log.i(TAG, "Market Error");
+          RobotLog.vv(TAG, "Market Error");
           break;
         default:
-          Log.i(TAG, "OpenCV Manager Install");
+          RobotLog.vv(TAG, "OpenCV Manager Install");
           super.onManagerConnected(status);
           break;
       }
@@ -317,10 +316,6 @@ public class FtcRobotControllerActivity extends Activity {
       }
     }
 
-    ////////////// START VISION PROCESSING CODE //////////////
-    myOnCreate();
-    ////////////// END VISION PROCESSING CODE //////////////
-
     context = this;
     utility = new Utility(this);
     DeviceNameManager.getInstance().start(deviceNameManagerStartResult);
@@ -388,6 +383,11 @@ public class FtcRobotControllerActivity extends Activity {
     ServiceController.startService(FtcRobotControllerWatchdogService.class);
     bindToService();
     logPackageVersions();
+
+
+    ////////////// START VISION PROCESSING CODE //////////////
+    myOnCreate();
+    ////////////// END VISION PROCESSING CODE //////////////
   }
 
   protected UpdateUI createUpdateUI() {
