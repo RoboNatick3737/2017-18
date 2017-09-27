@@ -144,11 +144,21 @@ public class FtcRobotControllerActivity extends Activity {
     cameraBridgeViewBase = (JavaCameraView) findViewById(R.id.show_camera_activity_java_surface_view);
     frameGrabber = new FrameGrabber(cameraBridgeViewBase, FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
     frameGrabber.setImageProcessor(new BeaconProcessor());
-    frameGrabber.setSaveImages(true);
+
+    // Determines whether the app saves every image it gets.
+    frameGrabber.setSaveImages(false);
   }
+
+  private boolean currentlyProcessingFrame = false;
 
   //when the "Grab" button is pressed
   public void frameButtonOnClick(View v){
+    if (currentlyProcessingFrame) {
+      return;
+    }
+
+    currentlyProcessingFrame = true;
+
     frameGrabber.grabSingleFrame();
     while (!frameGrabber.isResultReady()) {
       try {
@@ -159,6 +169,8 @@ public class FtcRobotControllerActivity extends Activity {
     }
     Object result = frameGrabber.getResult();
     ((TextView)findViewById(R.id.resultText)).setText(result.toString());
+
+    currentlyProcessingFrame = false;
   }
 
   void myOnWindowFocusChanged(boolean hasFocus){
@@ -178,7 +190,7 @@ public class FtcRobotControllerActivity extends Activity {
   void myOnResume(){
     if (!OpenCVLoader.initDebug()) {
       RobotLog.vv(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-      OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+      OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_3_0, this, mLoaderCallback);
     } else {
       RobotLog.vv(TAG, "OpenCV library found inside package. Using it!");
       mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
