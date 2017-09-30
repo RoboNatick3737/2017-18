@@ -693,6 +693,7 @@ public class FtcRobotControllerActivity extends Activity {
   }
 
   private void updateUIAndRequestRobotSetup() {
+    RobotLog.vv(TAG, "Got Update UI and Request Robo Setup");
     if (controllerService != null) {
       callback.networkConnectionUpdate(controllerService.getNetworkConnectionStatus());
       callback.updateRobotStatus(controllerService.getRobotStatus());
