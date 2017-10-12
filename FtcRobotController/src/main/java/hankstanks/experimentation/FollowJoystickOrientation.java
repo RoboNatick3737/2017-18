@@ -1,11 +1,10 @@
 package hankstanks.experimentation;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cColorSensor;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import hankstanks.programs.Core;
+import hankstanks.sdkextensions.Core;
 import hankstanks.sdkextensions.logging.ProcessConsole;
 import hankstanks.sdkextensions.threading.Flow;
 

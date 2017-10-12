@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import hankstanks.components.SwerveDrive;
 import hankstanks.components.SwerveWheel;
-import hankstanks.programs.Core;
+import hankstanks.sdkextensions.Core;
 import hankstanks.sdkextensions.hardware.EncoderMotor;
 import hankstanks.sdkextensions.hardware.Gyro;
 

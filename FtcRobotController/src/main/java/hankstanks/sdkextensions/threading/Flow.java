@@ -1,6 +1,6 @@
 package hankstanks.sdkextensions.threading;
 
-import hankstanks.programs.Core;
+import hankstanks.sdkextensions.Core;
 
 /**
  * This class is super important to running the program while making sure to check the user requested state of the program.  While running any wait method, the program will run essentially an idle() statement to check to see whether a stop was requested, and throw an InterruptedException in that event.

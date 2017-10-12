@@ -1,6 +1,6 @@
 package hankstanks.experimentation;
 
-import hankstanks.programs.Core;
+import hankstanks.sdkextensions.Core;
 import hankstanks.sdkextensions.music.Tunes;
 import hankstanks.sdkextensions.threading.Flow;
 

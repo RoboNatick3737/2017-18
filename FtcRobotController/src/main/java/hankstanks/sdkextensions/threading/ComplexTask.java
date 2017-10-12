@@ -2,7 +2,7 @@ package hankstanks.sdkextensions.threading;
 
 import android.os.AsyncTask;
 
-import hankstanks.programs.Core;
+import hankstanks.sdkextensions.Core;
 import hankstanks.sdkextensions.logging.ProcessConsole;
 
 /**

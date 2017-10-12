@@ -3,7 +3,7 @@ package hankstanks.experimentation;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import hankstanks.programs.Core;
+import hankstanks.sdkextensions.Core;
 import hankstanks.sdkextensions.logging.ProcessConsole;
 import hankstanks.sdkextensions.threading.Flow;
 

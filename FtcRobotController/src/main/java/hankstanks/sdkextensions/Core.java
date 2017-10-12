@@ -1,4 +1,4 @@
-package hankstanks.programs;
+package hankstanks.sdkextensions;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareDevice;

@@ -2,7 +2,7 @@ package hankstanks.sdkextensions.music;
 
 import android.media.MediaPlayer;
 
-import hankstanks.programs.Core;
+import hankstanks.sdkextensions.Core;
 import hankstanks.sdkextensions.threading.Flow;
 
 /**
