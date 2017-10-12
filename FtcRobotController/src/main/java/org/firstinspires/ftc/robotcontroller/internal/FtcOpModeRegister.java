@@ -37,10 +37,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpModeRegister;
 import org.firstinspires.ftc.robotcontroller.external.samples.ConceptNullOp;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta;
 
-import hankstanks.experimentation.EnsureAndroidGyro;
-import hankstanks.experimentation.EnsureTunesOperational;
-import hankstanks.experimentation.MakeSomeToast;
-
 /**
  * {@link FtcOpModeRegister} is responsible for registering opmodes for use in an FTC game.
  * @see #register(OpModeManager)
@@ -67,13 +63,8 @@ public class FtcOpModeRegister implements OpModeRegister {
      * @see com.qualcomm.robotcore.eventloop.opmode.Autonomous
      */
     public void register(OpModeManager manager) {
-
         /**
          * Any manual OpMode class registrations should go here.
          */
-
-        manager.register(new OpModeMeta("Test Android Gyro", OpModeMeta.Flavor.AUTONOMOUS), EnsureAndroidGyro.class);
-        manager.register(new OpModeMeta("Play that Funky Music", OpModeMeta.Flavor.AUTONOMOUS), EnsureTunesOperational.class);
-        manager.register(new OpModeMeta("Who's ya boi?", OpModeMeta.Flavor.AUTONOMOUS), MakeSomeToast.class);
     }
 }
