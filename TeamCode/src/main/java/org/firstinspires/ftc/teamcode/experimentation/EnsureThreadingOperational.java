@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode.experimentation;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+
 import hankstanks.hankextensions.Core;
 import hankstanks.hankextensions.threading.ComplexTask;
 import hankstanks.hankextensions.threading.Flow;
 
+@Autonomous(name="Test Threading", group="Experimentation")
 public class EnsureThreadingOperational extends Core
 {
     protected void START() throws InterruptedException

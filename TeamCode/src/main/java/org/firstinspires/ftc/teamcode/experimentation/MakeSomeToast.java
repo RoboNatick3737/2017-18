@@ -7,7 +7,7 @@ import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
 import hankstanks.hankextensions.Core;
 
-@Autonomous(name="Thing", group="blep")
+@Autonomous(name="Make Some Toast", group="Experimentation")
 public class MakeSomeToast extends Core
 {
     protected void START() throws InterruptedException

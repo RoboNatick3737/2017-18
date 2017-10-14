@@ -7,7 +7,7 @@ import hankstanks.hankextensions.hardware.AndroidGyro;
 import hankstanks.hankextensions.logging.ProcessConsole;
 import hankstanks.hankextensions.threading.Flow;
 
-@Autonomous(name = "Blep", group = "Blepa")
+@Autonomous(name = "Test Android Gyro", group = "Experimentation")
 public class EnsureAndroidGyro extends Core
 {
     AndroidGyro phoneGyro;

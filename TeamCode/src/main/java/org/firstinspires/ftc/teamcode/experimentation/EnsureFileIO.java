@@ -2,12 +2,15 @@ package org.firstinspires.ftc.teamcode.experimentation;
 
 import android.os.Environment;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+
 import java.io.File;
 
 import hankstanks.hankextensions.Core;
 import hankstanks.hankextensions.files.FileManager;
 import hankstanks.hankextensions.threading.Flow;
 
+@Autonomous(name="Test File IO", group="Experimentation")
 public class EnsureFileIO extends Core
 {
     protected void START() throws InterruptedException
