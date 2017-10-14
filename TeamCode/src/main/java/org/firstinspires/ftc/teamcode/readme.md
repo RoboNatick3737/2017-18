@@ -1,13 +1,3 @@
-## Note from Makiah:
-
-Unfortunately, it seems that through the addition of the ftc.vision code, the @Autonomous
-and @Teleop annotations no longer work :(.  However, that's fine, since we can register
-manually to the same effect, and save a lot of hassle that we would have had to use if we
-programmed through this directory :).
-
-Instead, work through the FtcRobotController/.../hankstanks directory (next to the ftc.vision
-one).
-
 ## TeamCode Module
 
 Welcome!
