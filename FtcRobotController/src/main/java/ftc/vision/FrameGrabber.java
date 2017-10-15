@@ -110,6 +110,7 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
     if(imageProcessor == null){
       return;
     }
+
     //start the loop timer
     if(mode == FrameGrabberMode.SINGLE){
       loopTimer = System.nanoTime();
@@ -118,7 +119,9 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
 
     //get the rgb alpha image
     tmp1 = inputFrame.rgba();
-    ImageUtil.rotate(tmp1, frame, 90);
+
+    // If you're viewing it vertically then un-comment this.
+    //ImageUtil.rotate(tmp1, frame, 90);
 
     //process the image using the provided imageProcessor
     result = imageProcessor.process(frameTime, frame, saveImages); //process
@@ -161,6 +164,9 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
 
   @Override
   public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+
+    return inputFrame.rgba();
+    /*
     if(mode == FrameGrabberMode.SINGLE){ //if a single frame was requested
       processFrame(inputFrame); //process it
       stopFrameGrabber(); //and stop grabbing
@@ -184,6 +190,6 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
     } else {
       stopFrameGrabber(); //paranoia
     }
-    return frame; //this is displayed on the screen
+    return frame; //this is displayed on the screen*/
   }
 }

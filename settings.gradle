@@ -1,3 +1,4 @@
-include ':FtcRobotController', ':HankExtensions'
+include ':FtcRobotController'
+include ':HankExtensions'
 include ':TeamCode'
 include ':openCVLibrary330'

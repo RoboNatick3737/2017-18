@@ -17,3 +17,7 @@ apply from: '../build.common.gradle'
 dependencies {
     compile project(':HankExtensions')
 }
+android {
+    compileSdkVersion 23
+    buildToolsVersion '25.0.3'
+}
