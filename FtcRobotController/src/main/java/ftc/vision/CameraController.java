@@ -15,7 +15,6 @@ public class CameraController
     // Both classes control their respective camera software.
     public final OpenCVManager openCVManager;
     public final VuforiaManager vuforiaManager;
-    
 
     public enum Status {
         CREATE,
@@ -87,7 +86,8 @@ public class CameraController
         updateButtonText();
 
         openCVManager.disableAndHide();
-        // vuforiaManager.enableAndShow();
+//        vuforiaManager.enableAndShow();
+        vuforiaManager.setViewStatus(true);
 
         // Set Vuforia status.
         currentViewer = Viewer.VUFORIA;
@@ -117,8 +117,6 @@ public class CameraController
 
         if (currentViewer == Viewer.OPEN_CV)
             initOpenCV();
-        else if (currentViewer == Viewer.VUFORIA)
-            initVuforia();
     }
 
     public void cameraOnResume()
@@ -127,6 +125,9 @@ public class CameraController
 
         if (currentViewer == Viewer.OPEN_CV)
             openCVManager.onResume();
+
+        else if (currentViewer == Viewer.VUFORIA)
+            initVuforia();
     }
 
     public void cameraOnPause()
