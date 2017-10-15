@@ -179,7 +179,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <FrameLayout
           android:layout_height="fill_parent"
           android:layout_width="fill_parent"
-          android:id="@+id/frameLayout">
+          android:id="@+id/openCVCam">
 
         <org.opencv.android.JavaCameraView
             android:layout_width="fill_parent"
@@ -190,14 +190,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             opencv:show_fps="true"
             opencv:camera_id="any" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Grab"
-            android:id="@+id/button3"
-            android:layout_gravity="end|bottom"
-            android:onClick="frameButtonOnClick"/>
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -206,6 +198,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             android:id="@+id/resultText"
             android:layout_gravity="end|top"
             android:textColor="#ff0000" />
+
+        <Button
+            android:id="@+id/button3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:onClick="frameButtonOnClick"
+            android:text="Grab" />
 
       </FrameLayout>
 
@@ -237,6 +237,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             android:textColor="?attr/textMediumDark" />
 
       </FrameLayout>
+
+      <Button
+          android:id="@+id/cameraSwitchButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_alignParentLeft="true"
+          android:layout_alignParentBottom="true"
+          android:onClick="swapCameraViewer"
+          android:text="Switch" />
+
     </RelativeLayout>
   </LinearLayout>
 

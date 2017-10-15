@@ -52,6 +52,8 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
+import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -121,6 +123,7 @@ import org.opencv.android.OpenCVLoader;
 import android.view.WindowManager;
 
 import ftc.vision.BeaconProcessor;
+import ftc.vision.CameraController;
 import ftc.vision.FrameGrabber;
 
 @SuppressWarnings("WeakerAccess")
@@ -234,6 +237,34 @@ public class FtcRobotControllerActivity extends Activity {
   };
 
   ////////////// END VISION PROCESSING CODE //////////////
+
+  ////////////// START CAMERA CONTROL CODE //////////////
+
+  /**
+   * Calls the CameraController method which corresponds with the appropriate switch to the right
+   * camera viewer.
+   */
+  public static CameraController cameraController;
+
+  public void swapCameraViewer(View v)
+  {
+    if (cameraController.getViewer() == CameraController.Viewer.PENDING)
+      return;
+
+    if (cameraController.getViewer() == CameraController.Viewer.OPEN_CV)
+    {
+      cameraController.initVuforia();
+    }
+    else {
+      cameraController.initOpenCV();
+
+      ((Button)findViewById(R.id.cameraSwitchButton)).setText("Pending");
+
+
+    }
+  }
+
+  ////////////// END CAMERA CONTROL CODE //////////////
 
   public static final String TAG = "RCActivity";
   public String getTag() { return TAG; }
