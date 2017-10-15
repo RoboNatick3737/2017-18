@@ -1,125 +1,162 @@
 package ftc.vision;
 
-import android.content.Context;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
 import com.qualcomm.ftcrobotcontroller.R;
-import com.vuforia.HINT;
-import com.vuforia.Vuforia;
 
 import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 public class CameraController
 {
     private FtcRobotControllerActivity activity;
-
-    private View appView;
     private Button switchButton;
 
-    // Vuforia stuff.
-    private CloseableVuforiaLocalizer vuforia;
-    private void ensureVuforiaClosed() {
-        if (vuforia != null) {
-            vuforia.close();
-            vuforia = null;
-        }
+    // Both classes control their respective camera software.
+    public final OpenCVManager openCVManager;
+    public final VuforiaManager vuforiaManager;
+    
+
+    public enum Status {
+        CREATE,
+        RESUME,
+        PAUSE,
+        DESTROY
     }
-    public VuforiaTrackables getTrackables() {
-        if (vuforia != null) {
-            VuforiaTrackables trackables = vuforia.loadTrackablesFromAsset("RelicVuMark");
-            trackables.setName("Vision Targets");
+    private Status currentStatus;
 
-            return trackables;
-        }
-
-        return null;
-    }
-
-    public CameraController(FtcRobotControllerActivity activity)
-    {
-        this.activity = activity;
-
-        LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        appView = inflater.inflate(R.layout.activity_ftc_controller, null);
-
-        switchButton = ((Button)appView.findViewById(R.id.cameraSwitchButton));
-    }
-
+    // The current viewer being used (OpenCV/Vuforia)
     public enum Viewer {
         OPEN_CV,
         VUFORIA,
         PENDING
     }
-
     private Viewer currentViewer;
+
+
+    public CameraController(FtcRobotControllerActivity activity, Viewer initialViewer)
+    {
+        this.activity = activity;
+
+        // Create the two camera software managers.
+        openCVManager = new OpenCVManager(activity);
+        vuforiaManager = new VuforiaManager(activity);
+
+        // Find the button (so that we can change the text in accordance with the current software).
+        switchButton = ((Button)activity.findViewById(R.id.cameraSwitchButton));
+
+        // Switch to the correct viewer.
+        vuforiaManager.disableAndHide();
+        openCVManager.disableAndHide();
+        currentViewer = initialViewer;
+        updateButtonText();
+    }
+
+    private void updateButtonText()
+    {
+        if (currentViewer == Viewer.OPEN_CV)
+        {
+            switchButton.setText("OpenCV");
+        }
+        else if (currentViewer == Viewer.VUFORIA)
+        {
+            switchButton.setText("Vuforia");
+        }
+        else if (currentViewer == Viewer.PENDING)
+        {
+            switchButton.setText("Pending...");
+        }
+    }
+
     public Viewer getViewer() {
         return currentViewer;
     }
 
+    public void toggleViewer()
+    {
+        if (getViewer() == Viewer.OPEN_CV)
+            initVuforia();
+        else if (getViewer() == Viewer.VUFORIA)
+            initOpenCV();
+    }
+
     public void initVuforia()
     {
-        // Indicate to the primary activity that this is underway but not to accept further view transitions.
+        // Set Pending status.
         currentViewer = Viewer.PENDING;
+        updateButtonText();
 
-        // Set the UI to indicate the pending mode for this item.
-        switchButton.setText("Pending");
+        openCVManager.disableAndHide();
+        // vuforiaManager.enableAndShow();
 
-        // Paranoia
-        ensureVuforiaClosed();
-
-        // Close the OpenCV cam.
-        activity.myOnDestroy();
-        FrameLayout layout = (FrameLayout) appView.findViewById(R.id.openCVCam);
-        for (int i = 0; i < layout.getChildCount(); i++) {
-            View child = layout.getChildAt(i);
-            child.setEnabled(false);
-        }
-
-        // Create VuforiaLocalizer params.
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(R.id.cameraMonitorViewId);
-        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
-        parameters.vuforiaLicenseKey = "";
-        parameters.cameraMonitorFeedback = VuforiaLocalizer.Parameters.CameraMonitorFeedback.AXES;
-
-        vuforia = new CloseableVuforiaLocalizer(parameters);
-        Vuforia.setHint(HINT.HINT_MAX_SIMULTANEOUS_IMAGE_TARGETS, 1); // 1 vision target.
-
-
-        // Update currentViewer
-        switchButton.setText("Vuforia");
+        // Set Vuforia status.
         currentViewer = Viewer.VUFORIA;
+        updateButtonText();
     }
 
     public void initOpenCV()
     {
-        // Set to pending so that no other switches can be made in this time.
+        // Set Pending status.
         currentViewer = Viewer.PENDING;
+        updateButtonText();
 
-        // Set the UI to indicate the pending mode for this item.
-        switchButton.setText("Pending");
+        vuforiaManager.disableAndHide();
+        openCVManager.enableAndShow();
+        if (currentStatus == Status.RESUME)
+            openCVManager.onResume();
 
-        ensureVuforiaClosed();
+        // Set Vuforia status.
+        currentViewer = Viewer.OPEN_CV;
+        updateButtonText();
+    }
 
-        // Disable Vuforia from view.
-        LinearLayout vLayout = (LinearLayout) appView.findViewById(R.id.cameraMonitorViewId);
-        for (int i = 0; i < vLayout.getChildCount(); i++) {
-            View child = vLayout.getChildAt(i);
-            child.setEnabled(false);
-        }
 
-        // Enable OpenCV.
-        FrameLayout layout = (FrameLayout) appView.findViewById(R.id.openCVCam);
-        for (int i = 0; i < layout.getChildCount(); i++) {
-            View child = layout.getChildAt(i);
-            child.setEnabled(true);
-        }
-        activity.myOnCreate();
+    public void cameraOnCreate()
+    {
+        currentStatus = Status.CREATE;
+
+        if (currentViewer == Viewer.OPEN_CV)
+            initOpenCV();
+        else if (currentViewer == Viewer.VUFORIA)
+            initVuforia();
+    }
+
+    public void cameraOnResume()
+    {
+        currentStatus = Status.RESUME;
+
+        if (currentViewer == Viewer.OPEN_CV)
+            openCVManager.onResume();
+    }
+
+    public void cameraOnPause()
+    {
+        currentStatus = Status.PAUSE;
+
+        if (currentViewer == Viewer.OPEN_CV)
+            openCVManager.onPause();
+    }
+
+    public void cameraOnDestroy()
+    {
+        currentStatus = Status.DESTROY;
+
+        if (currentViewer == Viewer.OPEN_CV)
+            openCVManager.disableAndHide();
+
+        else if (currentViewer == Viewer.VUFORIA)
+            vuforiaManager.disableAndHide();
+    }
+
+    public void cameraOnWindowFocusChanged(boolean hasFocus)
+    {
+        if (currentViewer == Viewer.OPEN_CV)
+            openCVManager.onWindowFocusChanged(hasFocus);
+    }
+
+    public void grabNewFrame(View v)
+    {
+        if (currentViewer == Viewer.OPEN_CV)
+            openCVManager.frameButtonOnClick(v);
     }
 }

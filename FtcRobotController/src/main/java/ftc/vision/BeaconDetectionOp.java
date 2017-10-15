@@ -12,11 +12,12 @@ import ftc.vision.ImageProcessorResult;
  * Created by vandejd1 on 9/7/16.
  * FTC Team EV 7393
  */
-public class BeaconDetectionOp extends LinearOpMode {
+public class BeaconDetectionOp extends LinearOpMode
+{
 
   @Override
   public void runOpMode() throws InterruptedException {
-    FrameGrabber frameGrabber = FtcRobotControllerActivity.frameGrabber; //Get the frameGrabber
+    FrameGrabber frameGrabber = FtcRobotControllerActivity.cameraController.openCVManager.frameGrabber; //Get the frameGrabber
 
     frameGrabber.grabSingleFrame(); //Tell it to grab a frame
     while (!frameGrabber.isResultReady()) { //Wait for the result
