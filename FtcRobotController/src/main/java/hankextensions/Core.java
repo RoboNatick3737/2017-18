@@ -68,15 +68,17 @@ public abstract class Core extends LinearOpMode
         }
         finally //Occurs after all possible endings.
         {
-            // Clear the log.
-            Log.instance.close();
-
             // Stop playing tunes.
             Tunes.silence();
 
             // Disable both cameras (just in case)
-            OpenCVCam.instance.stop();
-            VuforiaCam.instance.stop();
+            if (OpenCVCam.instance != null)
+                OpenCVCam.instance.stop();
+            if (VuforiaCam.instance != null)
+                VuforiaCam.instance.stop();
+
+            // Clear the log.
+            Log.instance.close();
 
             STOP();
         }

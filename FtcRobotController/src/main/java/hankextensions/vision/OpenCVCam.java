@@ -15,6 +15,8 @@ import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 
+import hankextensions.logging.Log;
+
 /**
  * Singleton class instead of a static class because the BaseLoaderCallback doesn't like
  * when there is a static
@@ -60,6 +62,7 @@ public class OpenCVCam
                         RobotLog.vv(LOG_TAG, "OpenCV Manager Connected");
                         //from now onwards, you can use OpenCV API
                         // Mat m = new Mat(5, 10, CvType.CV_8UC1, new Scalar(0));
+                        Log.instance.lines("loader callback");
                         loadedOpenCV = true;
                         if (currentlyActive)
                             setCameraViewState(true);
@@ -158,6 +161,8 @@ public class OpenCVCam
     // HAS to run on UI thread or view thread error.
     private void onCreate()
     {
+        Log.instance.lines("onCreate()");
+
         FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -175,6 +180,7 @@ public class OpenCVCam
 
     private void onResume()
     {
+        Log.instance.lines("onResume()");
         currentState = State.RESUME;
 
         if (!OpenCVLoader.initDebug()) {
@@ -191,15 +197,16 @@ public class OpenCVCam
         if (!currentlyActive)
             return;
 
-//        if (hasFocus) {
-//            frameGrabber.stopFrameGrabber();
-//        } else {
-//            frameGrabber.throwAwayFrames();
-//        }
+        if (hasFocus) {
+            frameGrabber.stopFrameGrabber();
+        } else {
+            frameGrabber.throwAwayFrames();
+        }
     }
 
     private void onPause()
     {
+        Log.instance.lines("onPause()");
         currentState = State.PAUSE;
 
         setCameraViewState(false);
@@ -207,6 +214,7 @@ public class OpenCVCam
 
     private void onDestroy()
     {
+        Log.instance.lines("onDestroy()");
         currentState = State.DESTROY;
 
         onPause();
@@ -218,6 +226,7 @@ public class OpenCVCam
 
     public void newActivityState(State state)
     {
+        Log.instance.lines("Activity requested " + state.toString());
         switch (state)
         {
             case PAUSE:
