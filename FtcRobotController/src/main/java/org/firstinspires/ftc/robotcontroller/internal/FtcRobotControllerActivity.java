@@ -115,6 +115,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import ftc.vision.OpenCVCam;
+import ftc.vision.VuforiaCam;
 
 @SuppressWarnings("WeakerAccess")
 public class FtcRobotControllerActivity extends Activity
@@ -321,8 +322,8 @@ public class FtcRobotControllerActivity extends Activity
 
 
     ////////////// START VISION PROCESSING CODE //////////////
-    if (OpenCVCam.instance != null)
-      OpenCVCam.instance.newActivityState(OpenCVCam.State.CREATE);
+    OpenCVCam.instance = null;
+    VuforiaCam.instance = null;
     ////////////// END VISION PROCESSING CODE //////////////
   }
 

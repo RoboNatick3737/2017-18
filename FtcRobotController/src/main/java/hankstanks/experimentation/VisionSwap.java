@@ -19,7 +19,7 @@ public class VisionSwap extends Core
         openCVCam = new OpenCVCam();
         vuforiaCam = new VuforiaCam();
 
-        //openCVCam.start();
+        openCVCam.start();
     }
 
     @Override

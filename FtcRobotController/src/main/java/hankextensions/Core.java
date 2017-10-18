@@ -2,7 +2,10 @@ package hankextensions;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
+import com.qualcomm.robotcore.util.RobotLog;
 
+import ftc.vision.OpenCVCam;
+import ftc.vision.VuforiaCam;
 import hankextensions.logging.Log;
 import hankextensions.music.Tunes;
 import hankextensions.threading.Flow;
@@ -63,7 +66,14 @@ public abstract class Core extends LinearOpMode
         }
         finally //Occurs after all possible endings.
         {
+
+            // Stop playing tunes.
             Tunes.silence();
+
+            // Disable both cameras (just in case)
+            OpenCVCam.instance.stop();
+            VuforiaCam.instance.stop();
+
             STOP();
         }
     }

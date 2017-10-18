@@ -15,13 +15,19 @@ import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 
+/**
+ * Singleton class instead of a static class because the BaseLoaderCallback doesn't like
+ * when there is a static
+ */
 public class OpenCVCam
 {
     public static OpenCVCam instance = null;
 
     private BaseLoaderCallback mLoaderCallback;
 
+    // States of the code progression.
     private boolean currentlyActive = false;
+    private boolean loadedOpenCV = false;
 
     // Picture dimensions for analysis
     private final int FRAME_WIDTH_REQUEST = 176;
@@ -42,8 +48,6 @@ public class OpenCVCam
         WINDOW_FOCUS_CHANGE
     }
     private State currentState;
-
-    private boolean loadedOpenCV = false;
 
     public OpenCVCam()
     {
@@ -90,13 +94,9 @@ public class OpenCVCam
         if (currentlyActive)
             return;
 
-        RobotLog.ii("Robo", "*********About to set to true...");
         setViewStatus(true);
-        RobotLog.ii("Robo", "*********Done set to true...");
-
+/*
         onCreate();
-
-        RobotLog.ii("Robo", "*********Done create...");
 
         // Set new activity state depending on the current state.
         switch (currentState)
@@ -106,8 +106,6 @@ public class OpenCVCam
                 break;
             case RESUME:
                 onResume();
-                if (loadedOpenCV && !currentlyActive)
-                    setCameraViewState(true);
                 break;
             case CREATE:
                 onCreate();
@@ -116,10 +114,7 @@ public class OpenCVCam
                 onDestroy();
                 break;
         }
-
-
-        RobotLog.ii("Robo", "*********Done resume...");
-
+*/
         currentlyActive = true;
     }
 
@@ -135,66 +130,83 @@ public class OpenCVCam
 
         setViewStatus(false);
 
+        instance = null;
+
         currentlyActive = false;
     }
 
     private void setViewStatus(final boolean state)
     {
-//        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable()
-//        {
-//            @Override
-//            public void run() {
-//                FrameLayout layout = (FrameLayout) FtcRobotControllerActivity.instance.findViewById(R.id.openCVCam);
-//
-//                int desiredView = state ? View.VISIBLE : View.INVISIBLE;
-//
-//                layout.setVisibility(desiredView);
-//                layout.setEnabled(state);
-//
-//                for (int i = 0; i < layout.getChildCount(); i++) {
-//                    View child = layout.getChildAt(i);
-//                    child.setVisibility(desiredView);
-//                    child.setEnabled(state);
-//                }
-//            }
-//        });
+        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                FrameLayout layout = (FrameLayout) FtcRobotControllerActivity.instance.findViewById(R.id.openCVCam);
+
+                int desiredView = state ? View.VISIBLE : View.INVISIBLE;
+
+                layout.setVisibility(desiredView);
+                layout.setEnabled(state);
+
+                for (int i = 0; i < layout.getChildCount(); i++) {
+                    View child = layout.getChildAt(i);
+                    child.setVisibility(desiredView);
+                    child.setEnabled(state);
+                }
+            }
+        });
     }
 
     private void setCameraViewState(final boolean state)
     {
-//        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable()
-//        {
-//            @Override
-//            public void run() {
-//                if (state)
-//                    cameraBridgeViewBase.enableView();
-//                else
-//                    cameraBridgeViewBase.disableView();
-//            }
-//        });
+        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run() {
+                if (state)
+                    cameraBridgeViewBase.enableView();
+                else
+                    cameraBridgeViewBase.disableView();
+            }
+        });
     }
 
     private void onCreate()
     {
-        FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        cameraBridgeViewBase = (JavaCameraView) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
-        frameGrabber = new FrameGrabber(cameraBridgeViewBase, FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
-        frameGrabber.setImageProcessor(new BeaconProcessor());
+                cameraBridgeViewBase = (JavaCameraView) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
+                frameGrabber = new FrameGrabber(cameraBridgeViewBase, FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
+                frameGrabber.setImageProcessor(new BeaconProcessor());
 
-        // Determines whether the app saves every image it gets.
-        frameGrabber.setSaveImages(false);
+                // Determines whether the app saves every image it gets.
+                frameGrabber.setSaveImages(false);
+            }
+        });
+
     }
 
     private void onResume()
     {
-        if (!OpenCVLoader.initDebug()) {
-            RobotLog.vv(LOG_TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_3_0, FtcRobotControllerActivity.instance, mLoaderCallback);
-        } else {
-            RobotLog.vv(LOG_TAG, "OpenCV library found inside package. Using it!");
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-        }
+        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (loadedOpenCV && !currentlyActive)
+                    setCameraViewState(true);
+
+                if (!OpenCVLoader.initDebug()) {
+                    RobotLog.vv(LOG_TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+                    OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_3_0, FtcRobotControllerActivity.instance, mLoaderCallback);
+                } else {
+                    RobotLog.vv(LOG_TAG, "OpenCV library found inside package. Using it!");
+                    mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+                }
+            }
+        });
     }
 
     public void onWindowFocusChanged(boolean hasFocus)
@@ -204,11 +216,11 @@ public class OpenCVCam
         if (!currentlyActive)
             return;
 
-        if (hasFocus) {
-            frameGrabber.stopFrameGrabber();
-        } else {
-            frameGrabber.throwAwayFrames();
-        }
+//        if (hasFocus) {
+//            frameGrabber.stopFrameGrabber();
+//        } else {
+//            frameGrabber.throwAwayFrames();
+//        }
     }
 
     private void onPause()
@@ -227,6 +239,8 @@ public class OpenCVCam
         onPause();
 
         setViewStatus(false);
+
+        instance = null;
     }
 
     public void newActivityState(State state)

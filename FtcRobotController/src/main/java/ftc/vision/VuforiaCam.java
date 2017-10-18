@@ -78,27 +78,29 @@ public class VuforiaCam
         }
 
         setViewStatus(false);
+
+        instance = null;
     }
 
     // Created for the CameraController to have easy access.
     public void setViewStatus(final boolean state)
     {
-//        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                FrameLayout layout = (FrameLayout) FtcRobotControllerActivity.instance.findViewById(R.id.vuforiaCamParent);
-//
-//                int desiredView = state ? View.VISIBLE : View.INVISIBLE;
-//
-//                layout.setVisibility(desiredView);
-//                layout.setEnabled(state);
-//
-//                for (int i = 0; i < layout.getChildCount(); i++) {
-//                    View child = layout.getChildAt(i);
-//                    child.setVisibility(desiredView);
-//                    child.setEnabled(state);
-//                }
-//            }
-//        });
+        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                FrameLayout layout = (FrameLayout) FtcRobotControllerActivity.instance.findViewById(R.id.vuforiaCamParent);
+
+                int desiredView = state ? View.VISIBLE : View.INVISIBLE;
+
+                layout.setVisibility(desiredView);
+                layout.setEnabled(state);
+
+                for (int i = 0; i < layout.getChildCount(); i++) {
+                    View child = layout.getChildAt(i);
+                    child.setVisibility(desiredView);
+                    child.setEnabled(state);
+                }
+            }
+        });
     }
 }
