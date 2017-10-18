@@ -20,6 +20,7 @@ public class VisionSwap extends Core
         vuforiaCam = new VuforiaCam();
 
         openCVCam.start();
+        log.lines("Started OpenCV");
     }
 
     @Override
@@ -27,6 +28,7 @@ public class VisionSwap extends Core
     {
         openCVCam.stop();
         vuforiaCam.start();
+        log.lines("Started Vuforia");
 
         while (true)
         {
