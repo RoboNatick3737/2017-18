@@ -1,4 +1,4 @@
-package hankstanks.components;
+package org.firstinspires.ftc.teamcode.components;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.Range;

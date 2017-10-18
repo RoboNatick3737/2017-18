@@ -1,8 +1,6 @@
-package ftc.vision;
+package hankextensions.vision;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
-import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
 
 /**
  * Created by vandejd1 on 9/7/16.

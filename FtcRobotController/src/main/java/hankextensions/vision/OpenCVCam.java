@@ -1,4 +1,4 @@
-package ftc.vision;
+package hankextensions.vision;
 
 import android.view.View;
 import android.view.WindowManager;
@@ -52,8 +52,6 @@ public class OpenCVCam
     {
         instance = this;
 
-        currentState = State.RESUME;
-
         mLoaderCallback = new BaseLoaderCallback(FtcRobotControllerActivity.instance) {
             @Override
             public void onManagerConnected(int status) {
@@ -99,24 +97,12 @@ public class OpenCVCam
             return;
 
         currentlyActive = true;
+        currentState = State.RESUME;
 
         setViewStatus(true);
 
         onCreate();
-
-        // Set new activity state depending on the current state.
-        switch (currentState)
-        {
-            case PAUSE:
-                onPause();
-                break;
-            case RESUME:
-                onResume();
-                break;
-            case DESTROY:
-                onDestroy();
-                break;
-        }
+        onResume();
     }
 
     /**

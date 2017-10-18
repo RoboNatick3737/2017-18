@@ -1,4 +1,4 @@
-package ftc.vision;
+package hankextensions.vision;
 
 
 import org.opencv.core.Core;
@@ -9,7 +9,6 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**

@@ -44,7 +44,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
-import ftc.vision.CloseableVuforiaLocalizer;
+import hankextensions.vision.CloseableVuforiaLocalizer;
 
 /**
  * This OpMode illustrates the basics of using the Vuforia engine to determine

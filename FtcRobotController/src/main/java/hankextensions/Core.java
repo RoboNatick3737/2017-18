@@ -2,10 +2,9 @@ package hankextensions;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
-import com.qualcomm.robotcore.util.RobotLog;
 
-import ftc.vision.OpenCVCam;
-import ftc.vision.VuforiaCam;
+import hankextensions.vision.OpenCVCam;
+import hankextensions.vision.VuforiaCam;
 import hankextensions.logging.Log;
 import hankextensions.music.Tunes;
 import hankextensions.threading.Flow;

@@ -1,9 +1,9 @@
-package hankstanks.experimentation;
+package org.firstinspires.ftc.teamcode.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import ftc.vision.OpenCVCam;
-import ftc.vision.VuforiaCam;
+import hankextensions.vision.OpenCVCam;
+import hankextensions.vision.VuforiaCam;
 import hankextensions.Core;
 import hankextensions.threading.Flow;
 

@@ -7,7 +7,7 @@
  *     the encoder into a motor encoder port.  This works, although it's super gross (maybe we'll find a solution at some point).
  */
 
-package hankstanks.components;
+package org.firstinspires.ftc.teamcode.components;
 
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
