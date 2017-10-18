@@ -12,8 +12,8 @@ package org.firstinspires.ftc.teamcode.components;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-import hankstanks.hankextensions.hardware.EncoderMotor;
-import hankstanks.hankextensions.threading.SimpleTask;
+import hankextensions.hardware.EncoderMotor;
+import hankextensions.threading.SimpleTask;
 
 public class SwerveWheel
 {

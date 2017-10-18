@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.programs;
 
-import hankstanks.hankextensions.Core;
+import hankextensions.Core;
 
 public abstract class HardwareBase extends Core
 {

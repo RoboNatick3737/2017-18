@@ -29,10 +29,8 @@
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -45,6 +43,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+
+import hankextensions.vision.CloseableVuforiaLocalizer;
 
 /**
  * This OpMode illustrates the basics of using the Vuforia engine to determine
@@ -65,9 +65,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
  * is explained in {@link ConceptVuforiaNavigation}.
  */
 
-@Autonomous(name="Concept: VuMark Id", group ="Concept")
+@Autonomous(name="Concept: VuMark Id2", group ="Concept")
 //@Disabled
-public class ConceptVuMarkIdentification extends LinearOpMode {
+public class ConceptVuMarkIdentification2 extends LinearOpMode {
 
     public static final String TAG = "Vuforia VuMark Sample";
 
@@ -112,7 +112,7 @@ public class ConceptVuMarkIdentification extends LinearOpMode {
          */
         parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
 
-        this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
+        this.vuforia = new CloseableVuforiaLocalizer(parameters);
 
         /**
          * Load the data set containing the VuMarks for Relic Recovery. There's only one trackable
@@ -125,6 +125,7 @@ public class ConceptVuMarkIdentification extends LinearOpMode {
         relicTemplate.setName("relicVuMarkTemplate"); // can help in debugging; otherwise not necessary
 
         telemetry.addData(">", "Press Play to start");
+//        telemetry.addData()
         telemetry.update();
         waitForStart();
 

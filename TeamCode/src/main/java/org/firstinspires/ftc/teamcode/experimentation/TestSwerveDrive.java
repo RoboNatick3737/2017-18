@@ -6,9 +6,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.components.SwerveDrive;
 import org.firstinspires.ftc.teamcode.components.SwerveWheel;
-import hankstanks.hankextensions.Core;
-import hankstanks.hankextensions.hardware.EncoderMotor;
-import hankstanks.hankextensions.hardware.Gyro;
+import hankextensions.Core;
+import hankextensions.hardware.EncoderMotor;
+import hankextensions.hardware.Gyro;
 
 public class TestSwerveDrive extends Core
 {

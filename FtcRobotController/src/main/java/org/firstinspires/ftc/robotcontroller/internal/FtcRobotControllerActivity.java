@@ -112,128 +112,14 @@ import org.firstinspires.inspection.RcInspectionActivity;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-// Custom imports (for OpenCV module)
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.JavaCameraView;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
-import android.view.WindowManager;
-
-import ftc.vision.BeaconProcessor;
-import ftc.vision.FrameGrabber;
+import hankextensions.vision.OpenCVCam;
+import hankextensions.vision.VuforiaCam;
 
 @SuppressWarnings("WeakerAccess")
-public class FtcRobotControllerActivity extends Activity {
-
-  ////////////// START VISION PROCESSING CODE //////////////
-
-  static final int FRAME_WIDTH_REQUEST = 176;
-  static final int FRAME_HEIGHT_REQUEST = 144;
-
-  // Loads camera view of OpenCV for us to use. This lets us see using OpenCV
-  private CameraBridgeViewBase cameraBridgeViewBase;
-
-  //manages getting one frame at a time
-  public static FrameGrabber frameGrabber = null;
-
-  //set up the frameGrabber
-  void myOnCreate(){
-    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-    cameraBridgeViewBase = (JavaCameraView) findViewById(R.id.show_camera_activity_java_surface_view);
-    frameGrabber = new FrameGrabber(cameraBridgeViewBase, FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
-    frameGrabber.setImageProcessor(new BeaconProcessor());
-
-    // Determines whether the app saves every image it gets.
-    frameGrabber.setSaveImages(false);
-  }
-
-  private boolean currentlyProcessingFrame = false;
-
-  //when the "Grab" button is pressed
-  public void frameButtonOnClick(View v){
-    if (currentlyProcessingFrame) {
-      return;
-    }
-
-    currentlyProcessingFrame = true;
-
-    frameGrabber.grabSingleFrame();
-    while (!frameGrabber.isResultReady()) {
-      try {
-        Thread.sleep(5); //sleep for 5 milliseconds
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-    }
-    Object result = frameGrabber.getResult();
-    ((TextView)findViewById(R.id.resultText)).setText(result.toString());
-
-    currentlyProcessingFrame = false;
-  }
-
-  void myOnWindowFocusChanged(boolean hasFocus){
-    if (hasFocus) {
-      frameGrabber.stopFrameGrabber();
-    } else {
-      frameGrabber.throwAwayFrames();
-    }
-  }
-
-  void myOnPause(){
-    if (cameraBridgeViewBase != null) {
-      cameraBridgeViewBase.disableView();
-    }
-  }
-
-  void myOnResume(){
-    if (!OpenCVLoader.initDebug()) {
-      RobotLog.vv(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-      OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_3_0, this, mLoaderCallback);
-    } else {
-      RobotLog.vv(TAG, "OpenCV library found inside package. Using it!");
-      mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-    }
-  }
-
-  public void myOnDestroy() {
-    if (cameraBridgeViewBase != null) {
-      cameraBridgeViewBase.disableView();
-    }
-  }
-
-  private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-    @Override
-    public void onManagerConnected(int status) {
-      switch (status) {
-        case LoaderCallbackInterface.SUCCESS:
-          RobotLog.vv(TAG, "OpenCV Manager Connected");
-          //from now onwards, you can use OpenCV API
-//          Mat m = new Mat(5, 10, CvType.CV_8UC1, new Scalar(0));
-          cameraBridgeViewBase.enableView();
-          break;
-        case LoaderCallbackInterface.INIT_FAILED:
-          RobotLog.vv(TAG, "Init Failed");
-          break;
-        case LoaderCallbackInterface.INSTALL_CANCELED:
-          RobotLog.vv(TAG, "Install Cancelled");
-          break;
-        case LoaderCallbackInterface.INCOMPATIBLE_MANAGER_VERSION:
-          RobotLog.vv(TAG, "Incompatible Version");
-          break;
-        case LoaderCallbackInterface.MARKET_ERROR:
-          RobotLog.vv(TAG, "Market Error");
-          break;
-        default:
-          RobotLog.vv(TAG, "OpenCV Manager Install");
-          super.onManagerConnected(status);
-          break;
-      }
-    }
-  };
-
-  ////////////// END VISION PROCESSING CODE //////////////
+public class FtcRobotControllerActivity extends Activity
+{
+  // Singleton class.
+  public static FtcRobotControllerActivity instance;
 
   public static final String TAG = "RCActivity";
   public String getTag() { return TAG; }
@@ -333,9 +219,16 @@ public class FtcRobotControllerActivity extends Activity {
     }
   }
 
+  /**
+   * This method creates a brand new activity, so init stuff should go here.
+   * @param savedInstanceState
+   */
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    instance = this;
+
     RobotLog.vv(TAG, "onCreate()");
     ThemedActivity.appAppThemeToActivity(getTag(), this); // do this way instead of inherit to help AppInventor
 
@@ -427,7 +320,8 @@ public class FtcRobotControllerActivity extends Activity {
 
 
     ////////////// START VISION PROCESSING CODE //////////////
-    myOnCreate();
+    OpenCVCam.instance = null;
+    VuforiaCam.instance = null;
     ////////////// END VISION PROCESSING CODE //////////////
   }
 
@@ -472,7 +366,8 @@ public class FtcRobotControllerActivity extends Activity {
     super.onResume();
 
     ////////////// START VISION PROCESSING CODE //////////////
-    myOnResume();
+    if (OpenCVCam.instance != null)
+      OpenCVCam.instance.newActivityState(OpenCVCam.State.RESUME);
     ////////////// END VISION PROCESSING CODE //////////////
 
     RobotLog.vv(TAG, "onResume()");
@@ -483,7 +378,8 @@ public class FtcRobotControllerActivity extends Activity {
     super.onPause();
 
     ////////////// START VISION PROCESSING CODE //////////////
-    myOnPause();
+    if (OpenCVCam.instance != null)
+      OpenCVCam.instance.newActivityState(OpenCVCam.State.PAUSE);
     ////////////// END VISION PROCESSING CODE //////////////
 
     RobotLog.vv(TAG, "onPause()");
@@ -506,7 +402,8 @@ public class FtcRobotControllerActivity extends Activity {
     RobotLog.vv(TAG, "onDestroy()");
 
     ////////////// START VISION PROCESSING CODE //////////////
-    myOnDestroy();
+    if (OpenCVCam.instance != null)
+      OpenCVCam.instance.newActivityState(OpenCVCam.State.DESTROY);
     ////////////// END VISION PROCESSING CODE //////////////
 
     shutdownRobot();  // Ensure the robot is put away to bed
@@ -565,9 +462,12 @@ public class FtcRobotControllerActivity extends Activity {
   @Override
   public void onWindowFocusChanged(boolean hasFocus){
     super.onWindowFocusChanged(hasFocus);
+
     ////////////// START VISION PROCESSING CODE //////////////
-    myOnWindowFocusChanged(hasFocus);
+    if (OpenCVCam.instance != null)
+      OpenCVCam.instance.onWindowFocusChanged(hasFocus);
     ////////////// END VISION PROCESSING CODE //////////////
+
     // When the window loses focus (e.g., the action overflow is shown),
     // cancel any pending hide action. When the window gains focus,
     // hide the system UI.

@@ -3,9 +3,9 @@ package org.firstinspires.ftc.teamcode.components;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.Range;
 
-import hankstanks.hankextensions.hardware.Gyro;
-import hankstanks.hankextensions.threading.SimpleTask;
-import hankstanks.hankextensions.threading.SimpleTaskPackage;
+import hankextensions.hardware.Gyro;
+import hankextensions.threading.SimpleTask;
+import hankextensions.threading.SimpleTaskPackage;
 
 public class SwerveDrive
 {

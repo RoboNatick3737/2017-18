@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
-import hankstanks.hankextensions.Core;
+import hankextensions.Core;
 
 @Autonomous(name="Make Some Toast", group="Experimentation")
 public class MakeSomeToast extends Core

@@ -2,10 +2,10 @@ package org.firstinspires.ftc.teamcode.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import hankstanks.hankextensions.Core;
-import hankstanks.hankextensions.hardware.AndroidGyro;
-import hankstanks.hankextensions.logging.ProcessConsole;
-import hankstanks.hankextensions.threading.Flow;
+import hankextensions.Core;
+import hankextensions.hardware.AndroidGyro;
+import hankextensions.logging.ProcessConsole;
+import hankextensions.threading.Flow;
 
 @Autonomous(name = "Test Android Gyro", group = "Experimentation")
 public class EnsureAndroidGyro extends Core
