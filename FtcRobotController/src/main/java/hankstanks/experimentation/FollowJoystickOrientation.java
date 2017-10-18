@@ -1,12 +1,12 @@
-package org.firstinspires.ftc.teamcode.experimentation;
+package hankstanks.experimentation;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import hankstanks.hankextensions.Core;
-import hankstanks.hankextensions.logging.ProcessConsole;
-import hankstanks.hankextensions.threading.Flow;
+import hankextensions.Core;
+import hankextensions.logging.ProcessConsole;
+import hankextensions.threading.Flow;
 
 public class FollowJoystickOrientation extends Core
 {

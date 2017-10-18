@@ -7,13 +7,13 @@
  *     the encoder into a motor encoder port.  This works, although it's super gross (maybe we'll find a solution at some point).
  */
 
-package org.firstinspires.ftc.teamcode.components;
+package hankstanks.components;
 
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-import hankstanks.hankextensions.hardware.EncoderMotor;
-import hankstanks.hankextensions.threading.SimpleTask;
+import hankextensions.hardware.EncoderMotor;
+import hankextensions.threading.SimpleTask;
 
 public class SwerveWheel
 {

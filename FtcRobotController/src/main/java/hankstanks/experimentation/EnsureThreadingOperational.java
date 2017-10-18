@@ -1,10 +1,10 @@
-package org.firstinspires.ftc.teamcode.experimentation;
+package hankstanks.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import hankstanks.hankextensions.Core;
-import hankstanks.hankextensions.threading.ComplexTask;
-import hankstanks.hankextensions.threading.Flow;
+import hankextensions.Core;
+import hankextensions.threading.ComplexTask;
+import hankextensions.threading.Flow;
 
 @Autonomous(name="Test Threading", group="Experimentation")
 public class EnsureThreadingOperational extends Core

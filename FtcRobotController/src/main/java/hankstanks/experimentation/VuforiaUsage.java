@@ -1,6 +1,6 @@
-package org.firstinspires.ftc.teamcode.experimentation;
+package hankstanks.experimentation;
 
-import hankstanks.hankextensions.Core;
+import hankextensions.Core;
 
 public class VuforiaUsage extends Core
 {

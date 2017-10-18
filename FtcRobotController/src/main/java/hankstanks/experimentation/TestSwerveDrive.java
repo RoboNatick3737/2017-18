@@ -1,14 +1,14 @@
-package org.firstinspires.ftc.teamcode.experimentation;
+package hankstanks.experimentation;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.components.SwerveDrive;
-import org.firstinspires.ftc.teamcode.components.SwerveWheel;
-import hankstanks.hankextensions.Core;
-import hankstanks.hankextensions.hardware.EncoderMotor;
-import hankstanks.hankextensions.hardware.Gyro;
+import hankstanks.components.SwerveDrive;
+import hankstanks.components.SwerveWheel;
+import hankextensions.Core;
+import hankextensions.hardware.EncoderMotor;
+import hankextensions.hardware.Gyro;
 
 public class TestSwerveDrive extends Core
 {

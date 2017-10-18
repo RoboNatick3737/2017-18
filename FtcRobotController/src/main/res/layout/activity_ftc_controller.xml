@@ -179,7 +179,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <FrameLayout
           android:layout_height="fill_parent"
           android:layout_width="fill_parent"
-          android:id="@+id/openCVCam">
+          android:id="@+id/openCVCam"
+          android:visibility="invisible">
 
         <org.opencv.android.JavaCameraView
             android:layout_width="fill_parent"
@@ -188,7 +189,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             android:focusable="false"
             android:id="@+id/show_camera_activity_java_surface_view"
             opencv:show_fps="true"
-            opencv:camera_id="any" />
+            opencv:camera_id="any"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -213,8 +214,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <FrameLayout
           android:layout_width="fill_parent"
           android:layout_height="fill_parent"
-          android:id="@+id/vuforiaCamParent"
-          android:background="@color/bright_blue">
+          android:id="@+id/vuforiaCamParent">
 
         <LinearLayout
             android:id="@+id/cameraMonitorViewId"
@@ -222,7 +222,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             android:layout_height="fill_parent"
             android:orientation="vertical"
             android:visibility="visible"
-            android:background="@color/bright_green"
             />
 
         <!-- When visible, the error message will overlay and thus partially

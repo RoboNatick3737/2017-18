@@ -114,28 +114,13 @@ import org.firstinspires.inspection.RcInspectionActivity;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import ftc.vision.CameraController;
+import ftc.vision.OpenCVCam;
 
 @SuppressWarnings("WeakerAccess")
-public class FtcRobotControllerActivity extends Activity {
-
-  ////////////// START CAMERA CONTROL CODE //////////////
-
-  /**
-   * Calls the CameraController method which corresponds with the appropriate switch to the right
-   * camera viewer.
-   */
-  public static CameraController cameraController;
-
-  public void swapCameraViewer(View v)
-  {
-    cameraController.toggleViewer();
-  }
-  public void grabNewFrame(View v) {
-    cameraController.grabNewFrame(v);
-  }
-
-  ////////////// END CAMERA CONTROL CODE //////////////
+public class FtcRobotControllerActivity extends Activity
+{
+  // Singleton class.
+  public static FtcRobotControllerActivity instance;
 
   public static final String TAG = "RCActivity";
   public String getTag() { return TAG; }
@@ -235,9 +220,16 @@ public class FtcRobotControllerActivity extends Activity {
     }
   }
 
+  /**
+   * This method creates a brand new activity, so init stuff should go here.
+   * @param savedInstanceState
+   */
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    instance = this;
+
     RobotLog.vv(TAG, "onCreate()");
     ThemedActivity.appAppThemeToActivity(getTag(), this); // do this way instead of inherit to help AppInventor
 
@@ -329,10 +321,8 @@ public class FtcRobotControllerActivity extends Activity {
 
 
     ////////////// START VISION PROCESSING CODE //////////////
-    if (cameraController == null)
-      cameraController = new CameraController(this, CameraController.Viewer.OPEN_CV);
-
-    cameraController.cameraOnCreate();
+    if (OpenCVCam.instance != null)
+      OpenCVCam.instance.newActivityState(OpenCVCam.State.CREATE);
     ////////////// END VISION PROCESSING CODE //////////////
   }
 
@@ -377,7 +367,8 @@ public class FtcRobotControllerActivity extends Activity {
     super.onResume();
 
     ////////////// START VISION PROCESSING CODE //////////////
-    cameraController.cameraOnResume();
+    if (OpenCVCam.instance != null)
+      OpenCVCam.instance.newActivityState(OpenCVCam.State.RESUME);
     ////////////// END VISION PROCESSING CODE //////////////
 
     RobotLog.vv(TAG, "onResume()");
@@ -388,7 +379,8 @@ public class FtcRobotControllerActivity extends Activity {
     super.onPause();
 
     ////////////// START VISION PROCESSING CODE //////////////
-    cameraController.cameraOnPause();
+    if (OpenCVCam.instance != null)
+      OpenCVCam.instance.newActivityState(OpenCVCam.State.PAUSE);
     ////////////// END VISION PROCESSING CODE //////////////
 
     RobotLog.vv(TAG, "onPause()");
@@ -411,8 +403,8 @@ public class FtcRobotControllerActivity extends Activity {
     RobotLog.vv(TAG, "onDestroy()");
 
     ////////////// START VISION PROCESSING CODE //////////////
-    cameraController.cameraOnDestroy();
-    cameraController = null;
+    if (OpenCVCam.instance != null)
+      OpenCVCam.instance.newActivityState(OpenCVCam.State.DESTROY);
     ////////////// END VISION PROCESSING CODE //////////////
 
     shutdownRobot();  // Ensure the robot is put away to bed
@@ -473,7 +465,8 @@ public class FtcRobotControllerActivity extends Activity {
     super.onWindowFocusChanged(hasFocus);
 
     ////////////// START VISION PROCESSING CODE //////////////
-    cameraController.cameraOnWindowFocusChanged(hasFocus);
+    if (OpenCVCam.instance != null)
+      OpenCVCam.instance.onWindowFocusChanged(hasFocus);
     ////////////// END VISION PROCESSING CODE //////////////
 
     // When the window loses focus (e.g., the action overflow is shown),

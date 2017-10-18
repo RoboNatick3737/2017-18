@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.experimentation;
+package hankstanks.experimentation;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import hankstanks.hankextensions.Core;
-import hankstanks.hankextensions.logging.ProcessConsole;
-import hankstanks.hankextensions.threading.Flow;
+import hankextensions.Core;
+import hankextensions.logging.ProcessConsole;
+import hankextensions.threading.Flow;
 
 public class VexMotorWithEncoder extends Core
 {
