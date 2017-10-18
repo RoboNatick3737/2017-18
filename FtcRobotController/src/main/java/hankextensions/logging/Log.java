@@ -1,9 +1,11 @@
 package hankextensions.logging;
 
+import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.ArrayList;
 
+import hankextensions.Core;
 import hankextensions.threading.ComplexTask;
 import hankextensions.threading.Flow;
 
@@ -18,6 +20,8 @@ import hankextensions.threading.Flow;
 
 public class Log
 {
+    public static Log instance;
+
     /*-- USE TO OUTPUT DATA IN A SLIGHTLY BETTER WAY THAT LINEAR OP MODES PROVIDE --*/
     private ArrayList<String> sequentialConsoleData; //Lines being added and removed.
     private ArrayList<ProcessConsole> privateProcessConsoles;
@@ -26,13 +30,20 @@ public class Log
     /**
      * Resets the entire console with empty content.
      */
-    public Log(Telemetry mainTelemetry) throws InterruptedException
+    public Log() throws InterruptedException
     {
-        this.mainTelemetry = mainTelemetry;
+        instance = this;
+
+        mainTelemetry = Core.instance.telemetry;
 
         //Initialize required components.
         sequentialConsoleData = new ArrayList<>();
         privateProcessConsoles = new ArrayList<>();
+    }
+
+    public void close()
+    {
+        instance = null;
     }
 
     final int maxSequentialLines = 13;

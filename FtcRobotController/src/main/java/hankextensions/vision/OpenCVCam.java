@@ -62,10 +62,7 @@ public class OpenCVCam
                         // Mat m = new Mat(5, 10, CvType.CV_8UC1, new Scalar(0));
                         loadedOpenCV = true;
                         if (currentlyActive)
-                        {
-                            RobotLog.ii("Blarp", "Now cam should be active");
                             setCameraViewState(true);
-                        }
                         break;
                     case LoaderCallbackInterface.INIT_FAILED:
                         RobotLog.vv(LOG_TAG, "Init Failed");
@@ -147,26 +144,15 @@ public class OpenCVCam
 
     private void setCameraViewState(boolean state)
     {
-
         // If we don't have the camera bridge view base set up or it's already set to the state we want, don't do anything.
-        if (cameraBridgeViewBase == null) {// || cameraBridgeViewBase.isEnabled() == state) {
-
-            RobotLog.ii("Blarp", "Darn it's null!");
+        if (cameraBridgeViewBase == null)
             return;
-        } else {
-            RobotLog.ii("Blarp", "Yay it's not null! and it's" + state);
-        }
 
         // Set camera view state.
         if (state)
-        {
             cameraBridgeViewBase.enableView();
-            RobotLog.ii("Blarp", "Enabled the View");
-        }
-        else {
+        else
             cameraBridgeViewBase.disableView();
-            RobotLog.ii("Blarp", "Disabled the View");
-        }
     }
 
     // HAS to run on UI thread or view thread error.
@@ -178,7 +164,6 @@ public class OpenCVCam
                 FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
                 cameraBridgeViewBase = (JavaCameraView) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
-                RobotLog.ii("Blarp", "Shouldn't be null");
                 frameGrabber = new FrameGrabber(cameraBridgeViewBase, FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
                 frameGrabber.setImageProcessor(new BeaconProcessor());
 
@@ -190,9 +175,6 @@ public class OpenCVCam
 
     private void onResume()
     {
-
-        RobotLog.ii("Blarp", "Resume should set true");
-
         currentState = State.RESUME;
 
         if (!OpenCVLoader.initDebug()) {
@@ -220,7 +202,6 @@ public class OpenCVCam
     {
         currentState = State.PAUSE;
 
-        RobotLog.ii("Blarp", "Pause set false");
         setCameraViewState(false);
     }
 

@@ -33,7 +33,7 @@ public abstract class Core extends LinearOpMode
         try
         {
             //Classes such as NiFTMusic require this so that they can get the context they require.
-            log = new Log(telemetry);
+            log = new Log();
             log.startConsoleUpdater();
 
             //REQUIRED in child classes.
@@ -68,6 +68,8 @@ public abstract class Core extends LinearOpMode
         }
         finally //Occurs after all possible endings.
         {
+            // Clear the log.
+            Log.instance.close();
 
             // Stop playing tunes.
             Tunes.silence();
