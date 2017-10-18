@@ -46,6 +46,9 @@ public abstract class Core extends LinearOpMode
             //Wait for the start button to be pressed.
             waitForStart ();
 
+            // Since hitting stop makes waitForStart be bypassed.
+            Flow.yield();
+
             //This is where the child classes mainly differ in their instructions.
             START();
         }

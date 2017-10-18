@@ -44,14 +44,15 @@ public class OpenCVCam
         CREATE,
         RESUME,
         PAUSE,
-        DESTROY,
-        WINDOW_FOCUS_CHANGE
+        DESTROY
     }
     private State currentState;
 
     public OpenCVCam()
     {
         instance = this;
+
+        currentState = State.RESUME;
 
         mLoaderCallback = new BaseLoaderCallback(FtcRobotControllerActivity.instance) {
             @Override
@@ -63,7 +64,10 @@ public class OpenCVCam
                         // Mat m = new Mat(5, 10, CvType.CV_8UC1, new Scalar(0));
                         loadedOpenCV = true;
                         if (currentlyActive)
+                        {
+                            RobotLog.ii("Blarp", "Now cam should be active");
                             setCameraViewState(true);
+                        }
                         break;
                     case LoaderCallbackInterface.INIT_FAILED:
                         RobotLog.vv(LOG_TAG, "Init Failed");
@@ -94,8 +98,10 @@ public class OpenCVCam
         if (currentlyActive)
             return;
 
+        currentlyActive = true;
+
         setViewStatus(true);
-/*
+
         onCreate();
 
         // Set new activity state depending on the current state.
@@ -107,15 +113,10 @@ public class OpenCVCam
             case RESUME:
                 onResume();
                 break;
-            case CREATE:
-                onCreate();
-                break;
             case DESTROY:
                 onDestroy();
                 break;
         }
-*/
-        currentlyActive = true;
     }
 
     /**
@@ -158,20 +159,31 @@ public class OpenCVCam
         });
     }
 
-    private void setCameraViewState(final boolean state)
+    private void setCameraViewState(boolean state)
     {
-        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable()
+
+        // If we don't have the camera bridge view base set up or it's already set to the state we want, don't do anything.
+        if (cameraBridgeViewBase == null) {// || cameraBridgeViewBase.isEnabled() == state) {
+
+            RobotLog.ii("Blarp", "Darn it's null!");
+            return;
+        } else {
+            RobotLog.ii("Blarp", "Yay it's not null! and it's" + state);
+        }
+
+        // Set camera view state.
+        if (state)
         {
-            @Override
-            public void run() {
-                if (state)
-                    cameraBridgeViewBase.enableView();
-                else
-                    cameraBridgeViewBase.disableView();
-            }
-        });
+            cameraBridgeViewBase.enableView();
+            RobotLog.ii("Blarp", "Enabled the View");
+        }
+        else {
+            cameraBridgeViewBase.disableView();
+            RobotLog.ii("Blarp", "Disabled the View");
+        }
     }
 
+    // HAS to run on UI thread or view thread error.
     private void onCreate()
     {
         FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
@@ -180,6 +192,7 @@ public class OpenCVCam
                 FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
                 cameraBridgeViewBase = (JavaCameraView) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
+                RobotLog.ii("Blarp", "Shouldn't be null");
                 frameGrabber = new FrameGrabber(cameraBridgeViewBase, FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
                 frameGrabber.setImageProcessor(new BeaconProcessor());
 
@@ -187,32 +200,26 @@ public class OpenCVCam
                 frameGrabber.setSaveImages(false);
             }
         });
-
     }
 
     private void onResume()
     {
-        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (loadedOpenCV && !currentlyActive)
-                    setCameraViewState(true);
 
-                if (!OpenCVLoader.initDebug()) {
-                    RobotLog.vv(LOG_TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-                    OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_3_0, FtcRobotControllerActivity.instance, mLoaderCallback);
-                } else {
-                    RobotLog.vv(LOG_TAG, "OpenCV library found inside package. Using it!");
-                    mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-                }
-            }
-        });
+        RobotLog.ii("Blarp", "Resume should set true");
+
+        currentState = State.RESUME;
+
+        if (!OpenCVLoader.initDebug()) {
+            RobotLog.vv(LOG_TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_3_0, FtcRobotControllerActivity.instance, mLoaderCallback);
+        } else {
+            RobotLog.vv(LOG_TAG, "OpenCV library found inside package. Using it!");
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
     }
 
     public void onWindowFocusChanged(boolean hasFocus)
     {
-        currentState = State.WINDOW_FOCUS_CHANGE;
-
         if (!currentlyActive)
             return;
 
@@ -227,9 +234,8 @@ public class OpenCVCam
     {
         currentState = State.PAUSE;
 
-        if (cameraBridgeViewBase != null) {
-            setCameraViewState(false);
-        }
+        RobotLog.ii("Blarp", "Pause set false");
+        setCameraViewState(false);
     }
 
     private void onDestroy()
@@ -245,28 +251,23 @@ public class OpenCVCam
 
     public void newActivityState(State state)
     {
-        State initialState = currentState;
-        currentState = state;
-
         switch (state)
         {
             case PAUSE:
-                if (currentlyActive && initialState != State.PAUSE)
+                if (currentlyActive && currentState != State.PAUSE)
                     onPause();
                 break;
             case RESUME:
-                if (currentlyActive && initialState != State.RESUME)
+                if (currentlyActive && currentState != State.RESUME)
                     onResume();
-                break;
-            case CREATE:
-                if (currentlyActive && initialState == State.DESTROY)
-                    onCreate();
                 break;
             case DESTROY:
                 if (currentlyActive)
                     onDestroy();
                 break;
         }
+
+        currentState = state;
     }
 
     //when the "Grab" button is pressed
