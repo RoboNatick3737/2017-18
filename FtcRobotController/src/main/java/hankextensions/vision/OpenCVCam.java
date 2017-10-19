@@ -29,13 +29,11 @@ public class OpenCVCam
 
     // States of the code progression.
     private boolean currentlyActive = false;
-    private boolean loadedOpenCV = false;
 
     // Picture dimensions for analysis
-    private final int FRAME_WIDTH_REQUEST = 176;
-    private final int FRAME_HEIGHT_REQUEST = 144;
+    private final int FRAME_WIDTH_REQUEST = 176, FRAME_HEIGHT_REQUEST = 144;
 
-    // Tag for logging
+    // Tag for file logging
     private final String LOG_TAG = "OpenCV";
 
     private CameraBridgeViewBase cameraBridgeViewBase = null;
@@ -63,9 +61,7 @@ public class OpenCVCam
                         //from now onwards, you can use OpenCV API
                         // Mat m = new Mat(5, 10, CvType.CV_8UC1, new Scalar(0));
                         Log.instance.lines("loader callback");
-                        loadedOpenCV = true;
-                        if (currentlyActive)
-                            setCameraViewState(true);
+                        setCameraViewState(true);
                         break;
                     case LoaderCallbackInterface.INIT_FAILED:
                         RobotLog.vv(LOG_TAG, "Init Failed");
@@ -88,9 +84,7 @@ public class OpenCVCam
         };
     }
 
-    /**
-     * Starts OpenCV: ensures that the camera shows up on the Robot Controller app.
-     */
+    //Starts OpenCV and ensures that the camera shows up on the Robot Controller app.
     public void start()
     {
         if (currentlyActive)
@@ -99,52 +93,53 @@ public class OpenCVCam
         currentlyActive = true;
         currentState = State.RESUME;
 
-        setViewStatus(true);
-
-        onCreate();
-        onResume();
+        // Enable the view and start the camera.  This NEEDS to move procedurally, so we stick them in a set of runnables.
+        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setViewStatus(true);
+                onCreate();
+                onResume();
+            }
+        });
     }
 
-    /**
-     * Stops OpenCV and hides it from the Robot Controller.
-     */
+    //Stops OpenCV and hides it from the Robot Controller.
     public void stop()
     {
         if (!currentlyActive)
             return;
 
-        onDestroy();
-
-        setViewStatus(false);
-
         instance = null;
-
         currentlyActive = false;
-    }
 
-    private void setViewStatus(final boolean state)
-    {
-        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable()
-        {
+        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
             @Override
-            public void run()
-            {
-                FrameLayout layout = (FrameLayout) FtcRobotControllerActivity.instance.findViewById(R.id.openCVCam);
-
-                int desiredView = state ? View.VISIBLE : View.INVISIBLE;
-
-                layout.setVisibility(desiredView);
-                layout.setEnabled(state);
-
-                for (int i = 0; i < layout.getChildCount(); i++) {
-                    View child = layout.getChildAt(i);
-                    child.setVisibility(desiredView);
-                    child.setEnabled(state);
-                }
+            public void run() {
+                setCameraViewState(false);
+                setViewStatus(false);
             }
         });
     }
 
+    // Enables/disables the FrameLayout and its children.
+    private void setViewStatus(final boolean state)
+    {
+        FrameLayout layout = (FrameLayout) FtcRobotControllerActivity.instance.findViewById(R.id.openCVCam);
+
+        int desiredView = state ? View.VISIBLE : View.INVISIBLE;
+
+        layout.setVisibility(desiredView);
+        layout.setEnabled(state);
+
+        for (int i = 0; i < layout.getChildCount(); i++) {
+            View child = layout.getChildAt(i);
+            child.setVisibility(desiredView);
+            child.setEnabled(state);
+        }
+    }
+
+    // Enables/disables the camera view on the RC app.
     private void setCameraViewState(boolean state)
     {
         // If we don't have the camera bridge view base set up or it's already set to the state we want, don't do anything.
@@ -158,24 +153,46 @@ public class OpenCVCam
             cameraBridgeViewBase.disableView();
     }
 
+    // Called when the FtcRobotControllerActivity changes activity states.
+    public void newActivityState(final State state)
+    {
+        Log.instance.lines("Activity requested " + state.toString());
+
+        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                switch (state) {
+                    case PAUSE:
+                        if (currentlyActive && currentState != State.PAUSE)
+                            onPause();
+                        break;
+                    case RESUME:
+                        if (currentlyActive && currentState != State.RESUME)
+                            onResume();
+                        break;
+                    case DESTROY:
+                        stop();
+                        break;
+                }
+            }
+        });
+
+        currentState = state;
+    }
+
     // HAS to run on UI thread or view thread error.
     private void onCreate()
     {
         Log.instance.lines("onCreate()");
 
-        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-                cameraBridgeViewBase = (JavaCameraView) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
-                frameGrabber = new FrameGrabber(cameraBridgeViewBase, FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
-                frameGrabber.setImageProcessor(new BeaconProcessor());
+        cameraBridgeViewBase = (JavaCameraView) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
+        frameGrabber = new FrameGrabber(cameraBridgeViewBase, FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
+        frameGrabber.setImageProcessor(new BeaconProcessor());
 
-                // Determines whether the app saves every image it gets.
-                frameGrabber.setSaveImages(false);
-            }
-        });
+        // Determines whether the app saves every image it gets.
+        frameGrabber.setSaveImages(false);
     }
 
     private void onResume()
@@ -210,40 +227,6 @@ public class OpenCVCam
         currentState = State.PAUSE;
 
         setCameraViewState(false);
-    }
-
-    private void onDestroy()
-    {
-        Log.instance.lines("onDestroy()");
-        currentState = State.DESTROY;
-
-        onPause();
-
-        setViewStatus(false);
-
-        instance = null;
-    }
-
-    public void newActivityState(State state)
-    {
-        Log.instance.lines("Activity requested " + state.toString());
-        switch (state)
-        {
-            case PAUSE:
-                if (currentlyActive && currentState != State.PAUSE)
-                    onPause();
-                break;
-            case RESUME:
-                if (currentlyActive && currentState != State.RESUME)
-                    onResume();
-                break;
-            case DESTROY:
-                if (currentlyActive)
-                    onDestroy();
-                break;
-        }
-
-        currentState = state;
     }
 
     //when the "Grab" button is pressed
