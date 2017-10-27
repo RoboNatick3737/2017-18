@@ -6,10 +6,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
-/**
- * Created by nicholas on 6/12/17.
- */
-
 public class AndroidGyro {
     private SensorManager sensorManager;
     private Sensor sensor;
