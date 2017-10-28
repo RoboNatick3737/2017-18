@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.components;
+package org.firstinspires.ftc.teamcode.structs;
 
 public class Vector2D
 {

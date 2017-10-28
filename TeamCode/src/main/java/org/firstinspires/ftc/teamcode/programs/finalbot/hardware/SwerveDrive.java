@@ -1,9 +1,12 @@
-package org.firstinspires.ftc.teamcode.components;
+package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.Range;
 
-import hankextensions.hardware.Gyro;
+import hankextensions.phonesensors.Gyro;
+
+import org.firstinspires.ftc.teamcode.structs.Vector2D;
+
 import hankextensions.threading.SimpleTask;
 import hankextensions.threading.SimpleTaskPackage;
 
@@ -90,7 +93,7 @@ public class SwerveDrive
 
 
             // Figure out the direction which we will be rotating based on the rotation vector for input.
-            double currentAngle = gyro.heading();
+            double currentAngle = gyro.x();
             double desiredAngle = rotationVector.angle();
 
             // Only try to rotate when we aren't super close to the value we should be working to accomplish already.

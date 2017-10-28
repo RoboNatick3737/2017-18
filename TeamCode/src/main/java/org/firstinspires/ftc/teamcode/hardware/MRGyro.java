@@ -1,17 +1,18 @@
-package hankextensions.hardware;
+package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.GyroSensor;
 
+import hankextensions.phonesensors.Gyro;
 import hankextensions.threading.Flow;
 
 /**
  * Encapsulates the gyro sensor in an easy to access set of methods.
  */
-public class Gyro
+public class MRGyro implements Gyro
 {
     public final GyroSensor sensor;
 
-    public Gyro (GyroSensor sensor) throws InterruptedException
+    public MRGyro(GyroSensor sensor) throws InterruptedException
     {
         this.sensor = sensor;
 
@@ -38,6 +39,14 @@ public class Gyro
             zero();
     }
 
+    /**
+     * calibrate() overload to satisfy Gyro interface.
+     */
+    public void calibrate() throws InterruptedException
+    {
+        calibrate(false);
+    }
+
     //Just resets the gyro.
     public void zero() throws InterruptedException
     {
@@ -49,9 +58,19 @@ public class Gyro
     /**
      * Returns a gyro value between 0 to 360.
      */
-    public int heading()
+    public double x()
     {
         //Get the heading.
         return sensor.getHeading ();
+    }
+
+    public double y()
+    {
+        return 0;
+    }
+
+    public double z()
+    {
+        return 0;
     }
 }

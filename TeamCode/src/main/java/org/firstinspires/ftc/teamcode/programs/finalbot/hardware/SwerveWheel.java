@@ -7,12 +7,15 @@
  *     the encoder into a motor encoder port.  This works, although it's super gross (maybe we'll find a solution at some point).
  */
 
-package org.firstinspires.ftc.teamcode.components;
+package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
 
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-import hankextensions.hardware.EncoderMotor;
+import org.firstinspires.ftc.teamcode.hardware.AbsoluteEncoder;
+import org.firstinspires.ftc.teamcode.structs.Vector2D;
+
+import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
 import hankextensions.threading.SimpleTask;
 
 public class SwerveWheel
@@ -20,7 +23,7 @@ public class SwerveWheel
     private final String motorName;
     private final EncoderMotor driveMotor;
     private final Servo turnMotor;
-    private final EncoderMotor turnMotorPosition;
+    private final AbsoluteEncoder swerveEncoder;
 
     public final SwivelTask swivelTask;
 
@@ -29,12 +32,13 @@ public class SwerveWheel
 
     private final double ENCODER_TICKS_PER_REVOLUTION = 0;
 
-    public SwerveWheel(String motorName, EncoderMotor driveMotor, Servo turnMotor, EncoderMotor turnMotorPosition)
+    public SwerveWheel(String motorName, EncoderMotor driveMotor, Servo turnMotor, AbsoluteEncoder swerveEncoder)
     {
         this.motorName = motorName;
         this.driveMotor = driveMotor;
         this.turnMotor = turnMotor;
-        this.turnMotorPosition = turnMotorPosition;
+        this.swerveEncoder = swerveEncoder;
+
         this.swivelTask = new SwivelTask();
     }
 
@@ -53,7 +57,7 @@ public class SwerveWheel
         protected long onContinueTask() throws InterruptedException
         {
             // Calculate the current degree.
-            double currentDegree = turnMotorPosition.motor.getCurrentPosition() % ENCODER_TICKS_PER_REVOLUTION * 360.0;
+            double currentDegree = swerveEncoder.position() % ENCODER_TICKS_PER_REVOLUTION * 360.0;
             if (currentDegree < 0) currentDegree += 360;
 
             double angleFromDesired = currentDegree - theta;

@@ -1,4 +1,4 @@
-package hankextensions.hardware;
+package hankextensions.phonesensors;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -6,7 +6,14 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
-public class AndroidGyro {
+import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
+
+public class AndroidGyro implements Gyro
+{
+    public static AndroidGyro instance;
+
+    public boolean active = false;
+
     private SensorManager sensorManager;
     private Sensor sensor;
     private static final float NS2S = 1.0f / 1000000000.0f;
@@ -82,10 +89,11 @@ public class AndroidGyro {
     };
 
     // Initialize all of the hardware variables
-    public AndroidGyro(Context context) {
-        sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+    public AndroidGyro() {
+        sensorManager = (SensorManager) FtcRobotControllerActivity.instance.getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        sensorManager.registerListener(gyroscopeSensorListener, sensor, SensorManager.SENSOR_DELAY_FASTEST);
+
+        instance = this;
     }
 
     public static double wrapAngle(double angle) {
@@ -96,19 +104,46 @@ public class AndroidGyro {
         return angle;
     }
 
-    public static void reset() {
+    public void calibrate() {}
+
+    public void zero() {
         reset = true;
     }
 
-    public static double getX() {
+    public double x() {
         return x;
     }
 
-    public static double getY() {
+    public double y() {
         return y;
     }
 
-    public static double getZ() {
+    public double z() {
         return z;
+    }
+
+    /**
+     * Causes the listener to start receiving information.
+     */
+    public void start()
+    {
+        if (active)
+            return;
+
+        sensorManager.registerListener(gyroscopeSensorListener, sensor, SensorManager.SENSOR_DELAY_FASTEST);
+        active = true;
+    }
+
+    /**
+     * The idea here is the gyro always quits upon being asked to stop, so it doesn't take up
+     * excessive CPU.
+     */
+    public void quit()
+    {
+        if (!active)
+            return;
+
+        sensorManager.unregisterListener(gyroscopeSensorListener, sensor);
+        active = false;
     }
 }

@@ -3,6 +3,7 @@ package hankextensions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 
+import hankextensions.phonesensors.AndroidGyro;
 import hankextensions.vision.OpenCVCam;
 import hankextensions.vision.VuforiaCam;
 import hankextensions.logging.Log;
@@ -76,6 +77,10 @@ public abstract class Core extends LinearOpMode
                 OpenCVCam.instance.stop();
             if (VuforiaCam.instance != null)
                 VuforiaCam.instance.stop();
+
+            // Disable the Android gyro (in case the op mode didn't turn it off).
+            if (AndroidGyro.instance != null)
+                AndroidGyro.instance.quit();
 
             // Clear the log.
             Log.instance.close();

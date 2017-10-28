@@ -112,6 +112,7 @@ import org.firstinspires.inspection.RcInspectionActivity;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import hankextensions.phonesensors.AndroidGyro;
 import hankextensions.vision.OpenCVCam;
 import hankextensions.vision.VuforiaCam;
 
@@ -322,6 +323,7 @@ public class FtcRobotControllerActivity extends Activity
     ////////////// START VISION PROCESSING CODE //////////////
     OpenCVCam.instance = null;
     VuforiaCam.instance = null;
+    AndroidGyro.instance = null;
     ////////////// END VISION PROCESSING CODE //////////////
   }
 
