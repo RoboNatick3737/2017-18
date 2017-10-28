@@ -12,7 +12,6 @@ package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
 import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
@@ -25,12 +24,10 @@ public class SwerveWheel
     private final Servo turnMotor;
     private final AbsoluteEncoder swerveEncoder;
 
-    public final SwivelTask swivelTask;
+    private final SwivelTask swivelTask;
 
     // The vector components which should constitute the direction of this wheel.
     private double mag, theta;
-
-    private final double ENCODER_TICKS_PER_REVOLUTION = 0;
 
     public SwerveWheel(String motorName, EncoderMotor driveMotor, Servo turnMotor, AbsoluteEncoder swerveEncoder)
     {
@@ -48,7 +45,8 @@ public class SwerveWheel
      *
      * Since there are four of these, they are placed into a SimpleTaskPackage in the SwerveDrive motor to run them.
      */
-    public class SwivelTask extends SimpleTask {
+    public class SwivelTask extends SimpleTask
+    {
         public SwivelTask() {
             super(motorName + " Turning Task");
         }
@@ -57,7 +55,7 @@ public class SwerveWheel
         protected long onContinueTask() throws InterruptedException
         {
             // Calculate the current degree.
-            double currentDegree = swerveEncoder.position() % ENCODER_TICKS_PER_REVOLUTION * 360.0;
+            double currentDegree = swerveEncoder.position();
             if (currentDegree < 0) currentDegree += 360;
 
             double angleFromDesired = currentDegree - theta;
@@ -75,7 +73,7 @@ public class SwerveWheel
             // TODO: See whether the division is a good idea, scales power depending on distance from ideal.
             driveMotor.motor.setPower(Range.clip(mag / (Math.abs(angleFromDesired) + 1), -1, 1));
 
-            // The ms before updating again.
+            // The ms to wait before updating again.
             return 10;
         }
     }

@@ -92,7 +92,7 @@ digout
 
 ** Localization:
 compass
-MRGyro
+Gyro
 imu 
 navx
 

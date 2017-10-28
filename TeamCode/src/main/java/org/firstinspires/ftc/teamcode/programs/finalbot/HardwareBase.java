@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.programs.finalbot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.hardware.AbsoluteEncoder;
+import org.firstinspires.ftc.teamcode.programs.finalbot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.programs.finalbot.hardware.SwerveDrive;
 import org.firstinspires.ftc.teamcode.programs.finalbot.hardware.SwerveWheel;
 

@@ -9,7 +9,7 @@ import hankextensions.phonesensors.Gyro;
 import hankextensions.logging.ProcessConsole;
 import hankextensions.threading.Flow;
 
-@Autonomous(name = "Test Android MRGyro", group = "Experimentation")
+@Autonomous(name = "Test Android Gyro", group = "Experimentation")
 public class EnsureAndroidGyro extends Core
 {
     Gyro phoneGyro;
@@ -22,14 +22,14 @@ public class EnsureAndroidGyro extends Core
 
     protected void START() throws InterruptedException
     {
-        ProcessConsole gyroConsole = log.newProcessConsole("Phone MRGyro");
+        ProcessConsole gyroConsole = log.newProcessConsole("Phone Gyro");
 
         while (true)
         {
             gyroConsole.write(
                     "X: " + phoneGyro.x(),
-                    "Y: " + phoneGyro.x(),
-                    "Z: " + phoneGyro.x()
+                    "Y: " + phoneGyro.y(),
+                    "Z: " + phoneGyro.z()
             );
 
             Flow.yield();
