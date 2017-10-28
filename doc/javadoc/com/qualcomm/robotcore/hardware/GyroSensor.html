@@ -142,7 +142,7 @@ extends <a href="../../../../com/qualcomm/robotcore/hardware/HardwareDevice.html
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/qualcomm/robotcore/hardware/GyroSensor.html#calibrate--">calibrate</a></span>()</code>
-<div class="block">Calibrate the Gyro.</div>
+<div class="block">Calibrate the gyro.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -160,25 +160,25 @@ extends <a href="../../../../com/qualcomm/robotcore/hardware/HardwareDevice.html
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/qualcomm/robotcore/hardware/GyroSensor.html#isCalibrating--">isCalibrating</a></span>()</code>
-<div class="block">Is the Gyro performing a calibration operation?</div>
+<div class="block">Is the gyro performing a calibration operation?</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/qualcomm/robotcore/hardware/GyroSensor.html#rawX--">rawX</a></span>()</code>
-<div class="block">Return the Gyro's raw X value.</div>
+<div class="block">Return the gyro's raw X value.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/qualcomm/robotcore/hardware/GyroSensor.html#rawY--">rawY</a></span>()</code>
-<div class="block">Return the Gyro's raw Y value.</div>
+<div class="block">Return the gyro's raw Y value.</div>
 </td>
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/qualcomm/robotcore/hardware/GyroSensor.html#rawZ--">rawZ</a></span>()</code>
-<div class="block">Return the Gyro's raw Z value.</div>
+<div class="block">Return the gyro's raw Z value.</div>
 </td>
 </tr>
 <tr id="i7" class="rowColor">
@@ -222,11 +222,11 @@ extends <a href="../../../../com/qualcomm/robotcore/hardware/HardwareDevice.html
 <li class="blockList">
 <h4>calibrate</h4>
 <pre>void&nbsp;calibrate()</pre>
-<div class="block">Calibrate the Gyro.  For the Modern Robotics device this will null, or reset,
+<div class="block">Calibrate the gyro.  For the Modern Robotics device this will null, or reset,
  the Z axis heading.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all Gyro devices support this feature</dd>
+<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all gyro devices support this feature</dd>
 </dl>
 </li>
 </ul>
@@ -237,12 +237,12 @@ extends <a href="../../../../com/qualcomm/robotcore/hardware/HardwareDevice.html
 <li class="blockList">
 <h4>isCalibrating</h4>
 <pre>boolean&nbsp;isCalibrating()</pre>
-<div class="block">Is the Gyro performing a calibration operation?</div>
+<div class="block">Is the gyro performing a calibration operation?</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>true if yes, false otherwise</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all Gyro devices support this feature</dd>
+<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all gyro devices support this feature</dd>
 </dl>
 </li>
 </ul>
@@ -258,7 +258,7 @@ extends <a href="../../../../com/qualcomm/robotcore/hardware/HardwareDevice.html
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>heading between 0-360.</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all Gyro devices support this feature</dd>
+<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all gyro devices support this feature</dd>
 </dl>
 </li>
 </ul>
@@ -272,9 +272,9 @@ extends <a href="../../../../com/qualcomm/robotcore/hardware/HardwareDevice.html
 <div class="block">Return the rotation of this sensor expressed as a fraction of the maximum possible reportable rotation</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>the current fractional rotation of this Gyro (a value between 0.0 and 1.0)</dd>
+<dd>the current fractional rotation of this gyro (a value between 0.0 and 1.0)</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all Gyro devices support this feature</dd>
+<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all gyro devices support this feature</dd>
 </dl>
 </li>
 </ul>
@@ -285,12 +285,12 @@ extends <a href="../../../../com/qualcomm/robotcore/hardware/HardwareDevice.html
 <li class="blockList">
 <h4>rawX</h4>
 <pre>int&nbsp;rawX()</pre>
-<div class="block">Return the Gyro's raw X value.</div>
+<div class="block">Return the gyro's raw X value.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>X value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all Gyro devices support this feature</dd>
+<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all gyro devices support this feature</dd>
 </dl>
 </li>
 </ul>
@@ -301,12 +301,12 @@ extends <a href="../../../../com/qualcomm/robotcore/hardware/HardwareDevice.html
 <li class="blockList">
 <h4>rawY</h4>
 <pre>int&nbsp;rawY()</pre>
-<div class="block">Return the Gyro's raw Y value.</div>
+<div class="block">Return the gyro's raw Y value.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>Y value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all Gyro devices support this feature</dd>
+<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all gyro devices support this feature</dd>
 </dl>
 </li>
 </ul>
@@ -317,12 +317,12 @@ extends <a href="../../../../com/qualcomm/robotcore/hardware/HardwareDevice.html
 <li class="blockList">
 <h4>rawZ</h4>
 <pre>int&nbsp;rawZ()</pre>
-<div class="block">Return the Gyro's raw Z value.</div>
+<div class="block">Return the gyro's raw Z value.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>Z value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all Gyro devices support this feature</dd>
+<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all gyro devices support this feature</dd>
 </dl>
 </li>
 </ul>
@@ -336,7 +336,7 @@ extends <a href="../../../../com/qualcomm/robotcore/hardware/HardwareDevice.html
 <div class="block">Set the integrated Z axis to zero.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all Gyro devices support this feature</dd>
+<dd><code>java.lang.UnsupportedOperationException</code> - if unsupported; not all gyro devices support this feature</dd>
 </dl>
 </li>
 </ul>
