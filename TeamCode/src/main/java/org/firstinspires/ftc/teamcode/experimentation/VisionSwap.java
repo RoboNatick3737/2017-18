@@ -2,12 +2,14 @@ package org.firstinspires.ftc.teamcode.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import org.firstinspires.ftc.teamcode.Constants;
+
 import hankextensions.vision.OpenCVCam;
 import hankextensions.vision.VuforiaCam;
 import hankextensions.Core;
 import hankextensions.threading.Flow;
 
-@Autonomous(name="Vision Swap", group="Experimentation")
+@Autonomous(name="Vision Swap", group=Constants.EXPERIMENTATION)
 public class VisionSwap extends Core
 {
     OpenCVCam openCVCam;

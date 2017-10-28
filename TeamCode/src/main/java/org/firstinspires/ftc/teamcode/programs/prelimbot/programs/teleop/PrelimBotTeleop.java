@@ -3,12 +3,13 @@ package org.firstinspires.ftc.teamcode.programs.prelimbot.programs.teleop;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.programs.prelimbot.HardwareBase;
 
 import hankextensions.logging.ProcessConsole;
 import hankextensions.threading.Flow;
 
-@TeleOp(name = "Prelim Bot Teleop", group = "Prelim")
+@TeleOp(name = "Prelim Bot Teleop", group = Constants.PRELIM_BOT_OPMODES)
 public class PrelimBotTeleop extends HardwareBase
 {
     private long lastAPress = 0;

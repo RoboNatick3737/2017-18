@@ -24,7 +24,15 @@ public class Vector2D
 
     public double angle()
     {
-        return Math.toDegrees(Math.atan2(y, x));
+        double degree = Math.toDegrees(Math.atan2(y, x));
+
+        // Wrap vector degree
+        if (degree >= 360)
+            degree -= 360;
+        else if (degree < 0)
+            degree += 360;
+
+        return degree;
     }
 
     /*

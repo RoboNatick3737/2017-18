@@ -17,11 +17,13 @@ public class SimpleTaskPackage
     {
         this.groupName = groupName;
 
+        if (tasks == null)
+            return;
+
         //Populate task list.
         for (SimpleTask task : tasks)
         {
             add(task);
-            task.containingPackage = this;
         }
     }
 
@@ -32,6 +34,7 @@ public class SimpleTaskPackage
     public void add(SimpleTask simpleTask)
     {
         taskList.add (simpleTask);
+        simpleTask.containingPackage = this;
     }
     public void remove(SimpleTask simpleTask)
     {

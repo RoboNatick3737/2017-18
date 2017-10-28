@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.programs.prelimbot.programs.experimentati
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.programs.prelimbot.HardwareBase;
 
 /**
@@ -9,7 +10,7 @@ import org.firstinspires.ftc.teamcode.programs.prelimbot.HardwareBase;
  *
  * Time to test drive
  */
-@Autonomous(name="Test Drive", group="Experimentation")
+@Autonomous(name="Test Drive", group= Constants.PRELIM_BOT_EXPERIMENTATION)
 public class TestDrive extends HardwareBase {
 
 

@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.Range;
 
+import hankextensions.logging.Log;
+import hankextensions.logging.ProcessConsole;
 import hankextensions.phonesensors.Gyro;
 
 import org.firstinspires.ftc.teamcode.structs.Vector2D;
@@ -25,8 +27,9 @@ public class SwerveDrive
      * They're all in the same package in order to avoid using a bunch of tasks on solely this.
      */
     private SimpleTaskPackage drivingTasks;
+    private ProcessConsole swerveConsole;
 
-    // The autonomous swerve drive constructor.
+    // The swerve drive constructor, starts all swerve wheel alignment threads.
     public SwerveDrive(Gyro gyro, SwerveWheel frontLeft, SwerveWheel frontRight, SwerveWheel backLeft, SwerveWheel backRight)
     {
         this.gyro = gyro;
@@ -42,26 +45,46 @@ public class SwerveDrive
         drivingTasks.add(this.frontRight.swivelTask);
         drivingTasks.add(this.backLeft.swivelTask);
         drivingTasks.add(this.backRight.swivelTask);
+
+        swerveConsole = Log.instance.newProcessConsole("Swerve Console");
+
         drivingTasks.start();
     }
-    // The teleop swerve drive constructor.
-    public SwerveDrive(Gyro gyro, SwerveWheel frontLeft, SwerveWheel frontRight, SwerveWheel backLeft, SwerveWheel backRight, Gamepad controller)
+
+
+    /// Autonomous swerve drive methods (wheel alignment, driving, etc.). ///
+    /**
+     * JUST sets the orientation of the wheel.
+     * @param vector unit vector for alignment, since mag is pointless
+     */
+    public void alignWheelsTo(Vector2D vector)
     {
-        this.gyro = gyro;
+        frontLeft.setVectorTarget(vector, true);
+        frontRight.setVectorTarget(vector, true);
+        backLeft.setVectorTarget(vector, true);
+        backRight.setVectorTarget(vector, true);
 
-        this.frontLeft = frontLeft;
-        this.frontRight = frontRight;
-        this.backLeft = backLeft;
-        this.backRight = backRight;
+        swerveConsole.write("Set new wheel alignment to " + vector.toString());
+    }
 
-        // Construct the task package which will update all of the turning for the swerve motors.
-        drivingTasks = new SimpleTaskPackage("Swerve Turn Alignments");
-        drivingTasks.add(this.frontLeft.swivelTask);
-        drivingTasks.add(this.frontRight.swivelTask);
-        drivingTasks.add(this.backLeft.swivelTask);
-        drivingTasks.add(this.backRight.swivelTask);
-        drivingTasks.add(new JoystickNavigationTask(controller)); // Controls the swerve drive in teleop.
-        drivingTasks.start();
+
+    /// Joystick Navigation Stuff ///
+    private JoystickNavigationTask joystickNavigationTask = null;
+    public void startJoystickControl(Gamepad controller)
+    {
+        if (joystickNavigationTask != null)
+                return;
+
+        joystickNavigationTask = new JoystickNavigationTask(controller); // Controls the swerve drive in teleop.
+        drivingTasks.add(joystickNavigationTask);
+    }
+
+    public void stopJoystickControl()
+    {
+        if (joystickNavigationTask == null)
+            return;
+
+        drivingTasks.remove(joystickNavigationTask);
     }
 
     /**
@@ -122,4 +145,5 @@ public class SwerveDrive
             return 40;
         }
     }
+
 }

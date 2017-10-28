@@ -15,6 +15,9 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
 import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
+
+import hankextensions.logging.Log;
+import hankextensions.logging.ProcessConsole;
 import hankextensions.threading.SimpleTask;
 
 public class SwerveWheel
@@ -23,18 +26,27 @@ public class SwerveWheel
     private final EncoderMotor driveMotor;
     private final Servo turnMotor;
     private final AbsoluteEncoder swerveEncoder;
+    private final double physicalEncoderOffset;
 
-    private final SwivelTask swivelTask;
+    public final SwivelTask swivelTask;
+    private final ProcessConsole wheelConsole;
 
-    // The vector components which should constitute the direction of this wheel.
+    // The vector components which should constitute the direction and power of this wheel.
     private double mag, theta;
+    private boolean drivingEnabled = true;
 
-    public SwerveWheel(String motorName, EncoderMotor driveMotor, Servo turnMotor, AbsoluteEncoder swerveEncoder)
+    public SwerveWheel(String motorName, EncoderMotor driveMotor, Servo turnMotor, AbsoluteEncoder swerveEncoder) {
+        this(motorName, driveMotor, turnMotor, swerveEncoder, 0);
+    }
+    public SwerveWheel(String motorName, EncoderMotor driveMotor, Servo turnMotor, AbsoluteEncoder swerveEncoder, double physicalEncoderOffset)
     {
         this.motorName = motorName;
         this.driveMotor = driveMotor;
         this.turnMotor = turnMotor;
         this.swerveEncoder = swerveEncoder;
+        this.physicalEncoderOffset = physicalEncoderOffset;
+
+        wheelConsole = Log.instance.newProcessConsole(motorName + " Swivel Console");
 
         this.swivelTask = new SwivelTask();
     }
@@ -55,23 +67,31 @@ public class SwerveWheel
         protected long onContinueTask() throws InterruptedException
         {
             // Calculate the current degree.
-            double currentDegree = swerveEncoder.position();
-            if (currentDegree < 0) currentDegree += 360;
+            double currentDegree = swerveEncoder.position() - physicalEncoderOffset;
 
-            double angleFromDesired = currentDegree - theta;
+            // Wrap encoder degree
+            if (currentDegree >= 360)
+                currentDegree -= 360;
+            else if (currentDegree < 0)
+                currentDegree += 360;
 
-            // Don't bother with trying to turn if we're pretty much already at the ideal position.
-            if (angleFromDesired > 10)
-            {
-                // If 20 degrees and want to turn to 270, diff for 20 - 270 is -250.  360 - |-250| = 110 < |-250|, so we swap directions.
-                if (360 - Math.abs(angleFromDesired) < Math.abs(angleFromDesired))
-                    angleFromDesired = Math.signum(angleFromDesired) * (360 - Math.abs(angleFromDesired));
+            // Calculate the smallest angle between this wheel and the desired heading.
+            double angleFromDesired = (theta - currentDegree + 180) % 360 - 180;
+            angleFromDesired = angleFromDesired < -180 ? angleFromDesired + 360 : angleFromDesired;;
 
-                turnMotor.setPosition(Range.clip(Math.signum(angleFromDesired) * (.6 + .05 * Math.abs(angleFromDesired)), -1, 1));
-            }
+            // Calculate and apply turning powers.
+            double turnPower = .5; // Stationary vex motor.
+            if (Math.abs(angleFromDesired) > 10) // Change correction factor only if there's a significant distance between our heading and the desired one.
+                turnPower += Math.signum(angleFromDesired) * (.0003 * Math.pow(Math.abs(angleFromDesired), 2)); // to the power of 2 so that smaller corrections are made close to the desired heading, and significantly larger ones are made further away.
 
-            // TODO: See whether the division is a good idea, scales power depending on distance from ideal.
-            driveMotor.motor.setPower(Range.clip(mag / (Math.abs(angleFromDesired) + 1), -1, 1));
+            turnMotor.setPosition(turnPower);
+
+            // Sometimes it's best just to orient the wheel.
+            if (drivingEnabled)
+                driveMotor.motor.setPower(mag);
+
+            // Add console information.
+            wheelConsole.write("Current degree is " + currentDegree, "Angle from desired is " + angleFromDesired);
 
             // The ms to wait before updating again.
             return 10;
@@ -81,10 +101,22 @@ public class SwerveWheel
     /**
      * Takes the desired rectangular coordinates for this motor, and converts them to polar coordinates.
      */
-    public void setVectorTarget(Vector2D target)
+    public void setVectorTarget(Vector2D target) {setVectorTarget(target, false);}
+    public void setVectorTarget(Vector2D target, boolean disableMovement)
     {
         // We could store the vector, but then we'd be re-calculating these values over and over.
         mag = target.magnitude();
         theta = target.angle();
+
+        if (disableMovement)
+            drivingEnabled = false;
+        else
+            drivingEnabled = true;
+    }
+
+    // Darn builders >:(
+    public void setPhysicalEncoderOffset(double offset)
+    {
+
     }
 }

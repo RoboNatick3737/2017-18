@@ -1,26 +1,17 @@
 package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
 
 import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.AnalogInputController;
 
-public class AbsoluteEncoder extends AnalogInput //already implements HardwareDevice
+public class AbsoluteEncoder
 {
-    /**
-     * Constructor
-     *
-     * @param controller AnalogInput controller this channel is attached to
-     * @param channel    channel on the analog input controller
-     */
-    public AbsoluteEncoder(AnalogInputController controller, int channel) {
-        super(controller, channel);
-    }
+    public final AnalogInput device;
 
-    /// Custom methods start ///
+    public AbsoluteEncoder(AnalogInput device) {
+        this.device = device;
+    }
 
     public double position()
     {
-        return getVoltage() / 5.0 * 360;
+        return device.getVoltage() / 5.0 * 360;
     }
-
-    /// Custom methods end ///
 }

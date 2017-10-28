@@ -51,9 +51,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
 */
-@TeleOp(name = "Sensor: MR Gyro", group = "Sensor")
+@TeleOp(name = "Sensor: Gyro", group = "Sensor")
 @Disabled
-public class SensorGyro extends LinearOpMode {
+public class SensorMRGyro extends LinearOpMode {
 
   /** In this sample, for illustration purposes we use two interfaces on the one gyro object.
    * That's likely atypical: you'll probably use one or the other in any given situation,

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.programs.finalbot;
 
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -14,7 +15,7 @@ import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
 
 public abstract class HardwareBase extends Core
 {
-    private SwerveDrive swerveDrive;
+    protected SwerveDrive swerveDrive;
 
     @Override
     protected void HARDWARE() throws InterruptedException
@@ -27,28 +28,32 @@ public abstract class HardwareBase extends Core
         SwerveWheel frontLeft = new SwerveWheel(
                 "Front Left",
                 new EncoderMotor(initHardwareDevice(DcMotor.class, "Front Left")),
-                initHardwareDevice(Servo.class, "Front Left Vex"),
-                initHardwareDevice(AbsoluteEncoder.class, "Front Left Vex Encoder"));
+                initHardwareDevice(Servo.class, "Front Left Vex Motor"),
+                new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Left Vex Encoder")),
+                60);
 
         SwerveWheel frontRight = new SwerveWheel(
                 "Front Right",
                 new EncoderMotor(initHardwareDevice(DcMotor.class, "Front Right")),
-                initHardwareDevice(Servo.class, "Front Right Vex"),
-                initHardwareDevice(AbsoluteEncoder.class, "Front Right Vex Encoder"));
+                initHardwareDevice(Servo.class, "Front Right Vex Motor"),
+                new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Right Vex Encoder")),
+                60);
 
         SwerveWheel backLeft = new SwerveWheel(
                 "Back Left",
                 new EncoderMotor(initHardwareDevice(DcMotor.class, "Back Left")),
-                initHardwareDevice(Servo.class, "Back Left Vex"),
-                initHardwareDevice(AbsoluteEncoder.class, "Back Left Vex Encoder"));
+                initHardwareDevice(Servo.class, "Back Left Vex Motor"),
+                new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Left Vex Encoder")),
+                50);
 
         SwerveWheel backRight = new SwerveWheel(
                 "Back Right",
                 new EncoderMotor(initHardwareDevice(DcMotor.class, "Back Right")),
-                initHardwareDevice(Servo.class, "Back Right Vex"),
-                initHardwareDevice(AbsoluteEncoder.class, "Back Right Vex Encoder"));
+                initHardwareDevice(Servo.class, "Back Right Vex Motor"),
+                new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Right Vex Encoder")),
+                90 /* the encoder offset set by the builders for some reason :( */);
 
         // Creates the swerve drive with the correct joystick.
-        swerveDrive = new SwerveDrive(androidGyro, frontLeft, frontRight, backLeft, backRight, gamepad1);
+        swerveDrive = new SwerveDrive(androidGyro, frontLeft, frontRight, backLeft, backRight);
     }
 }
