@@ -5,7 +5,7 @@ read -p "Press any key to continue... " -n1 -s
 echo ""
 echo ""
 
-echo "Enter the 'Program & Manage' of the Robot Controller, and connect to the WiFi Direct network it specifies."
+echo "Enter the 'About' submenu of the Robot Controller, and connect to the WiFi Direct network it specifies."
 read -p "Press any key to continue... " -n1 -s
 echo ""
 echo ""
