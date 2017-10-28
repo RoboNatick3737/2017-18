@@ -10,7 +10,6 @@
 package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
 
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
@@ -81,8 +80,8 @@ public class SwerveWheel
 
             // Calculate and apply turning powers.
             double turnPower = .5; // Stationary vex motor.
-            if (Math.abs(angleFromDesired) > 10) // Change correction factor only if there's a significant distance between our heading and the desired one.
-                turnPower += Math.signum(angleFromDesired) * (.0003 * Math.pow(Math.abs(angleFromDesired), 2)); // to the power of 2 so that smaller corrections are made close to the desired heading, and significantly larger ones are made further away.
+            if (Math.abs(angleFromDesired) > 5) // Change correction factor only if there's a significant distance between our heading and the desired one.
+                turnPower += Math.signum(angleFromDesired) * (.0007 * Math.pow(Math.abs(angleFromDesired), 2)); // to the power of 2 so that smaller corrections are made close to the desired heading, and significantly larger ones are made further away.
 
             turnMotor.setPosition(turnPower);
 
@@ -112,11 +111,5 @@ public class SwerveWheel
             drivingEnabled = false;
         else
             drivingEnabled = true;
-    }
-
-    // Darn builders >:(
-    public void setPhysicalEncoderOffset(double offset)
-    {
-
     }
 }

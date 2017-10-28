@@ -18,7 +18,7 @@ public class SwivelTesting extends HardwareBase
         {
             swerveDrive.alignWheelsTo(new Vector2D(Math.random() * 2 - 1, Math.random() * 2 - 1).unit());
 
-            Flow.msPause(10000);
+            Flow.msPause(3000);
         }
     }
 }
