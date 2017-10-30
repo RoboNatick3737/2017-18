@@ -31,9 +31,15 @@ public class SimpleTaskPackage
      * Place tasks in here, which will be run by the complex task class nested in this class.
      */
     private ArrayList<SimpleTask> taskList = new ArrayList<> ();
+    private ArrayList<SimpleTask> pendingAddition = new ArrayList<>(); // Separate list because adding elements mid loop in another thread causes crash.
     public void add(SimpleTask simpleTask)
     {
-        taskList.add (simpleTask);
+        // If not on, add it straight to the task list.
+        if (taskPackageRunner == null)
+            taskList.add (simpleTask);
+        else
+            pendingAddition.add(simpleTask);
+
         simpleTask.containingPackage = this;
     }
     public void remove(SimpleTask simpleTask)
@@ -66,6 +72,13 @@ public class SimpleTaskPackage
                     SimpleTask task = taskList.get(i);
                     if (task.isRunning() && task.nextRunTime < System.currentTimeMillis ())
                         task.nextRunTime = task.onContinueTask () + System.currentTimeMillis ();
+                }
+
+                // Add all pending tasks (if they exist).
+                for (SimpleTask pendingTask : pendingAddition)
+                {
+                    taskList.add(pendingTask);
+                    pendingAddition.remove(pendingTask);
                 }
 
                 //Exit program if stop requested, otherwise yield to other threads.

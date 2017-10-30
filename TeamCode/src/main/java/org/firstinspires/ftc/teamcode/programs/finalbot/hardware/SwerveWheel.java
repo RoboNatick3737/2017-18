@@ -10,7 +10,9 @@
 package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
 
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.structs.LimitAngle;
 import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
 import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
@@ -21,6 +23,11 @@ import hankextensions.threading.SimpleTask;
 
 public class SwerveWheel
 {
+    // Swerve wheel constants.
+    private static final double NO_MORE_ADJUSTMENTS_THRESHOLD = 2.5;
+    private static final double ACCEPTABLE_ORIENTATION_THRESHOLD = 10;
+
+    // Swerve wheel specific components.
     private final String motorName;
     private final EncoderMotor driveMotor;
     private final Servo turnMotor;
@@ -32,7 +39,10 @@ public class SwerveWheel
 
     // The vector components which should constitute the direction and power of this wheel.
     private double mag, theta;
-    private boolean drivingEnabled = true;
+    private boolean drivingEnabled = false;
+
+    // The boolean which indicates to the parent swerve drive whether this wheel has swiveled to the correct position.
+    private boolean swivelAcceptable = true;
 
     public SwerveWheel(String motorName, EncoderMotor driveMotor, Servo turnMotor, AbsoluteEncoder swerveEncoder) {
         this(motorName, driveMotor, turnMotor, swerveEncoder, 0);
@@ -51,6 +61,19 @@ public class SwerveWheel
     }
 
     /**
+     * Takes the desired rectangular coordinates for this motor, and converts them to polar coordinates.
+     */
+    public void setVectorTarget(Vector2D target)
+    {
+        // We could store the vector, but then we'd be re-calculating these values over and over.
+        mag = target.magnitude();
+        directionCoefficient = 1;
+        theta = new LimitAngle(target.angle()).value;
+        if (theta >= 180)
+            theta -= 180;
+    }
+
+    /**
      * Since the vex motor requires some time to turn to the correct position (we aren't just using servos, unfortunately), we have
      * to essentially schedule simple tasks to continually update the speed of the vex motor.
      *
@@ -62,54 +85,62 @@ public class SwerveWheel
             super(motorName + " Turning Task");
         }
 
+        // Prevent boxing/unboxing slowdown.
+        double currentDegree, turnPower, angleFromDesired;
+
         @Override
         protected long onContinueTask() throws InterruptedException
         {
-            // Calculate the current degree.
-            double currentDegree = swerveEncoder.position() - physicalEncoderOffset;
+            turnPower = 0.5;
 
-            // Wrap encoder degree
-            if (currentDegree >= 360)
-                currentDegree -= 360;
-            else if (currentDegree < 0)
+            // Calculate the current degree including the offset.
+            currentDegree = swerveEncoder.position() - physicalEncoderOffset;
+            if (currentDegree < 0)
                 currentDegree += 360;
+            else if (currentDegree >= 360)
+                currentDegree -= 360;
 
-            // Calculate the smallest angle between this wheel and the desired heading.
-            double angleFromDesired = (theta - currentDegree + 180) % 360 - 180;
-            angleFromDesired = angleFromDesired < -180 ? angleFromDesired + 360 : angleFromDesired;;
+            // Wrap encoder degree to [0,180]
+            if (currentDegree >= 180)
+                currentDegree -= 180;
 
-            // Calculate and apply turning powers.
-            double turnPower = .5; // Stationary vex motor.
-            if (Math.abs(angleFromDesired) > 5) // Change correction factor only if there's a significant distance between our heading and the desired one.
-                turnPower += Math.signum(angleFromDesired) * (.0007 * Math.pow(Math.abs(angleFromDesired), 2)); // to the power of 2 so that smaller corrections are made close to the desired heading, and significantly larger ones are made further away.
+            // Figure out whether it would be easier to turn backwards to theta as opposed to forwards.  If so, reverse the power.
+            if (Math.abs(theta - (currentDegree > 90 ? currentDegree - 180 : currentDegree + 180)) < Math.abs(theta - currentDegree)) {
+                angleFromDesired = theta - (currentDegree > 90 ? currentDegree - 180 : currentDegree + 180);
+            }
+            else {
+                angleFromDesired = theta - currentDegree;
+            }
 
+            if (Math.abs(angleFromDesired) > NO_MORE_ADJUSTMENTS_THRESHOLD)
+                turnPower += Math.signum(angleFromDesired) * (.0009 * Math.pow(angleFromDesired , 2));
+
+            // Turn vex motor.
             turnMotor.setPosition(turnPower);
 
             // Sometimes it's best just to orient the wheel.
+            swivelAcceptable = Math.abs(angleFromDesired) < ACCEPTABLE_ORIENTATION_THRESHOLD;
+
             if (drivingEnabled)
-                driveMotor.motor.setPower(mag);
+                driveMotor.motor.setPower(Range.clip(mag, -1, 1));
+            else
+                driveMotor.motor.setPower(0);
 
             // Add console information.
-            wheelConsole.write("Current degree is " + currentDegree, "Angle from desired is " + angleFromDesired);
+            wheelConsole.write("Current degree is " + currentDegree, "Angle from desired is " + angleFromDesired, "Desired theta is " + theta);
 
             // The ms to wait before updating again.
             return 10;
         }
     }
 
-    /**
-     * Takes the desired rectangular coordinates for this motor, and converts them to polar coordinates.
-     */
-    public void setVectorTarget(Vector2D target) {setVectorTarget(target, false);}
-    public void setVectorTarget(Vector2D target, boolean disableMovement)
+    public boolean atAcceptableSwivelOrientation()
     {
-        // We could store the vector, but then we'd be re-calculating these values over and over.
-        mag = target.magnitude();
-        theta = target.angle();
+        return swivelAcceptable;
+    }
 
-        if (disableMovement)
-            drivingEnabled = false;
-        else
-            drivingEnabled = true;
+    public void setDrivingState(boolean state)
+    {
+        drivingEnabled = state;
     }
 }

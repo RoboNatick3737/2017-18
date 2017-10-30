@@ -52,6 +52,8 @@ public class Vector2D
     }
     public Vector2D divide (double coefficient)
     {
+        if (coefficient == 0)
+            return Vector2D.ZERO;
         return this.multiply(1.0 / coefficient);
     }
 
@@ -63,7 +65,8 @@ public class Vector2D
     public Vector2D orientToAngle(double newAngle)
     {
         double magnitude = magnitude();
-        return new Vector2D(magnitude * Math.cos(Math.toRadians(newAngle)), magnitude * Math.sin(Math.toRadians(newAngle)));
+        double angleRadians = Math.toRadians(new LimitAngle(newAngle).value);
+        return new Vector2D(magnitude * Math.cos(angleRadians), magnitude * Math.sin(angleRadians));
     }
 
     public boolean equals(Vector2D other)

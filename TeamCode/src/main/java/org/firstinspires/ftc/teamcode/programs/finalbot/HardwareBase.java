@@ -30,28 +30,28 @@ public abstract class HardwareBase extends Core
                 new EncoderMotor(initHardwareDevice(DcMotor.class, "Front Left")),
                 initHardwareDevice(Servo.class, "Front Left Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Left Vex Encoder")),
-                60);
+                61.9);
 
         SwerveWheel frontRight = new SwerveWheel(
                 "Front Right",
                 new EncoderMotor(initHardwareDevice(DcMotor.class, "Front Right")),
                 initHardwareDevice(Servo.class, "Front Right Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Right Vex Encoder")),
-                60);
+                60.53);
 
         SwerveWheel backLeft = new SwerveWheel(
                 "Back Left",
                 new EncoderMotor(initHardwareDevice(DcMotor.class, "Back Left")),
                 initHardwareDevice(Servo.class, "Back Left Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Left Vex Encoder")),
-                50);
+                50.67);
 
         SwerveWheel backRight = new SwerveWheel(
                 "Back Right",
                 new EncoderMotor(initHardwareDevice(DcMotor.class, "Back Right")),
                 initHardwareDevice(Servo.class, "Back Right Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Right Vex Encoder")),
-                90 /* the encoder offset set by the builders for some reason :( */);
+                85.86 /* the encoder offset set by the builders for some reason :( */);
 
         // Creates the swerve drive with the correct joystick.
         swerveDrive = new SwerveDrive(androidGyro, frontLeft, frontRight, backLeft, backRight);

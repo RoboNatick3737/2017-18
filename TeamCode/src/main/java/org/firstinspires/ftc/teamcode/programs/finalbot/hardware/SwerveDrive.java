@@ -7,6 +7,7 @@ import hankextensions.logging.Log;
 import hankextensions.logging.ProcessConsole;
 import hankextensions.phonesensors.Gyro;
 
+import org.firstinspires.ftc.teamcode.structs.LimitAngle;
 import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
 import hankextensions.threading.SimpleTask;
@@ -15,7 +16,7 @@ import hankextensions.threading.SimpleTaskPackage;
 public class SwerveDrive
 {
     private final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
-    private final double ROBOT_PHI = Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH); // Will be 45 degrees with perfect square dimensions.
+    private final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
 
     private SwerveWheel frontLeft, frontRight, backLeft, backRight;
     private Gyro gyro;
@@ -59,10 +60,10 @@ public class SwerveDrive
      */
     public void alignWheelsTo(Vector2D vector)
     {
-        frontLeft.setVectorTarget(vector, true);
-        frontRight.setVectorTarget(vector, true);
-        backLeft.setVectorTarget(vector, true);
-        backRight.setVectorTarget(vector, true);
+        frontLeft.setVectorTarget(vector);
+        frontRight.setVectorTarget(vector);
+        backLeft.setVectorTarget(vector);
+        backRight.setVectorTarget(vector);
 
         swerveConsole.write("Set new wheel alignment to " + vector.toString());
     }
@@ -70,7 +71,7 @@ public class SwerveDrive
 
     /// Joystick Navigation Stuff ///
     private JoystickNavigationTask joystickNavigationTask = null;
-    public void startJoystickControl(Gamepad controller)
+    public void startJoystickControl(Gamepad controller) throws InterruptedException
     {
         if (joystickNavigationTask != null)
                 return;
@@ -93,44 +94,65 @@ public class SwerveDrive
     private class JoystickNavigationTask extends SimpleTask
     {
         private Gamepad controller;
-        private Vector2D desiredRotation;// Controlled by left joystick, front of the robot is 90 degrees.  Vector because mag is important (changes speed of rotation).
-        private Vector2D desiredTranslation; // Controlled by right joystick, up means move forward.
+        private Vector2D desiredRotation = new Vector2D(0, 1);// Controlled by left joystick, front of the robot is 90 degrees.  Vector because mag is important (changes speed of rotation).
+        private Vector2D desiredTranslation = new Vector2D(0, 0); // Controlled by right joystick, up means move forward.
 
-        public JoystickNavigationTask(Gamepad controller)
+        public JoystickNavigationTask(Gamepad controller) throws InterruptedException
         {
             this.controller = controller;
+            gyro.zero();
         }
 
         @Override
         protected long onContinueTask() throws InterruptedException
         {
             // Recalculate rotation.
-            Vector2D rotationVector = new Vector2D(controller.left_stick_x, controller.left_stick_y);
-            if (rotationVector.magnitude() < 0.1) rotationVector = desiredRotation;
+            Vector2D rotationVector = new Vector2D(controller.left_stick_x, -controller.left_stick_y);
+            if (rotationVector.magnitude() < 0.05) rotationVector = desiredRotation;
             else desiredRotation = rotationVector;
 
             // Recalculate translation.
-            Vector2D translationVector = new Vector2D(controller.right_stick_x, controller.right_stick_y);
-            if (rotationVector.magnitude() < 0.1) translationVector = desiredTranslation;
+            Vector2D translationVector = Vector2D.ZERO; //new Vector2D(controller.right_stick_x, -controller.right_stick_y);
+            if (translationVector.magnitude() < 0.05) translationVector = desiredTranslation;
             else desiredTranslation = translationVector;
 
 
             // Figure out the direction which we will be rotating based on the rotation vector for input.
-            double currentAngle = gyro.x();
-            double desiredAngle = rotationVector.angle();
+            LimitAngle currentAngle = new LimitAngle(gyro.z());
+            LimitAngle desiredAngle = new LimitAngle(rotationVector.angle() - 90);
 
             // Only try to rotate when we aren't super close to the value we should be working to accomplish already.
-            if (currentAngle - desiredAngle > 5)
-            {
-                // Don't rotate as quickly as we approach the angle we want to stop at.
-                double rotationSpeedCoefficient = Range.clip(Math.abs(0.6 + (currentAngle - desiredAngle) / 360.0), 0, 1);
-                Vector2D modifiedRotationVector = rotationVector.multiply(rotationSpeedCoefficient);
+            double angleOff = currentAngle.angleTo(desiredAngle);
 
+            if (Math.abs(angleOff) > 5)
+            {
                 // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
-                frontLeft.setVectorTarget(modifiedRotationVector.orientToAngle(ROBOT_PHI + currentAngle).add(translationVector).unit());
-                frontRight.setVectorTarget(modifiedRotationVector.orientToAngle((180 - ROBOT_PHI) + currentAngle).add(translationVector).unit());
-                backLeft.setVectorTarget(modifiedRotationVector.orientToAngle((180 + ROBOT_PHI) + currentAngle).add(translationVector).unit());
-                backRight.setVectorTarget(modifiedRotationVector.orientToAngle((360 - ROBOT_PHI) + currentAngle).add(translationVector).unit());
+                frontLeft.setVectorTarget(
+                        rotationVector.orientToAngle(ROBOT_PHI - 90) // only magnitude of rot vector matters.
+                                .multiply(Range.clip(Math.signum(angleOff) * (.6 + angleOff / 180.0), -1, 1))
+                                .add(translationVector));
+                backLeft.setVectorTarget(
+                        rotationVector.orientToAngle((180 - ROBOT_PHI) - 90)
+                                .multiply(Range.clip(Math.signum(angleOff) * (.6 + angleOff / 180.0), -1, 1))
+                                .add(translationVector));
+                backRight.setVectorTarget(
+                        rotationVector.orientToAngle((180 + ROBOT_PHI) - 90)
+                                .multiply(Range.clip(Math.signum(angleOff) * (.6 + angleOff / 180.0), -1, 1))
+                                .add(translationVector));
+                frontRight.setVectorTarget(
+                        rotationVector.orientToAngle((360 - ROBOT_PHI) - 90)
+                                .multiply(Range.clip(Math.signum(angleOff) * (.6 + angleOff / 180.0), -1, 1))
+                                .add(translationVector));
+
+
+                swerveConsole.write(
+                        "Rotation Input: " + rotationVector.toString(),
+                        "Translation Input: " + translationVector.toString(),
+                        "Current heading: " + currentAngle.value,
+                        "Desired angle: " + desiredAngle.value,
+                        "Off from angle: " + angleOff,
+                        "PHI: " + ROBOT_PHI
+                );
             }
             else
             {
@@ -141,6 +163,25 @@ public class SwerveDrive
                 backLeft.setVectorTarget(translationUnitVector);
                 backRight.setVectorTarget(translationUnitVector);
             }
+
+            // Check to see whether it's okay to start moving (only move if at that state).
+            if (
+                    frontLeft.atAcceptableSwivelOrientation() &&
+                    frontRight.atAcceptableSwivelOrientation() &&
+                    backLeft.atAcceptableSwivelOrientation() &&
+                    backRight.atAcceptableSwivelOrientation())
+            {
+                frontLeft.setDrivingState(true);
+                frontRight.setDrivingState(true);
+                backLeft.setDrivingState(true);
+                backRight.setDrivingState(true);
+            } else {
+                frontLeft.setDrivingState(false);
+                frontRight.setDrivingState(false);
+                backLeft.setDrivingState(false);
+                backRight.setDrivingState(false);
+            }
+
 
             return 40;
         }

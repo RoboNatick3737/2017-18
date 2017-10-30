@@ -21,5 +21,5 @@ read -p "Press any key to continue... " -n1 -s
 echo ""
 echo ""
 
-./adb connect 192.168.49.1:5555
+./adb connect 192.168.49.1:5551
 echo "Done! :)"
