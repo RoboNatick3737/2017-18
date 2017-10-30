@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
 import hankextensions.threading.Flow;
 
-@Autonomous(name="Swerve Autonomous", group=Constants.FINAL_BOT_EXPERIMENTATION)
+@Autonomous(name="Swivel Testing", group=Constants.FINAL_BOT_EXPERIMENTATION)
 public class SwivelTesting extends HardwareBase
 {
     @Override

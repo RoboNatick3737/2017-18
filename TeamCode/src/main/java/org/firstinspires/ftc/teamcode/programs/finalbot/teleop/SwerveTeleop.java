@@ -14,14 +14,27 @@ public class SwerveTeleop extends HardwareBase
     @Override
     protected void START() throws InterruptedException
     {
+        Vector2D lastRotation = Vector2D.ZERO, lastMovement = Vector2D.ZERO;
+        Vector2D desiredRotation, desiredMovement;
+
         while (true)
         {
-            // Rotate by -90 in order to make forward facing zero.
-            swerveDrive.setDesiredRotation(
-                    Vector2D.rectangular(gamepad1.left_stick_x, -gamepad1.left_stick_y).rotateBy(-90));
-            swerveDrive.setDesiredRotation(
-                    Vector2D.rectangular(gamepad1.right_stick_x, -gamepad1.right_stick_y).rotateBy(-90));
+            desiredRotation = Vector2D.rectangular(gamepad1.left_stick_x, -gamepad1.left_stick_y).rotateBy(-90);
+            desiredMovement = Vector2D.rectangular(gamepad1.right_stick_x, -gamepad1.right_stick_y).rotateBy(-90);
 
+            if (desiredRotation.magnitude < .05)
+                desiredRotation = lastRotation;
+            else
+                lastRotation = desiredRotation;
+
+            if (desiredMovement.magnitude < .05)
+                desiredMovement = lastMovement;
+            else
+                lastMovement = desiredMovement;
+
+            // Rotate by -90 in order to make forward facing zero.
+            swerveDrive.setDesiredRotation(desiredRotation);
+            swerveDrive.setDesiredMovement(desiredMovement);
             Flow.yield();
         }
     }
