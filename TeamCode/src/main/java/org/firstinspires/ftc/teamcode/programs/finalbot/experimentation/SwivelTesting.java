@@ -8,15 +8,14 @@ import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
 import hankextensions.threading.Flow;
 
-@Autonomous(name="Swivel Testing", group=Constants.FINAL_BOT_EXPERIMENTATION)
+@Autonomous(name="Swerve Autonomous", group=Constants.FINAL_BOT_EXPERIMENTATION)
 public class SwivelTesting extends HardwareBase
 {
     @Override
     protected void START() throws InterruptedException
     {
-        while (true)
-        {
-            swerveDrive.alignWheelsTo(new Vector2D(Math.random() * 2 - 1, Math.random() * 2 - 1).unit());
+        while (true) {
+            swerveDrive.setDesiredRotation(Vector2D.polar(1, Math.random() * 359));
 
             Flow.msPause(3000);
         }

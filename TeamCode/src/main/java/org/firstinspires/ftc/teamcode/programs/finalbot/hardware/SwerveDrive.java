@@ -1,13 +1,11 @@
 package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
 
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.Range;
 
 import hankextensions.logging.Log;
 import hankextensions.logging.ProcessConsole;
 import hankextensions.phonesensors.Gyro;
 
-import org.firstinspires.ftc.teamcode.structs.LimitAngle;
 import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
 import hankextensions.threading.SimpleTask;
@@ -15,11 +13,16 @@ import hankextensions.threading.SimpleTaskPackage;
 
 public class SwerveDrive
 {
-    private final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
-    private final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
+    // Physical robot constants.
+    private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
+    private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
 
-    private SwerveWheel frontLeft, frontRight, backLeft, backRight;
-    private Gyro gyro;
+    // Instance specific components.
+    private final SwerveWheel frontLeft, frontRight, backLeft, backRight;
+    private final Gyro gyro;
+
+    // Constantly shifting in autonomous and teleop.
+    private Vector2D desiredRotation = Vector2D.ZERO, desiredMovement = Vector2D.ZERO;
 
     /**
      * This task package runs on a different thread, continually updating the vectors for each swerve wheel, while also
@@ -31,7 +34,7 @@ public class SwerveDrive
     private ProcessConsole swerveConsole;
 
     // The swerve drive constructor, starts all swerve wheel alignment threads.
-    public SwerveDrive(Gyro gyro, SwerveWheel frontLeft, SwerveWheel frontRight, SwerveWheel backLeft, SwerveWheel backRight)
+    public SwerveDrive(Gyro gyro, SwerveWheel frontLeft, SwerveWheel frontRight, SwerveWheel backLeft, SwerveWheel backRight) throws InterruptedException
     {
         this.gyro = gyro;
 
@@ -46,123 +49,86 @@ public class SwerveDrive
         drivingTasks.add(this.frontRight.swivelTask);
         drivingTasks.add(this.backLeft.swivelTask);
         drivingTasks.add(this.backRight.swivelTask);
+        drivingTasks.add(new SwerveDriveTask());
 
         swerveConsole = Log.instance.newProcessConsole("Swerve Console");
 
         drivingTasks.start();
     }
 
-
-    /// Autonomous swerve drive methods (wheel alignment, driving, etc.). ///
     /**
-     * JUST sets the orientation of the wheel.
-     * @param vector unit vector for alignment, since mag is pointless
+     * Sets a new desired orientation.
+     * @param newlyDesiredRotation the new orientation to align to.
      */
-    public void alignWheelsTo(Vector2D vector)
+    public void setDesiredRotation(Vector2D newlyDesiredRotation)
     {
-        frontLeft.setVectorTarget(vector);
-        frontRight.setVectorTarget(vector);
-        backLeft.setVectorTarget(vector);
-        backRight.setVectorTarget(vector);
-
-        swerveConsole.write("Set new wheel alignment to " + vector.toString());
+        this.desiredRotation = newlyDesiredRotation;
     }
 
-
-    /// Joystick Navigation Stuff ///
-    private JoystickNavigationTask joystickNavigationTask = null;
-    public void startJoystickControl(Gamepad controller) throws InterruptedException
+    /**
+     * Sets new desired translation.
+     * @param newlyDesiredMovement the new desired movement vector.
+     *
+     */
+    public void setDesiredMovement(Vector2D newlyDesiredMovement)
     {
-        if (joystickNavigationTask != null)
-                return;
-
-        joystickNavigationTask = new JoystickNavigationTask(controller); // Controls the swerve drive in teleop.
-        drivingTasks.add(joystickNavigationTask);
-    }
-
-    public void stopJoystickControl()
-    {
-        if (joystickNavigationTask == null)
-            return;
-
-        drivingTasks.remove(joystickNavigationTask);
+        this.desiredMovement = newlyDesiredMovement;
     }
 
     /**
      * Controls translation and rotation, constantly supplying vectors for the swiveling tasks.
      */
-    private class JoystickNavigationTask extends SimpleTask
+    private class SwerveDriveTask extends SimpleTask
     {
-        private Gamepad controller;
-        private Vector2D desiredRotation = new Vector2D(0, 1);// Controlled by left joystick, front of the robot is 90 degrees.  Vector because mag is important (changes speed of rotation).
-        private Vector2D desiredTranslation = new Vector2D(0, 0); // Controlled by right joystick, up means move forward.
-
-        public JoystickNavigationTask(Gamepad controller) throws InterruptedException
+        public SwerveDriveTask() throws InterruptedException
         {
-            this.controller = controller;
             gyro.zero();
         }
 
-        double turnSensitivity;
-
         @Override
-        protected long onContinueTask() throws InterruptedException
-        {
-            if (controller.a)
-                turnSensitivity += .00001;
-            else if (controller.b)
-                turnSensitivity -= .00001;
-
-            // Recalculate rotation.
-            Vector2D rotationVector = new Vector2D(controller.left_stick_x, -controller.left_stick_y);
-            if (rotationVector.magnitude() < 0.05) rotationVector = desiredRotation;
-            else desiredRotation = rotationVector;
-
-            // Recalculate translation.
-            Vector2D translationVector = new Vector2D(controller.right_stick_x, -controller.right_stick_y);
-            if (translationVector.magnitude() < 0.05) translationVector = desiredTranslation;
-            else desiredTranslation = translationVector;
-
+        protected long onContinueTask() throws InterruptedException {
 
             // Figure out the direction which we will be rotating based on the rotation vector for input.
-            LimitAngle currentAngle = new LimitAngle(gyro.z());
-            LimitAngle desiredAngle = new LimitAngle(rotationVector.angle() - 90);
+            Vector2D currentHeading = Vector2D.polar(1, gyro.z());
+            Vector2D desiredHeading = Vector2D.polar(1, desiredRotation.angle);
+
+            // Figure out the actual translation vector for swerve wheels based on gyro value.
+            Vector2D fieldCentricTranslation = desiredMovement.rotateBy(-currentHeading.angle);
 
             // Only try to rotate when we aren't super close to the value we should be working to accomplish already.
-            double angleOff = currentAngle.angleTo(desiredAngle);
+            double angleOff = currentHeading.angleBetween(desiredHeading);
 
-            double rotationSpeedCoefficient = Range.clip(Math.signum(angleOff) * (.0007 * Math.pow(Math.abs(angleOff), 2)), -1, 1);
+            // Change the power of the turn speed depending on our distance from the desired heading.  Soon causes turn vector to be zero, allowing movement free of turning to occur.
+            double rotationSpeedCoefficient = Math.signum(angleOff) *
+                    Range.clip((.0007 * Math.pow(angleOff, 2)), 0, 1);
 
             // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
             frontLeft.setVectorTarget(
-                    rotationVector.orientToAngle(ROBOT_PHI - 90) // only magnitude of rot vector matters.
+                    Vector2D.polar(desiredRotation.magnitude, ROBOT_PHI - 90)
                             .multiply(rotationSpeedCoefficient)
-                            .add(translationVector));
+                            .add(fieldCentricTranslation));
             backLeft.setVectorTarget(
-                    rotationVector.orientToAngle((180 - ROBOT_PHI) - 90)
+                    Vector2D.polar(desiredRotation.magnitude, (180 - ROBOT_PHI) - 90)
                             .multiply(rotationSpeedCoefficient)
-                            .add(translationVector));
+                            .add(fieldCentricTranslation));
             backRight.setVectorTarget(
-                    rotationVector.orientToAngle((180 + ROBOT_PHI) - 90)
+                    Vector2D.polar(desiredRotation.magnitude, (180 + ROBOT_PHI) - 90)
                             .multiply(rotationSpeedCoefficient)
-                            .add(translationVector));
+                            .add(fieldCentricTranslation));
             frontRight.setVectorTarget(
-                    rotationVector.orientToAngle((360 - ROBOT_PHI) - 90)
+                    Vector2D.polar(desiredRotation.magnitude, (360 - ROBOT_PHI) - 90)
                             .multiply(rotationSpeedCoefficient)
-                            .add(translationVector));
+                            .add(fieldCentricTranslation));
 
-
+            // Write some information to the telemetry console.
             swerveConsole.write(
-                    "Rotation Input: " + rotationVector.toString(),
-                    "Translation Input: " + translationVector.toString(),
-                    "Current heading: " + currentAngle.value,
-                    "Desired angle: " + desiredAngle.value,
+                    "Current heading: " + currentHeading.angle,
+                    "Desired angle: " + desiredHeading.angle,
                     "Off from angle: " + angleOff,
-                    "rot speed coeff: " + rotationSpeedCoefficient,
-                    "t sensitivity: " + turnSensitivity
+                    "Rotation speed coeff: " + rotationSpeedCoefficient
             );
 
-            // Check to see whether it's okay to start moving (only move if at that state).
+            // Check to see whether it's okay to start moving by observing the state of all wheels.  .
             if (
                     frontLeft.atAcceptableSwivelOrientation() &&
                     frontRight.atAcceptableSwivelOrientation() &&
@@ -179,7 +145,6 @@ public class SwerveDrive
                 backLeft.setDrivingState(false);
                 backRight.setDrivingState(false);
             }
-
 
             return 40;
         }
