@@ -103,9 +103,16 @@ public class SwerveDrive
             gyro.zero();
         }
 
+        double turnSensitivity;
+
         @Override
         protected long onContinueTask() throws InterruptedException
         {
+            if (controller.a)
+                turnSensitivity += .00001;
+            else if (controller.b)
+                turnSensitivity -= .00001;
+
             // Recalculate rotation.
             Vector2D rotationVector = new Vector2D(controller.left_stick_x, -controller.left_stick_y);
             if (rotationVector.magnitude() < 0.05) rotationVector = desiredRotation;
@@ -124,7 +131,7 @@ public class SwerveDrive
             // Only try to rotate when we aren't super close to the value we should be working to accomplish already.
             double angleOff = currentAngle.angleTo(desiredAngle);
 
-            double rotationSpeedCoefficient = Range.clip(Math.signum(angleOff) * (.0007 + Math.pow(Math.abs(angleOff), 2)), -1, 1);
+            double rotationSpeedCoefficient = Range.clip(Math.signum(angleOff) * (.0007 * Math.pow(Math.abs(angleOff), 2)), -1, 1);
 
             // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
             frontLeft.setVectorTarget(
@@ -151,7 +158,8 @@ public class SwerveDrive
                     "Current heading: " + currentAngle.value,
                     "Desired angle: " + desiredAngle.value,
                     "Off from angle: " + angleOff,
-                    "PHI: " + ROBOT_PHI
+                    "rot speed coeff: " + rotationSpeedCoefficient,
+                    "t sensitivity: " + turnSensitivity
             );
 
             // Check to see whether it's okay to start moving (only move if at that state).
