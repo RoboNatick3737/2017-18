@@ -37,7 +37,7 @@ public class SwerveWheel
     private final ProcessConsole wheelConsole;
 
     // The vector components which should constitute the direction and power of this wheel.
-    private double mag, theta;
+    private double mag = 0, theta = 0;
     private boolean drivingEnabled = false;
 
     // The boolean which indicates to the parent swerve drive whether this wheel has swiveled to the correct position.
