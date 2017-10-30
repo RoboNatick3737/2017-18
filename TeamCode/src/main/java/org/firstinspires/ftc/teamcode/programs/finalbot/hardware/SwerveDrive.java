@@ -112,7 +112,7 @@ public class SwerveDrive
             else desiredRotation = rotationVector;
 
             // Recalculate translation.
-            Vector2D translationVector = Vector2D.ZERO; //new Vector2D(controller.right_stick_x, -controller.right_stick_y);
+            Vector2D translationVector = new Vector2D(controller.right_stick_x, -controller.right_stick_y);
             if (translationVector.magnitude() < 0.05) translationVector = desiredTranslation;
             else desiredTranslation = translationVector;
 
@@ -124,45 +124,35 @@ public class SwerveDrive
             // Only try to rotate when we aren't super close to the value we should be working to accomplish already.
             double angleOff = currentAngle.angleTo(desiredAngle);
 
-            if (Math.abs(angleOff) > 5)
-            {
-                // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
-                frontLeft.setVectorTarget(
-                        rotationVector.orientToAngle(ROBOT_PHI - 90) // only magnitude of rot vector matters.
-                                .multiply(Range.clip(Math.signum(angleOff) * (.6 + angleOff / 180.0), -1, 1))
-                                .add(translationVector));
-                backLeft.setVectorTarget(
-                        rotationVector.orientToAngle((180 - ROBOT_PHI) - 90)
-                                .multiply(Range.clip(Math.signum(angleOff) * (.6 + angleOff / 180.0), -1, 1))
-                                .add(translationVector));
-                backRight.setVectorTarget(
-                        rotationVector.orientToAngle((180 + ROBOT_PHI) - 90)
-                                .multiply(Range.clip(Math.signum(angleOff) * (.6 + angleOff / 180.0), -1, 1))
-                                .add(translationVector));
-                frontRight.setVectorTarget(
-                        rotationVector.orientToAngle((360 - ROBOT_PHI) - 90)
-                                .multiply(Range.clip(Math.signum(angleOff) * (.6 + angleOff / 180.0), -1, 1))
-                                .add(translationVector));
+            double rotationSpeedCoefficient = Range.clip(Math.signum(angleOff) * (.0007 + Math.pow(Math.abs(angleOff), 2)), -1, 1);
+
+            // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
+            frontLeft.setVectorTarget(
+                    rotationVector.orientToAngle(ROBOT_PHI - 90) // only magnitude of rot vector matters.
+                            .multiply(rotationSpeedCoefficient)
+                            .add(translationVector));
+            backLeft.setVectorTarget(
+                    rotationVector.orientToAngle((180 - ROBOT_PHI) - 90)
+                            .multiply(rotationSpeedCoefficient)
+                            .add(translationVector));
+            backRight.setVectorTarget(
+                    rotationVector.orientToAngle((180 + ROBOT_PHI) - 90)
+                            .multiply(rotationSpeedCoefficient)
+                            .add(translationVector));
+            frontRight.setVectorTarget(
+                    rotationVector.orientToAngle((360 - ROBOT_PHI) - 90)
+                            .multiply(rotationSpeedCoefficient)
+                            .add(translationVector));
 
 
-                swerveConsole.write(
-                        "Rotation Input: " + rotationVector.toString(),
-                        "Translation Input: " + translationVector.toString(),
-                        "Current heading: " + currentAngle.value,
-                        "Desired angle: " + desiredAngle.value,
-                        "Off from angle: " + angleOff,
-                        "PHI: " + ROBOT_PHI
-                );
-            }
-            else
-            {
-                Vector2D translationUnitVector = translationVector.unit();
-
-                frontLeft.setVectorTarget(translationUnitVector);
-                frontRight.setVectorTarget(translationUnitVector);
-                backLeft.setVectorTarget(translationUnitVector);
-                backRight.setVectorTarget(translationUnitVector);
-            }
+            swerveConsole.write(
+                    "Rotation Input: " + rotationVector.toString(),
+                    "Translation Input: " + translationVector.toString(),
+                    "Current heading: " + currentAngle.value,
+                    "Desired angle: " + desiredAngle.value,
+                    "Off from angle: " + angleOff,
+                    "PHI: " + ROBOT_PHI
+            );
 
             // Check to see whether it's okay to start moving (only move if at that state).
             if (

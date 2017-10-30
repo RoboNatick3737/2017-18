@@ -67,10 +67,11 @@ public class SwerveWheel
     {
         // We could store the vector, but then we'd be re-calculating these values over and over.
         mag = target.magnitude();
-        directionCoefficient = 1;
         theta = new LimitAngle(target.angle()).value;
-        if (theta >= 180)
+        if (theta >= 180) {
             theta -= 180;
+            mag *= -1;
+        }
     }
 
     /**
