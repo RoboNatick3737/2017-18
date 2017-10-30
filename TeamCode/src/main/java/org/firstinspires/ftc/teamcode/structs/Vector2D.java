@@ -41,7 +41,10 @@ public class Vector2D
 
                 // Calculate unsupplied properties.
                 this.magnitude = Math.sqrt(x * x + y * y);
-                this.angle = clampAngle(Math.toDegrees(Math.atan2(y, x)));
+                if (this.magnitude == 0)
+                    this.angle = clampAngle(Math.toDegrees(Math.atan2(y, x)));
+                else
+                    this.angle = 0;
 
                 break;
 
