@@ -18,7 +18,6 @@ import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
 
 import hankextensions.logging.Log;
 import hankextensions.logging.ProcessConsole;
-import hankextensions.threading.Flow;
 import hankextensions.threading.SimpleTask;
 
 public class SwerveWheel
@@ -43,9 +42,6 @@ public class SwerveWheel
     // The boolean which indicates to the parent swerve drive whether this wheel has swiveled to the correct position.
     private boolean swivelAcceptable = true;
     private boolean drivingEnabled = false;
-
-    // If we choose to take a quick swivel to the opposing side as opposed to all the way to the chosen vector, we have to change the direction of the motor.
-    private int directionCoefficient = 1;
 
     public SwerveWheel(String motorName, EncoderMotor driveMotor, Servo turnMotor, AbsoluteEncoder swerveEncoder) {
         this(motorName, driveMotor, turnMotor, swerveEncoder, 0);
@@ -83,10 +79,9 @@ public class SwerveWheel
             super(motorName + " Turning Task");
         }
 
-        Vector2D currentVector = Vector2D.ZERO;
-
         // Prevent boxing/unboxing slowdown.
-        double turnPower, angleFromDesired, angleToTurn;
+        Vector2D localTargetVector, currentVector = Vector2D.ZERO;
+        double turnPower, angleFromDesired, angleToTurn, turnCorrectionFactor;
 
         /**
          * Right here, we're given a vector which we have to match this wheel to as quickly as possible.
@@ -94,7 +89,7 @@ public class SwerveWheel
         @Override
         protected long onContinueTask() throws InterruptedException
         {
-            Vector2D localTargetVector = Vector2D.clone(targetVector); // Otherwise teleop could mess this up.
+            localTargetVector = Vector2D.clone(targetVector); // Otherwise teleop could mess this up.
 
             // Calculate the current degree including the offset.
             currentVector = Vector2D.polar(1, swerveEncoder.position() - physicalEncoderOffset);
@@ -103,7 +98,6 @@ public class SwerveWheel
             angleFromDesired = currentVector.leastAngleTo(localTargetVector);
 
             // Clip this angle to 90 degree maximum turns.
-            double angleToTurn;
             if (angleFromDesired > 90)
                 angleToTurn = -angleFromDesired + 180;
             else if (angleFromDesired < -90)
@@ -115,10 +109,13 @@ public class SwerveWheel
             turnPower = 0.5;
             if (Math.abs(angleToTurn) > NO_MORE_ADJUSTMENTS_THRESHOLD)
             {
+                turnCorrectionFactor = Math.signum(angleToTurn) * (.0006 * Math.pow(Math.abs(angleToTurn), 2));
+
+                // Change the turn factor depending on our distance from the angle desired (180 vs 0)
                 if (angleFromDesired > 90 || angleFromDesired < -90)
-                    turnPower -= Math.signum(angleToTurn) * (.0006 * Math.pow(Math.abs(angleToTurn), 2));
+                    turnPower -= turnCorrectionFactor;
                 else
-                    turnPower += Math.signum(angleToTurn) * (.0006 * Math.pow(Math.abs(angleToTurn), 2));
+                    turnPower += turnCorrectionFactor;
             }
             turnMotor.setPosition(Range.clip(turnPower, 0, 1));
 
