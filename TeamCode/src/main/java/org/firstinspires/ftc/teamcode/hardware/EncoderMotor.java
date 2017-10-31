@@ -1,13 +1,19 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 public class EncoderMotor
 {
     public final DcMotor motor;
     public EncoderMotor(DcMotor motor)
     {
+        this(motor, DcMotorSimple.Direction.FORWARD);
+    }
+    public EncoderMotor(DcMotor motor, DcMotorSimple.Direction direction)
+    {
         this.motor = motor;
+        motor.setDirection(direction);
     }
 
     public void resetEncoder() {

@@ -6,6 +6,7 @@ import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.programs.finalbot.HardwareBase;
 import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
+import hankextensions.logging.ProcessConsole;
 import hankextensions.threading.Flow;
 
 @TeleOp(name="Swerve Teleop", group= Constants.FINAL_BOT_OPMODES)
@@ -14,8 +15,10 @@ public class SwerveTeleop extends HardwareBase
     @Override
     protected void START() throws InterruptedException
     {
-        Vector2D lastRotation = Vector2D.ZERO, lastMovement = Vector2D.ZERO;
+        Vector2D lastRotation = Vector2D.ZERO;
         Vector2D desiredRotation, desiredMovement;
+
+        ProcessConsole teleopConsole = log.newProcessConsole("Swerve Teleop Console");
 
         while (true)
         {
@@ -28,13 +31,12 @@ public class SwerveTeleop extends HardwareBase
                 lastRotation = desiredRotation;
 
             if (desiredMovement.magnitude < .05)
-                desiredMovement = lastMovement;
-            else
-                lastMovement = desiredMovement;
+                desiredMovement = Vector2D.ZERO;
 
             // Rotate by -90 in order to make forward facing zero.
             swerveDrive.setDesiredRotation(desiredRotation);
             swerveDrive.setDesiredMovement(desiredMovement);
+
             Flow.yield();
         }
     }

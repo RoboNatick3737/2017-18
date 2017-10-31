@@ -4,10 +4,10 @@ public class Vector2D
 {
     public static double clampAngle(double angle)
     {
-        while (angle < 0)
-            angle += 360;
-        while (angle >= 360)
-            angle -= 360;
+        while (angle < 0.0)
+            angle += 360.0;
+        while (angle >= 360.0)
+            angle -= 360.0;
 
         return angle;
     }
@@ -22,6 +22,11 @@ public class Vector2D
         return new Vector2D(x, y, VectorCoordinates.RECTANGULAR);
     }
 
+    public static Vector2D clone(Vector2D other)
+    {
+        return new Vector2D(other.x, other.y, VectorCoordinates.RECTANGULAR);
+    }
+
     public enum VectorCoordinates {
         POLAR,
         RECTANGULAR
@@ -31,13 +36,13 @@ public class Vector2D
 
     public final double x, y, magnitude, angle;
 
-    Vector2D(double val1, double val2, VectorCoordinates coordinateTypes)
+    private Vector2D(double val1, double val2, VectorCoordinates coordinateType)
     {
-        switch (coordinateTypes)
+        switch (coordinateType)
         {
             case RECTANGULAR:
                 this.x = val1;
-                this.y = val1;
+                this.y = val2;
 
                 // Calculate unsupplied properties.
                 this.magnitude = Math.sqrt(x * x + y * y);
@@ -62,6 +67,8 @@ public class Vector2D
                 this.y = 0;
                 this.magnitude = 0;
                 this.angle = 0;
+
+                break;
         }
     }
 
@@ -131,7 +138,7 @@ public class Vector2D
      * @param other the other vector.
      * @return the shortest angle between this and the other vector.
      */
-    public double angleBetween(Vector2D other)
+    public double leastAngleTo(Vector2D other)
     {
         double diff = (other.angle - angle + 180) % 360 - 180;
         return diff < -180 ? diff + 360 : diff;
@@ -144,11 +151,24 @@ public class Vector2D
      */
     public Vector2D rotateBy(double rotAngle)
     {
-        return Vector2D.polar(magnitude, this.angle + clampAngle(rotAngle));
+        return Vector2D.polar(magnitude, angle + clampAngle(rotAngle));
     }
 
     public String toString()
     {
-        return "<" + x + ", " + y + ">";
+        return toString(VectorCoordinates.RECTANGULAR);
+    }
+    public String toString(VectorCoordinates coordinate)
+    {
+        switch (coordinate)
+        {
+            case RECTANGULAR:
+                return "<" + x + ", " + y + ">";
+
+            case POLAR:
+                return "<" + magnitude + ", " + angle + ">";
+        }
+
+        return ""; // Satisfy android studio
     }
 }

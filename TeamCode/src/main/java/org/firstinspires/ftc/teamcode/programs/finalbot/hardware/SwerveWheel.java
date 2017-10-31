@@ -18,13 +18,14 @@ import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
 
 import hankextensions.logging.Log;
 import hankextensions.logging.ProcessConsole;
+import hankextensions.threading.Flow;
 import hankextensions.threading.SimpleTask;
 
 public class SwerveWheel
 {
     // Swerve wheel constants.
     private static final double NO_MORE_ADJUSTMENTS_THRESHOLD = 2.5;
-    private static final double ACCEPTABLE_ORIENTATION_THRESHOLD = 10;
+    private static final double ACCEPTABLE_ORIENTATION_THRESHOLD = 13;
 
     // Swerve wheel specific components.
     private final String motorName;
@@ -37,11 +38,14 @@ public class SwerveWheel
     private final ProcessConsole wheelConsole;
 
     // The vector components which should constitute the direction and power of this wheel.
-    private double mag = 0, theta = 0;
-    private boolean drivingEnabled = false;
+    private Vector2D targetVector = Vector2D.ZERO;
 
     // The boolean which indicates to the parent swerve drive whether this wheel has swiveled to the correct position.
     private boolean swivelAcceptable = true;
+    private boolean drivingEnabled = false;
+
+    // If we choose to take a quick swivel to the opposing side as opposed to all the way to the chosen vector, we have to change the direction of the motor.
+    private int directionCoefficient = 1;
 
     public SwerveWheel(String motorName, EncoderMotor driveMotor, Servo turnMotor, AbsoluteEncoder swerveEncoder) {
         this(motorName, driveMotor, turnMotor, swerveEncoder, 0);
@@ -64,13 +68,7 @@ public class SwerveWheel
      */
     public void setVectorTarget(Vector2D target)
     {
-        // We could store the vector, but then we'd be re-calculating these values over and over.
-        mag = target.magnitude;
-        theta = target.angle;
-        if (theta >= 180) {
-            theta -= 180;
-            mag *= -1;
-        }
+        targetVector = target;
     }
 
     /**
@@ -85,49 +83,67 @@ public class SwerveWheel
             super(motorName + " Turning Task");
         }
 
-        // Prevent boxing/unboxing slowdown.
-        double currentDegree, turnPower, angleFromDesired;
+        Vector2D currentVector = Vector2D.ZERO;
 
+        // Prevent boxing/unboxing slowdown.
+        double turnPower, angleFromDesired, angleToTurn;
+
+        /**
+         * Right here, we're given a vector which we have to match this wheel to as quickly as possible.
+         */
         @Override
         protected long onContinueTask() throws InterruptedException
         {
-            // Initially at stopped position (gets changed later)
-            turnPower = 0.5;
+            Vector2D localTargetVector = Vector2D.clone(targetVector); // Otherwise teleop could mess this up.
 
             // Calculate the current degree including the offset.
-            currentDegree = Vector2D.clampAngle(swerveEncoder.position() - physicalEncoderOffset);
+            currentVector = Vector2D.polar(1, swerveEncoder.position() - physicalEncoderOffset);
 
-            // Wrap encoder degree to [0,180]
-            if (currentDegree >= 180)
-                currentDegree -= 180;
+            // Shortest angle from current heading to desired heading.
+            angleFromDesired = currentVector.leastAngleTo(localTargetVector);
 
-            // Figure out whether it would be easier to turn backwards to theta as opposed to forwards.  If so, reverse the power.
-            if (Math.abs(theta - (currentDegree > 90 ? currentDegree - 180 : currentDegree + 180)) < Math.abs(theta - currentDegree))
-                angleFromDesired = theta - (currentDegree > 90 ? currentDegree - 180 : currentDegree + 180);
+            // Clip this angle to 90 degree maximum turns.
+            double angleToTurn;
+            if (angleFromDesired > 90)
+                angleToTurn = -angleFromDesired + 180;
+            else if (angleFromDesired < -90)
+                angleToTurn = -angleFromDesired - 180;
             else
-                angleFromDesired = theta - currentDegree;
+                angleToTurn = angleFromDesired;
 
-            // Adjust if we're significantly away from the vector threshold.
-            if (Math.abs(angleFromDesired) > NO_MORE_ADJUSTMENTS_THRESHOLD)
-                turnPower += Math.signum(angleFromDesired) * (.0009 * Math.pow(angleFromDesired , 2));
+            // Set turn power.
+            turnPower = 0.5;
+            if (Math.abs(angleToTurn) > NO_MORE_ADJUSTMENTS_THRESHOLD)
+            {
+                if (angleFromDesired > 90 || angleFromDesired < -90)
+                    turnPower -= Math.signum(angleToTurn) * (.0006 * Math.pow(Math.abs(angleToTurn), 2));
+                else
+                    turnPower += Math.signum(angleToTurn) * (.0006 * Math.pow(Math.abs(angleToTurn), 2));
+            }
+            turnMotor.setPosition(Range.clip(turnPower, 0, 1));
 
-            // Turn vex motor.
-            turnMotor.setPosition(turnPower);
+            // Set swivel acceptable.
+            swivelAcceptable = Math.abs(angleToTurn) < ACCEPTABLE_ORIENTATION_THRESHOLD;
 
-            // Sometimes it's best just to orient the wheel.
-            swivelAcceptable = Math.abs(angleFromDesired) < ACCEPTABLE_ORIENTATION_THRESHOLD;
-
-            // Only drive when the swerve drive parent says it's fine to do so.
+            // Set drive power (if angle between this and desired angle is greater than 90, reverse motor).
             if (drivingEnabled)
-                driveMotor.motor.setPower(Range.clip(mag, -1, 1));
+            {
+                if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
+                    driveMotor.motor.setPower(-localTargetVector.magnitude);
+                else
+                    driveMotor.motor.setPower(localTargetVector.magnitude);
+            }
             else
+            {
                 driveMotor.motor.setPower(0);
+            }
 
             // Add console information.
             wheelConsole.write(
-                    "Current degree is " + currentDegree,
-                    "Angle from desired is " + angleFromDesired,
-                    "Desired theta is " + theta);
+                    "Vector target: " + localTargetVector.toString(Vector2D.VectorCoordinates.POLAR),
+                    "Current vector: " + currentVector.toString(Vector2D.VectorCoordinates.POLAR),
+                    "Angle from desired: " + angleFromDesired,
+                    "Angle to turn: " + angleToTurn);
 
             // The ms to wait before updating again.
             return 10;

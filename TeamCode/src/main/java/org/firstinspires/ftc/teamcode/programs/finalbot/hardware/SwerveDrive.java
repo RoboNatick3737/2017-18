@@ -8,6 +8,7 @@ import hankextensions.phonesensors.Gyro;
 
 import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
+import hankextensions.threading.Flow;
 import hankextensions.threading.SimpleTask;
 import hankextensions.threading.SimpleTaskPackage;
 
@@ -96,11 +97,12 @@ public class SwerveDrive
             Vector2D fieldCentricTranslation = desiredMovement.rotateBy(-currentHeading.angle);
 
             // Only try to rotate when we aren't super close to the value we should be working to accomplish already.
-            double angleOff = currentHeading.angleBetween(desiredHeading);
+            double angleOff = currentHeading.leastAngleTo(desiredHeading);
 
             // Change the power of the turn speed depending on our distance from the desired heading.  Soon causes turn vector to be zero, allowing movement free of turning to occur.
-            double rotationSpeedCoefficient = Math.signum(angleOff) *
-                    Range.clip((.0007 * Math.pow(angleOff, 2)), 0, 1);
+            double rotationSpeedCoefficient = 0;
+            if (Math.abs(angleOff) > 8) // Don't try to turn if we're close enough in the range.
+                rotationSpeedCoefficient = Math.signum(angleOff) * Range.clip((.0007 * Math.pow(angleOff, 2)), 0, 1);
 
             // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
             frontLeft.setVectorTarget(
@@ -124,7 +126,6 @@ public class SwerveDrive
             swerveConsole.write(
                     "Current heading: " + currentHeading.angle,
                     "Desired angle: " + desiredHeading.angle,
-                    "Off from angle: " + angleOff,
                     "Rotation speed coeff: " + rotationSpeedCoefficient
             );
 
