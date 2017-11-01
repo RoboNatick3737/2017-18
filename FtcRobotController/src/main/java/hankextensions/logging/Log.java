@@ -1,6 +1,5 @@
 package hankextensions.logging;
 
-import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.ArrayList;
@@ -27,6 +26,8 @@ public class Log
     private ArrayList<ProcessConsole> privateProcessConsoles;
     private Telemetry mainTelemetry;
 
+    private static final int MAX_SEQUENTIAL_LINES = 13;
+
     /**
      * Resets the entire console with empty content.
      */
@@ -46,15 +47,14 @@ public class Log
         instance = null;
     }
 
-    final int maxSequentialLines = 13;
     public void lines(String... newLines)
     {
         //Add new line at beginning of the lines.
         for (String line: newLines)
             sequentialConsoleData.add (0, line);
         //If there is more than 5 lines there, remove one.
-        while (sequentialConsoleData.size () > maxSequentialLines)
-            sequentialConsoleData.remove (maxSequentialLines);
+        while (sequentialConsoleData.size () > MAX_SEQUENTIAL_LINES)
+            sequentialConsoleData.remove (MAX_SEQUENTIAL_LINES);
     }
 
     public void appendToLastSequentialLine (String toAppend)

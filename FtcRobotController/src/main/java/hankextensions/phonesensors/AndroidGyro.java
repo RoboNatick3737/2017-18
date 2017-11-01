@@ -104,7 +104,9 @@ public class AndroidGyro implements Gyro
         return angle;
     }
 
-    public void calibrate() {}
+    public void calibrate() {
+        zero();
+    }
 
     public void zero() {
         reset = true;

@@ -80,7 +80,7 @@ public class SwerveWheel
         }
 
         // Prevent boxing/unboxing slowdown.
-        Vector2D localTargetVector, currentVector = Vector2D.ZERO;
+        Vector2D localTargetVector = Vector2D.ZERO, currentVector = Vector2D.ZERO;
         double turnPower, angleFromDesired, angleToTurn, turnCorrectionFactor;
 
         /**
@@ -89,7 +89,14 @@ public class SwerveWheel
         @Override
         protected long onContinueTask() throws InterruptedException
         {
-            localTargetVector = Vector2D.clone(targetVector); // Otherwise teleop could mess this up.
+            if (Math.abs(targetVector.magnitude) > 0.000001 && Math.abs(localTargetVector.angle) > 0.000001)
+            {
+                localTargetVector = Vector2D.clone(targetVector);
+            }
+            else
+            {
+                localTargetVector = Vector2D.polar(0, currentVector.angle); // Don't turn if set to (0, 0), but do stop moving.
+            }
 
             // Calculate the current degree including the offset.
             currentVector = Vector2D.polar(1, swerveEncoder.position() - physicalEncoderOffset);

@@ -34,8 +34,11 @@ public class SwerveTeleop extends HardwareBase
                 desiredMovement = Vector2D.ZERO;
 
             // Rotate by -90 in order to make forward facing zero.
-            swerveDrive.setDesiredRotation(desiredRotation);
+            swerveDrive.setDesiredHeading(desiredRotation);
             swerveDrive.setDesiredMovement(desiredMovement);
+
+            if (gamepad1.a)
+                swerveDrive.gyro.calibrate();
 
             Flow.yield();
         }

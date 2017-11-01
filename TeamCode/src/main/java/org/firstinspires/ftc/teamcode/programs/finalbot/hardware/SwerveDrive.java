@@ -8,7 +8,6 @@ import hankextensions.phonesensors.Gyro;
 
 import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
-import hankextensions.threading.Flow;
 import hankextensions.threading.SimpleTask;
 import hankextensions.threading.SimpleTaskPackage;
 
@@ -20,10 +19,10 @@ public class SwerveDrive
 
     // Instance specific components.
     private final SwerveWheel frontLeft, frontRight, backLeft, backRight;
-    private final Gyro gyro;
+    public final Gyro gyro; // Public because teleop can manually reset.
 
     // Constantly shifting in autonomous and teleop.
-    private Vector2D desiredRotation = Vector2D.ZERO, desiredMovement = Vector2D.ZERO;
+    private Vector2D desiredHeading = Vector2D.polar(1, 0), desiredMovement = Vector2D.ZERO;
 
     /**
      * This task package runs on a different thread, continually updating the vectors for each swerve wheel, while also
@@ -31,8 +30,8 @@ public class SwerveDrive
      *
      * They're all in the same package in order to avoid using a bunch of tasks on solely this.
      */
-    private SimpleTaskPackage drivingTasks;
-    private ProcessConsole swerveConsole;
+    private final SimpleTaskPackage drivingTasks;
+    private final ProcessConsole swerveConsole;
 
     // The swerve drive constructor, starts all swerve wheel alignment threads.
     public SwerveDrive(Gyro gyro, SwerveWheel frontLeft, SwerveWheel frontRight, SwerveWheel backLeft, SwerveWheel backRight) throws InterruptedException
@@ -61,9 +60,9 @@ public class SwerveDrive
      * Sets a new desired orientation.
      * @param newlyDesiredRotation the new orientation to align to.
      */
-    public void setDesiredRotation(Vector2D newlyDesiredRotation)
+    public void setDesiredHeading(Vector2D newlyDesiredRotation)
     {
-        this.desiredRotation = newlyDesiredRotation;
+        this.desiredHeading = newlyDesiredRotation;
     }
 
     /**
@@ -81,17 +80,14 @@ public class SwerveDrive
      */
     private class SwerveDriveTask extends SimpleTask
     {
-        public SwerveDriveTask() throws InterruptedException
-        {
-            gyro.zero();
-        }
+        // Unboxing/boxing slowdown fix.
+        Vector2D currentHeading;
+        double rotationSpeedCoefficient;
 
         @Override
         protected long onContinueTask() throws InterruptedException {
-
             // Figure out the direction which we will be rotating based on the rotation vector for input.
-            Vector2D currentHeading = Vector2D.polar(1, gyro.z());
-            Vector2D desiredHeading = Vector2D.polar(1, desiredRotation.angle);
+            currentHeading = Vector2D.polar(1, gyro.z());
 
             // Figure out the actual translation vector for swerve wheels based on gyro value.
             Vector2D fieldCentricTranslation = desiredMovement.rotateBy(-currentHeading.angle);
@@ -100,25 +96,25 @@ public class SwerveDrive
             double angleOff = currentHeading.leastAngleTo(desiredHeading);
 
             // Change the power of the turn speed depending on our distance from the desired heading.  Soon causes turn vector to be zero, allowing movement free of turning to occur.
-            double rotationSpeedCoefficient = 0;
+            rotationSpeedCoefficient = 0;
             if (Math.abs(angleOff) > 8) // Don't try to turn if we're close enough in the range.
-                rotationSpeedCoefficient = Math.signum(angleOff) * Range.clip((.0007 * Math.pow(angleOff, 2)), 0, 1);
+                rotationSpeedCoefficient = -1 * Math.signum(angleOff) * Range.clip((.0015 * Math.pow(angleOff, 2)), 0, 1);
 
             // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
             frontLeft.setVectorTarget(
-                    Vector2D.polar(desiredRotation.magnitude, ROBOT_PHI - 90)
+                    Vector2D.polar(1, ROBOT_PHI - 90)
                             .multiply(rotationSpeedCoefficient)
                             .add(fieldCentricTranslation));
             backLeft.setVectorTarget(
-                    Vector2D.polar(desiredRotation.magnitude, (180 - ROBOT_PHI) - 90)
+                    Vector2D.polar(1, (180 - ROBOT_PHI) - 90)
                             .multiply(rotationSpeedCoefficient)
                             .add(fieldCentricTranslation));
             backRight.setVectorTarget(
-                    Vector2D.polar(desiredRotation.magnitude, (180 + ROBOT_PHI) - 90)
+                    Vector2D.polar(1, (180 + ROBOT_PHI) - 90)
                             .multiply(rotationSpeedCoefficient)
                             .add(fieldCentricTranslation));
             frontRight.setVectorTarget(
-                    Vector2D.polar(desiredRotation.magnitude, (360 - ROBOT_PHI) - 90)
+                    Vector2D.polar(1, (360 - ROBOT_PHI) - 90)
                             .multiply(rotationSpeedCoefficient)
                             .add(fieldCentricTranslation));
 

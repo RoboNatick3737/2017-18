@@ -15,7 +15,7 @@ public class SwivelTesting extends HardwareBase
     protected void START() throws InterruptedException
     {
         while (true) {
-            swerveDrive.setDesiredRotation(Vector2D.polar(1, Math.random() * 359));
+            swerveDrive.setDesiredHeading(Vector2D.polar(1, Math.random() * 359));
 
             Flow.msPause(3000);
         }

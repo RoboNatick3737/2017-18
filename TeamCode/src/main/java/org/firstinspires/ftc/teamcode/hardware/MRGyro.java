@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.GyroSensor;
 
+import org.firstinspires.ftc.teamcode.structs.Vector2D;
+
+import hankextensions.logging.Log;
 import hankextensions.phonesensors.Gyro;
 import hankextensions.threading.Flow;
 
@@ -27,6 +30,8 @@ public class MRGyro implements Gyro
      */
     public void calibrate(boolean zeroHeading) throws InterruptedException
     {
+        Log.instance.lines("Gyroscope calibrating...");
+
         //Pause to prevent odd errors in which it says it's configured but is actually LYING.
         Flow.msPause (1000);
 
@@ -37,6 +42,8 @@ public class MRGyro implements Gyro
         //Zero gyro heading.
         if (zeroHeading)
             zero();
+
+        Log.instance.lines("Gyroscope calibration complete!");
     }
 
     /**
@@ -44,7 +51,7 @@ public class MRGyro implements Gyro
      */
     public void calibrate() throws InterruptedException
     {
-        calibrate(false);
+        calibrate(true);
     }
 
     //Just resets the gyro.
@@ -60,8 +67,7 @@ public class MRGyro implements Gyro
      */
     public double x()
     {
-        //Get the heading.
-        return sensor.getHeading ();
+        return 0;
     }
 
     public double y()
@@ -71,6 +77,6 @@ public class MRGyro implements Gyro
 
     public double z()
     {
-        return 0;
+        return Vector2D.clampAngle(sensor.getHeading());
     }
 }
