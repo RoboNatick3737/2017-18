@@ -57,9 +57,9 @@ public abstract class HardwareBase extends Core
         bottomLeftGrabber  = initHardwareDevice(Servo.class, "Bottom Left");
         bottomRightGrabber = initHardwareDevice(Servo.class, "Bottom Right");
 
-        swingServo = initHardwareDevice(Servo.class, "Swing Servo");
+        swingServo         = initHardwareDevice(Servo.class, "Swing Servo");
 
-        colorSensor = initHardwareDevice(ColorSensor.class, "Color Sensor");
+        colorSensor        = initHardwareDevice(ColorSensor.class, "Color Sensor");
 
         right.setDirection(DcMotorSimple.Direction.REVERSE);
     }

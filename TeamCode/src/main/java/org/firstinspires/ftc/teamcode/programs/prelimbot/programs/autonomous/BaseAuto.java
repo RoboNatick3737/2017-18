@@ -36,11 +36,7 @@ public abstract class BaseAuto extends HardwareBase {
 
     protected boolean isColorBlue() {
         swingServo.setPosition(0.7);
-        console.write(Integer.toString(colorSensor.blue()));
-        console.write(Integer.toString(colorSensor.red()));
-
         return (colorSensor.blue() > colorSensor.red());
-
     }
 
 
@@ -52,19 +48,7 @@ public abstract class BaseAuto extends HardwareBase {
         }
     }
 
-
-
-
-    @Override
-    protected void INITIALIZE() {
-        closeClamps();
-    }
-
     private void hailTheSoviets() {
         Tunes.play(Tunes.Option.USSR_Anthem);
     }
-
-
-
-
 }
