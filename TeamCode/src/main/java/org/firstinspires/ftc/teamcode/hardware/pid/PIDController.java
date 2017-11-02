@@ -20,7 +20,7 @@ public class PIDController
     /**
      * Updates whenever calculatePIDPower called.
      */
-    private long lastCorrectionTime = 0;
+    private long lastCorrectionTime = -1;
 
 
     /**
@@ -60,10 +60,10 @@ public class PIDController
         if (lastCorrectionTime != -1)
         {
             // Calculate derivative correction, which reduces the oscillation of the kP function.
-            derivativeCorrection = pidConstants.kD * (error - lastError) / (System.currentTimeMillis() - lastCorrectionTime);
+            derivativeCorrection = pidConstants.kD * (error - lastError) / ((System.currentTimeMillis() - lastCorrectionTime) / 1000.0);
 
             // Calculate integral correction, which further reduces oscillation.
-            errorAccumulation += error / System.currentTimeMillis();
+            errorAccumulation += error / (System.currentTimeMillis() / 1000.0);
             integralCorrection = pidConstants.kI * errorAccumulation;
         }
 

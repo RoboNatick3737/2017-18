@@ -72,6 +72,9 @@ public class SimpleTaskPackage
                     SimpleTask task = taskList.get(i);
                     if (task.isRunning() && task.nextRunTime < System.currentTimeMillis ())
                         task.nextRunTime = task.onContinueTask () + System.currentTimeMillis ();
+
+                    //Exit program if stop requested, otherwise yield to other threads.
+                    Flow.yield ();
                 }
 
                 // Add all pending tasks (if they exist).
