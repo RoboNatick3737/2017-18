@@ -12,6 +12,8 @@ package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.hardware.pid.PIDController;
 import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
 import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
@@ -32,7 +34,6 @@ public class SwerveWheel
     private final Servo turnMotor;
     private final AbsoluteEncoder swerveEncoder;
     private final double physicalEncoderOffset;
-
     public final SwivelTask swivelTask;
     private final ProcessConsole wheelConsole;
 
@@ -43,10 +44,25 @@ public class SwerveWheel
     private boolean swivelAcceptable = true;
     private boolean drivingEnabled = false;
 
-    public SwerveWheel(String motorName, EncoderMotor driveMotor, Servo turnMotor, AbsoluteEncoder swerveEncoder) {
-        this(motorName, driveMotor, turnMotor, swerveEncoder, 0);
+    // Finally, the PID controller components which prevents wheel oscillation.
+    private final PIDController pidController;
+
+    public SwerveWheel(
+            String motorName,
+            EncoderMotor driveMotor,
+            Servo turnMotor,
+            AbsoluteEncoder swerveEncoder,
+            PIDConstants pidConstants)
+    {
+        this(motorName, driveMotor, turnMotor, swerveEncoder, pidConstants, 0);
     }
-    public SwerveWheel(String motorName, EncoderMotor driveMotor, Servo turnMotor, AbsoluteEncoder swerveEncoder, double physicalEncoderOffset)
+    public SwerveWheel(
+            String motorName,
+            EncoderMotor driveMotor,
+            Servo turnMotor,
+            AbsoluteEncoder swerveEncoder,
+            PIDConstants pidConstants,
+            double physicalEncoderOffset)
     {
         this.motorName = motorName;
         this.driveMotor = driveMotor;
@@ -56,11 +72,14 @@ public class SwerveWheel
 
         wheelConsole = Log.instance.newProcessConsole(motorName + " Swivel Console");
 
+        this.pidController = new PIDController(pidConstants);
+
         this.swivelTask = new SwivelTask();
     }
 
     /**
-     * Takes the desired rectangular coordinates for this motor, and converts them to polar coordinates.
+     * Takes the desired rectangular coordinates for this motor, and converts them to polar
+     * coordinates.
      */
     public void setVectorTarget(Vector2D target)
     {
@@ -68,10 +87,12 @@ public class SwerveWheel
     }
 
     /**
-     * Since the vex motor requires some time to turn to the correct position (we aren't just using servos, unfortunately), we have
-     * to essentially schedule simple tasks to continually update the speed of the vex motor.
+     * Since the vex motor requires some time to turn to the correct position (we aren't
+     * just using servos, unfortunately), we have to essentially schedule simple tasks to
+     * continually update the speed of the vex motor.
      *
-     * Since there are four of these, they are placed into a SimpleTaskPackage in the SwerveDrive motor to run them.
+     * Since there are four of these, they are placed into a SimpleTaskPackage in the
+     * SwerveDrive motor to run them.
      */
     public class SwivelTask extends SimpleTask
     {
@@ -84,7 +105,8 @@ public class SwerveWheel
         double turnPower, angleFromDesired, angleToTurn, turnCorrectionFactor;
 
         /**
-         * Right here, we're given a vector which we have to match this wheel to as quickly as possible.
+         * Right here, we're given a vector which we have to match this wheel to as quickly as
+         * possible.
          */
         @Override
         protected long onContinueTask() throws InterruptedException
@@ -95,7 +117,8 @@ public class SwerveWheel
             }
             else
             {
-                localTargetVector = Vector2D.polar(0, currentVector.angle); // Don't turn if set to (0, 0), but do stop moving.
+                // Don't turn if set to (0, 0), but do stop moving.
+                localTargetVector = Vector2D.polar(0, currentVector.angle);
             }
 
             // Calculate the current degree including the offset.
@@ -116,7 +139,7 @@ public class SwerveWheel
             turnPower = 0.5;
             if (Math.abs(angleToTurn) > NO_MORE_ADJUSTMENTS_THRESHOLD)
             {
-                turnCorrectionFactor = Math.signum(angleToTurn) * (.0006 * Math.pow(Math.abs(angleToTurn), 2));
+                turnCorrectionFactor = pidController.calculatePIDPower(angleToTurn);//Math.signum(angleToTurn) * (.0006 * Math.pow(Math.abs(angleToTurn), 2));
 
                 // Change the turn factor depending on our distance from the angle desired (180 vs 0)
                 if (angleFromDesired > 90 || angleFromDesired < -90)
