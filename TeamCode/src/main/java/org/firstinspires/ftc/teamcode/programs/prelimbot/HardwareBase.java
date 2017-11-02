@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.programs.prelimbot;
 
+import android.hardware.Sensor;
+
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -16,6 +19,7 @@ public abstract class HardwareBase extends Core
     //Driving Motors
     protected DcMotor left, right, middle, miniLift, primaryLift;
     protected Servo topLeftGrabber, topRightGrabber, bottomLeftGrabber, bottomRightGrabber, swingServo;
+    protected ColorSensor colorSensor;
 
     private final double OPEN_LEFT_POS   = .7;
     private final double OPEN_RIGHT_POS  = .2;
@@ -54,6 +58,8 @@ public abstract class HardwareBase extends Core
         bottomRightGrabber = initHardwareDevice(Servo.class, "Bottom Right");
 
         swingServo = initHardwareDevice(Servo.class, "Swing Servo");
+
+        colorSensor = initHardwareDevice(ColorSensor.class, "Color Sensor");
 
         right.setDirection(DcMotorSimple.Direction.REVERSE);
     }

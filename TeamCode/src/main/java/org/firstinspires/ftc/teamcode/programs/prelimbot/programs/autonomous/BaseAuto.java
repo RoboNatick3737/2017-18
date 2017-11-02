@@ -29,6 +29,23 @@ public abstract class BaseAuto extends HardwareBase {
         Thread.sleep(time);
     }
 
+    protected boolean isColorBlue() {
+        swingServo.setPosition(0.7);
+        return (colorSensor.blue() > colorSensor.red());
+
+    }
+
+
+    protected void hitBlueJewel() throws InterruptedException {
+
+        if(isColorBlue()) {
+            drive(DIRECTION.FORWARD, 10);
+        } else {
+            drive(DIRECTION.BACKWARDS, 10);
+        }
+    }
+
+
     @Override
     protected void INITIALIZE() {
         closeClamps();
@@ -37,4 +54,8 @@ public abstract class BaseAuto extends HardwareBase {
     private void hailTheSoviets() {
         Tunes.play(Tunes.Option.USSR_Anthem);
     }
+
+
+
+
 }

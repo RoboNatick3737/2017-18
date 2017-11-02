@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.programs.prelimbot.programs.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import hankextensions.logging.Log;
+
 /**
  * Created by JordanArnold on 10/3/17.
  *
@@ -23,6 +25,18 @@ public class BlueNonPicSide extends BaseAuto
     @Override
     protected void START() throws InterruptedException
     {
+
+
+            hitBlueJewel();
+
+
+
+
+
+
+
+/*
+
         drive(DIRECTION.FORWARD, 1000);
         drive(DIRECTION.STOP, 1000);
         drive(DIRECTION.RIGHT, 1000);
@@ -31,5 +45,7 @@ public class BlueNonPicSide extends BaseAuto
         drive(DIRECTION.STOP, 1000);
         drive(DIRECTION.LEFT, 1000);
         drive(DIRECTION.STOP, 1000);
+
+        */
     }
 }
