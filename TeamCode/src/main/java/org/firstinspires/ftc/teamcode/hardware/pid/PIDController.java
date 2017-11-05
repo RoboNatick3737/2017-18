@@ -10,7 +10,7 @@ public class PIDController
     /**
      * The constants required to evaluate the PID formula.
      */
-    private final PIDConstants pidConstants;
+    public final PIDConstants pidConstants;
 
     /**
      * Stored after each calculation for the next correction.
@@ -18,7 +18,7 @@ public class PIDController
     private Vector2D lastOrientation = Vector2D.polar(1, 0);
 
     /**
-     * Updates whenever calculatePIDPower called.
+     * Updates whenever calculatePIDCorrection called.
      */
     private long lastCorrectionTime = -1;
 
@@ -54,8 +54,11 @@ public class PIDController
      * and figures out what to do with it next.
      * @return
      */
-    public double calculatePIDPower(double error)
+    public double calculatePIDCorrection(double error)
     {
+        if (Math.abs(error) < pidConstants.errorThreshold)
+            return 0;
+
         // Calculate proportional correction, the "quick" correction factor.
         proportionalCorrection = pidConstants.kP * error;
 
@@ -87,7 +90,7 @@ public class PIDController
      *                           makes it easier to work with.
      * @return the new correction factor, negative to slow down, and positive to speed up.
      */
-    public double calculatePIDPower(Vector2D currentOrientation, Vector2D desiredOrientation)
+    public double calculatePIDCorrection(Vector2D currentOrientation, Vector2D desiredOrientation)
     {
         // Calculate error based on the current orientation.
         double error = lastOrientation.leastAngleTo(desiredOrientation) - lastOrientation.leastAngleTo(currentOrientation);
@@ -96,6 +99,6 @@ public class PIDController
         lastOrientation = Vector2D.clone(currentOrientation);
         lastCorrectionTime = System.currentTimeMillis();
 
-        return calculatePIDPower(error);
+        return calculatePIDCorrection(error);
     }
 }

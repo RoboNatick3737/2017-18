@@ -11,7 +11,7 @@ public class PIDConstants
      *
      * KP x Verror
      */
-    public final double kP;
+    public double kP;
 
     /**
      * Reduces the final error in a system. Summing even a small error over time produces
@@ -22,7 +22,7 @@ public class PIDConstants
      * Note that this is very seldom used for FTC robots, and so may be zero for some
      * hardware.
      */
-    public final double kI;
+    public double kI;
 
     /**
      * Counteracts the KP and KI terms when the output changes quickly. This helps reduce
@@ -30,12 +30,12 @@ public class PIDConstants
      *
      * KD x dVerror / dt
      */
-    public final double kD;
+    public double kD;
 
     /**
      * Sets a range in which no errors should be corrected for.
      */
-    public final double errorThreshold;
+    public double errorThreshold;
 
     public PIDConstants(double kP, double kI, double kD, double errorThreshold)
     {

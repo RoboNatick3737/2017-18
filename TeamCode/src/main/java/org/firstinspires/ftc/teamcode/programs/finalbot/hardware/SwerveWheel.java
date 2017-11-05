@@ -25,13 +25,12 @@ import hankextensions.threading.SimpleTask;
 public class SwerveWheel
 {
     // Swerve wheel constants.
-    private static final double NO_MORE_ADJUSTMENTS_THRESHOLD = 2.5;
     private static final double ACCEPTABLE_ORIENTATION_THRESHOLD = 13;
 
     // Swerve wheel specific components.
-    private final String motorName;
+    public final String motorName;
     private final EncoderMotor driveMotor;
-    private final Servo turnMotor;
+    public final Servo turnMotor;
     private final AbsoluteEncoder swerveEncoder;
     private final double physicalEncoderOffset;
     public final SwivelTask swivelTask;
@@ -45,7 +44,7 @@ public class SwerveWheel
     private boolean drivingEnabled = false;
 
     // Finally, the PID controller components which prevents wheel oscillation.
-    private final PIDController pidController;
+    public final PIDController pidController;
 
     public SwerveWheel(
             String motorName,
@@ -67,6 +66,7 @@ public class SwerveWheel
         this.motorName = motorName;
         this.driveMotor = driveMotor;
         this.turnMotor = turnMotor;
+        this.turnMotor.setPosition(0.5);
         this.swerveEncoder = swerveEncoder;
         this.physicalEncoderOffset = physicalEncoderOffset;
 
@@ -137,16 +137,15 @@ public class SwerveWheel
 
             // Set turn power.
             turnPower = 0.5;
-            if (Math.abs(angleToTurn) > NO_MORE_ADJUSTMENTS_THRESHOLD)
-            {
-                turnCorrectionFactor = pidController.calculatePIDPower(angleToTurn);//Math.signum(angleToTurn) * (.0006 * Math.pow(Math.abs(angleToTurn), 2));
 
-                // Change the turn factor depending on our distance from the angle desired (180 vs 0)
-                if (angleFromDesired > 90 || angleFromDesired < -90)
-                    turnPower -= turnCorrectionFactor;
-                else
-                    turnPower += turnCorrectionFactor;
-            }
+            // Use PID to calculate the correction factor (error bars contained within PID).
+            turnCorrectionFactor = pidController.calculatePIDCorrection(angleToTurn);
+
+            // Change the turn factor depending on our distance from the angle desired (180 vs 0)
+            if (angleFromDesired > 90 || angleFromDesired < -90)
+                turnPower -= turnCorrectionFactor;
+            else
+                turnPower += turnCorrectionFactor;
             turnMotor.setPosition(Range.clip(turnPower, 0, 1));
 
             // Set swivel acceptable.

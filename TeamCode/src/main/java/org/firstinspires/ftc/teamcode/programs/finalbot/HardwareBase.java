@@ -38,7 +38,7 @@ public abstract class HardwareBase extends Core
                 new EncoderMotor(initHardwareDevice(DcMotor.class, "Front Left")),
                 initHardwareDevice(Servo.class, "Front Left Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Left Vex Encoder")),
-                new PIDConstants(0.010, 0.001, 0.001, 0),
+                new PIDConstants(0.021739, 0, 0.000846, 2.47),
                 59.44);
 
         SwerveWheel frontRight = new SwerveWheel(
@@ -46,7 +46,7 @@ public abstract class HardwareBase extends Core
                 new EncoderMotor(initHardwareDevice(DcMotor.class, "Front Right")),
                 initHardwareDevice(Servo.class, "Front Right Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Right Vex Encoder")),
-                new PIDConstants(0.012, 0.001, 0.001, 0),
+                new PIDConstants(0.016107, 0, 0.00084, 2.5),
                 42.22);
 
         SwerveWheel backLeft = new SwerveWheel(
@@ -54,7 +54,7 @@ public abstract class HardwareBase extends Core
                 new EncoderMotor(initHardwareDevice(DcMotor.class, "Back Left")),
                 initHardwareDevice(Servo.class, "Back Left Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Left Vex Encoder")),
-                new PIDConstants(0.012, 0.001, 0.001, 0),
+                new PIDConstants(0.01198, 0, 0.001057, 2.85),
                 40.47);
 
         SwerveWheel backRight = new SwerveWheel(
@@ -62,7 +62,7 @@ public abstract class HardwareBase extends Core
                 new EncoderMotor(initHardwareDevice(DcMotor.class, "Back Right")),
                 initHardwareDevice(Servo.class, "Back Right Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Right Vex Encoder")),
-                new PIDConstants(0.009, 0.001, 0.001, 0),
+                new PIDConstants(0.01775, 0, 0.001406, 5.678),
                 242.11);
 
         // Creates the swerve drive with the correct joystick.
