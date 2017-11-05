@@ -47,6 +47,8 @@ public class PIDController
         this.integralCorrection = 0;
     }
 
+
+    double timeSinceLastCorrection;
     /**
      * If the method-caller already knows the error value, this does the heavy lifting
      * and figures out what to do with it next.
@@ -59,11 +61,14 @@ public class PIDController
 
         if (lastCorrectionTime != -1)
         {
+            // Calculate time passed since last loop.
+            timeSinceLastCorrection = (System.currentTimeMillis() - lastCorrectionTime) / 1000.0;
+
             // Calculate derivative correction, which reduces the oscillation of the kP function.
-            derivativeCorrection = pidConstants.kD * (error - lastError) / ((System.currentTimeMillis() - lastCorrectionTime) / 1000.0);
+            derivativeCorrection = pidConstants.kD * (error - lastError) / timeSinceLastCorrection;
 
             // Calculate integral correction, which further reduces oscillation.
-            errorAccumulation += error / (System.currentTimeMillis() / 1000.0);
+            errorAccumulation += error * timeSinceLastCorrection;
             integralCorrection = pidConstants.kI * errorAccumulation;
         }
 

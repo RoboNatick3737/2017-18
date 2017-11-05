@@ -48,6 +48,11 @@ public abstract class ComplexTask extends AsyncTask <Void, Void, Void>
         {
             Core.log.lines(taskName + " task was stopped!");
         }
+        catch(Exception e)
+        {
+            // Yes, I know this is bad, but it prevents crashes (which are worse).
+            Core.log.lines("Something weird happened!" + e.getMessage());
+        }
         finally
         {
             onQuitAndDestroyConsole ();

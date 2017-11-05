@@ -29,8 +29,8 @@ public class Flow
      */
     public static void yield() throws InterruptedException
     {
-        if (Core.instance.isStopRequested())
-            throw new InterruptedException();
+        if (Core.instance != null && Core.instance.isStopRequested())
+            throw new InterruptedException("OpMode requested stop!");
 
         Thread.yield();
     }
