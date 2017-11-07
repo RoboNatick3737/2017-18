@@ -104,6 +104,9 @@ public abstract class ComplexTask extends AsyncTask <Void, Void, Void>
         }
         catch (Exception e)
         {
+            if (Core.log == null)
+                return;
+
             Core.log.lines("Uh oh! " + taskName + " can't run!");
             Core.log.lines(e.getMessage ());
             Core.log.lines("Proceeding normally.");
@@ -120,6 +123,9 @@ public abstract class ComplexTask extends AsyncTask <Void, Void, Void>
         }
         catch (Exception e)
         {
+            if (Core.log == null)
+                return;
+            
             Core.log.lines("Uh oh! " + taskName + " couldn't be stopped!");
             Core.log.lines(e.getMessage ());
             Core.log.lines("Proceeding normally.");
