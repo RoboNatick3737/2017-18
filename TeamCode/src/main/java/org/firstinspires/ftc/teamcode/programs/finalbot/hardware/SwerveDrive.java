@@ -98,7 +98,7 @@ public class SwerveDrive
             // Change the power of the turn speed depending on our distance from the desired heading.  Soon causes turn vector to be zero, allowing movement free of turning to occur.
             rotationSpeedCoefficient = 0;
             if (Math.abs(angleOff) > 8) // Don't try to turn if we're close enough in the range.
-                rotationSpeedCoefficient = -1 * Math.signum(angleOff) * Range.clip((.0015 * Math.pow(angleOff, 2)), 0, 1);
+                rotationSpeedCoefficient = -1 * Math.signum(angleOff) * Range.clip((.001 * Math.pow(angleOff, 2)), 0, 1);
 
             // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
             frontLeft.setVectorTarget(
@@ -143,7 +143,7 @@ public class SwerveDrive
                 backRight.setDrivingState(false);
             }
 
-            return 40;
+            return 100;
         }
     }
 

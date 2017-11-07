@@ -25,7 +25,7 @@ import hankextensions.threading.SimpleTask;
 public class SwerveWheel
 {
     // Swerve wheel constants.
-    private static final double ACCEPTABLE_ORIENTATION_THRESHOLD = 13;
+    private static final double ACCEPTABLE_ORIENTATION_THRESHOLD = 25;
 
     // Swerve wheel specific components.
     public final String motorName;
@@ -111,15 +111,11 @@ public class SwerveWheel
         @Override
         protected long onContinueTask() throws InterruptedException
         {
+            // Don't turn if set to (0, 0), but do stop moving.
             if (Math.abs(targetVector.magnitude) > 0.000001 && Math.abs(localTargetVector.angle) > 0.000001)
-            {
                 localTargetVector = Vector2D.clone(targetVector);
-            }
             else
-            {
-                // Don't turn if set to (0, 0), but do stop moving.
                 localTargetVector = Vector2D.polar(0, currentVector.angle);
-            }
 
             // Calculate the current degree including the offset.
             currentVector = Vector2D.polar(1, swerveEncoder.position() - physicalEncoderOffset);
@@ -159,10 +155,6 @@ public class SwerveWheel
                 else
                     driveMotor.motor.setPower(localTargetVector.magnitude);
             }
-            else
-            {
-                driveMotor.motor.setPower(0);
-            }
 
             // Add console information.
             wheelConsole.write(
@@ -172,7 +164,7 @@ public class SwerveWheel
                     "Angle to turn: " + angleToTurn);
 
             // The ms to wait before updating again.
-            return 10;
+            return 30;
         }
     }
 
@@ -184,5 +176,8 @@ public class SwerveWheel
     public void setDrivingState(boolean state)
     {
         drivingEnabled = state;
+
+        if (!drivingEnabled)
+            driveMotor.motor.setPower(0);
     }
 }
