@@ -93,7 +93,7 @@ public class OpenCVCam
         currentlyActive = true;
         currentState = State.RESUME;
 
-        // Enable the view and start the camera.  This NEEDS to move procedurally, so we stick them in a set of runnables.
+        // Enable the view and start the camera.  This NEEDS to move procedurally, so we run them synchronously on the UI thread.
         FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
             @Override
             public void run() {
