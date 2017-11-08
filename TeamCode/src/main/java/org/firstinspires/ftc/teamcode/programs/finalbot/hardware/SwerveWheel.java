@@ -37,7 +37,7 @@ public class SwerveWheel
     private final ProcessConsole wheelConsole;
 
     // The vector components which should constitute the direction and power of this wheel.
-    private Vector2D targetVector = Vector2D.ZERO;
+    private Vector2D targetVector = null;
 
     // The boolean which indicates to the parent swerve drive whether this wheel has swiveled to the correct position.
     private boolean swivelAcceptable = true;
@@ -112,13 +112,13 @@ public class SwerveWheel
         protected long onContinueTask() throws InterruptedException
         {
             // Don't turn if set to (0, 0), but do stop moving.
-            if (Math.abs(targetVector.magnitude) > 0.000001 && Math.abs(localTargetVector.angle) > 0.000001)
+            if (targetVector != null)
                 localTargetVector = Vector2D.clone(targetVector);
             else
-                localTargetVector = Vector2D.polar(0, currentVector.angle);
+                localTargetVector = Vector2D.justAngle(currentVector.angle());
 
             // Calculate the current degree including the offset.
-            currentVector = Vector2D.polar(1, swerveEncoder.position() - physicalEncoderOffset);
+            currentVector = Vector2D.justAngle(swerveEncoder.position() - physicalEncoderOffset);
 
             // Shortest angle from current heading to desired heading.
             angleFromDesired = currentVector.leastAngleTo(localTargetVector);
@@ -151,9 +151,9 @@ public class SwerveWheel
             if (drivingEnabled)
             {
                 if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
-                    driveMotor.setVelocity(-localTargetVector.magnitude);
+                    driveMotor.setVelocity(-localTargetVector.magnitude());
                 else
-                    driveMotor.setVelocity(localTargetVector.magnitude);
+                    driveMotor.setVelocity(localTargetVector.magnitude());
 
                 driveMotor.updatePID();
             }
