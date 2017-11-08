@@ -151,9 +151,11 @@ public class SwerveWheel
             if (drivingEnabled)
             {
                 if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
-                    driveMotor.motor.setPower(-localTargetVector.magnitude);
+                    driveMotor.setVelocity(-localTargetVector.magnitude);
                 else
-                    driveMotor.motor.setPower(localTargetVector.magnitude);
+                    driveMotor.setVelocity(localTargetVector.magnitude);
+
+                driveMotor.updatePID();
             }
 
             // Add console information.

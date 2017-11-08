@@ -18,11 +18,11 @@ import hankextensions.logging.ProcessConsole;
 import hankextensions.threading.Flow;
 import hankextensions.threading.SimpleTaskPackage;
 
-@TeleOp(name="PID Adjuster", group= Constants.FINAL_BOT_EXPERIMENTATION)
-public class PIDAdjuster extends Core
+@TeleOp(name="Swerve Wheel PID Adjuster", group= Constants.FINAL_BOT_EXPERIMENTATION)
+public class SwerveWheelPIDAdjuster extends Core
 {
-    SwerveWheel frontLeft, backLeft, frontRight, backRight;
-    SimpleTaskPackage taskPackage;
+    private SwerveWheel frontLeft, backLeft, frontRight, backRight;
+    private SimpleTaskPackage taskPackage;
 
     @Override
     protected void INITIALIZE() throws InterruptedException {
@@ -74,7 +74,7 @@ public class PIDAdjuster extends Core
         figureOutPIDConstantsFor(backRight);
     }
 
-    ProcessConsole swerveConsole;
+    private ProcessConsole swerveConsole;
 
     private void figureOutPIDConstantsFor(SwerveWheel swerveWheel) throws InterruptedException
     {
@@ -89,34 +89,37 @@ public class PIDAdjuster extends Core
             desiredRotation = Vector2D.rectangular(gamepad1.left_stick_x, -gamepad1.left_stick_y).rotateBy(-90);
             swerveWheel.setVectorTarget(desiredRotation);
 
-            if (gamepad1.a)
-                swerveWheel.pidController.pidConstants.kP += .000001;
-            else if (gamepad1.y)
-                swerveWheel.pidController.pidConstants.kP -= .000001;
+            for (int i = 0; i < 3; i++)
+            {
+                if (gamepad1.a)
+                    swerveWheel.pidController.pidConstants.kP += .000001;
+                else if (gamepad1.y)
+                    swerveWheel.pidController.pidConstants.kP -= .000001;
 
-            if (gamepad1.b)
-                swerveWheel.pidController.pidConstants.kI += .000001;
-            else if (gamepad1.x)
-                swerveWheel.pidController.pidConstants.kI -= .000001;
+                if (gamepad1.b)
+                    swerveWheel.pidController.pidConstants.kI += .000001;
+                else if (gamepad1.x)
+                    swerveWheel.pidController.pidConstants.kI -= .000001;
 
-            if (gamepad1.dpad_up)
-                swerveWheel.pidController.pidConstants.kD += .000001;
-            else if (gamepad1.dpad_down)
-                swerveWheel.pidController.pidConstants.kD -= .000001;
+                if (gamepad1.dpad_up)
+                    swerveWheel.pidController.pidConstants.kD += .000001;
+                else if (gamepad1.dpad_down)
+                    swerveWheel.pidController.pidConstants.kD -= .000001;
 
-            if (gamepad1.dpad_left)
-                swerveWheel.pidController.pidConstants.errorThreshold += .001;
-            else if (gamepad1.dpad_right)
-                swerveWheel.pidController.pidConstants.errorThreshold -= .001;
+                if (gamepad1.dpad_left)
+                    swerveWheel.pidController.pidConstants.errorThreshold += .001;
+                else if (gamepad1.dpad_right)
+                    swerveWheel.pidController.pidConstants.errorThreshold -= .001;
 
-            swerveConsole.write(
-                    "kP is " + swerveWheel.pidController.pidConstants.kP,
-                    "kI is " + swerveWheel.pidController.pidConstants.kI,
-                    "kD is " + swerveWheel.pidController.pidConstants.kD,
-                    "error threshold is " + swerveWheel.pidController.pidConstants.errorThreshold
-            );
+                swerveConsole.write(
+                        "kP is " + swerveWheel.pidController.pidConstants.kP,
+                        "kI is " + swerveWheel.pidController.pidConstants.kI,
+                        "kD is " + swerveWheel.pidController.pidConstants.kD,
+                        "error threshold is " + swerveWheel.pidController.pidConstants.errorThreshold
+                );
 
-            Flow.yield();
+                Flow.msPause(30);
+            }
         }
 
         taskPackage.pause();
