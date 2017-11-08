@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 23
+        targetSdkVersion 19
     }
 
     compileSdkVersion 23
@@ -26,7 +26,3 @@ repositories {
 }
 
 apply from: 'build.release.gradle'
-
-dependencies {
-    compile project(':openCVLibrary330')
-}

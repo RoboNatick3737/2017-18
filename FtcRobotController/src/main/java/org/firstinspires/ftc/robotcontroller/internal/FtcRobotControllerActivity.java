@@ -97,6 +97,8 @@ import org.firstinspires.ftc.robotcore.internal.ui.ThemedActivity;
 import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 //modified for turbo: removed 2 webserver imports
 import org.firstinspires.inspection.RcInspectionActivity;
+import org.openftc.UiUtils;
+import org.openftc.Utils;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -107,9 +109,9 @@ import hankextensions.vision.VuforiaCam;
 
 @SuppressWarnings("WeakerAccess")
 public class FtcRobotControllerActivity extends Activity
-{
-  // Singleton class.
-  public static FtcRobotControllerActivity instance;
+  {
+    // Singleton
+    public static FtcRobotControllerActivity instance;
 
   public static final String TAG = "RCActivity";
   public String getTag() { return TAG; }
@@ -138,6 +140,8 @@ public class FtcRobotControllerActivity extends Activity
   protected TextView textOpMode;
   protected TextView textErrorMessage;
   protected ImmersiveMode immersion;
+
+  protected TextView textOpenFTCVersion;
 
   protected UpdateUI updateUI;
   protected Dimmer dimmer;
@@ -211,10 +215,20 @@ public class FtcRobotControllerActivity extends Activity
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
-    instance = this;
-
+    RobotLog.onApplicationStart();  // robustify against onCreate() following onDestroy() but using the same app instance, which apparently does happen
     RobotLog.vv(TAG, "onCreate()");
+
+    /*
+     * Check to see if the DS app is also installed.
+     * If it is, then show the user a dialog explaining
+     * the situation and offer them the option to uninstall
+     * either the DS app or the RC app
+     */
+    if(Utils.isFtcDriverStationInstalled(getPackageManager()))
+    {
+      UiUtils.showDsAppInstalledDialog(this);
+    }
+
     ThemedActivity.appAppThemeToActivity(getTag(), this); // do this way instead of inherit to help AppInventor
 
     Assert.assertTrue(FtcRobotControllerWatchdogService.isFtcRobotControllerActivity(AppUtil.getInstance().getRootActivity()));
@@ -228,7 +242,7 @@ public class FtcRobotControllerActivity extends Activity
         RobotLog.vv(TAG, "disabling Dragonboard and exiting robot controller");
         DragonboardLynxDragonboardIsPresentPin.getInstance().setState(false);
         AppUtil.getInstance().finishRootActivityAndExitApp();
-      }
+        }
       else {
         // Double-sure check that we can talk to the DB over the serial TTY
         DragonboardLynxDragonboardIsPresentPin.getInstance().setState(true);
@@ -278,6 +292,10 @@ public class FtcRobotControllerActivity extends Activity
     textErrorMessage = (TextView) findViewById(R.id.textErrorMessage);
     textGamepad[0] = (TextView) findViewById(R.id.textGamepad1);
     textGamepad[1] = (TextView) findViewById(R.id.textGamepad2);
+
+    textOpenFTCVersion = (TextView) findViewById(R.id.openftc_version);
+    textOpenFTCVersion.setText(org.openftc.BuildConfig.VERSION_COMPLETE);
+
     immersion = new ImmersiveMode(getWindow().getDecorView());
     dimmer = new Dimmer(this);
     dimmer.longBright();
@@ -301,11 +319,12 @@ public class FtcRobotControllerActivity extends Activity
     bindToService();
     logPackageVersions();
 
-    ////////////// START VISION PROCESSING CODE //////////////
+    ////////////// START CUSTOM CODE //////////////
+    instance = this;
     OpenCVCam.instance = null;
     VuforiaCam.instance = null;
     AndroidGyro.instance = null;
-    ////////////// END VISION PROCESSING CODE //////////////
+    ////////////// END CUSTOM CODE //////////////
   }
 
   protected UpdateUI createUpdateUI() {
@@ -349,10 +368,10 @@ public class FtcRobotControllerActivity extends Activity
     super.onResume();
     RobotLog.vv(TAG, "onResume()");
 
-    ////////////// START VISION PROCESSING CODE //////////////
+    ////////////// START CUSTOM CODE //////////////
     if (OpenCVCam.instance != null)
       OpenCVCam.instance.newActivityState(OpenCVCam.State.RESUME);
-    ////////////// END VISION PROCESSING CODE //////////////
+    ////////////// END CUSTOM CODE //////////////
   }
 
   @Override
@@ -361,10 +380,10 @@ public class FtcRobotControllerActivity extends Activity
     RobotLog.vv(TAG, "onPause()");
     //modified for turbo: We don't need to stop the programming mode when the app is paused
 
-    ////////////// START VISION PROCESSING CODE //////////////
+    ////////////// START CUSTOM CODE //////////////
     if (OpenCVCam.instance != null)
       OpenCVCam.instance.newActivityState(OpenCVCam.State.PAUSE);
-    ////////////// END VISION PROCESSING CODE //////////////
+    ////////////// END CUSTOM CODE //////////////
   }
 
   @Override
@@ -380,10 +399,10 @@ public class FtcRobotControllerActivity extends Activity
     super.onDestroy();
     RobotLog.vv(TAG, "onDestroy()");
 
-    ////////////// START VISION PROCESSING CODE //////////////
+    ////////////// START CUSTOM CODE //////////////
     if (OpenCVCam.instance != null)
       OpenCVCam.instance.newActivityState(OpenCVCam.State.DESTROY);
-    ////////////// END VISION PROCESSING CODE //////////////
+    ////////////// END CUSTOM CODE //////////////
 
     shutdownRobot();  // Ensure the robot is put away to bed
     if (callback != null) callback.close();
@@ -414,12 +433,16 @@ public class FtcRobotControllerActivity extends Activity
   }
 
   protected void logPackageVersions() {
+    RobotLog.v("THIS APP WAS MADE FROM OpenFTC, A MODIFIED VERSION OF THE SDK.");
+    RobotLog.v("You can find more information at http://OpenFTC.org or the About screen.");
+    RobotLog.v("OpenFTC Version: " + org.openftc.BuildConfig.VERSION_COMPLETE);
     RobotLog.logBuildConfig(com.qualcomm.ftcrobotcontroller.BuildConfig.class);
     RobotLog.logBuildConfig(com.qualcomm.robotcore.BuildConfig.class);
     RobotLog.logBuildConfig(com.qualcomm.hardware.BuildConfig.class);
     RobotLog.logBuildConfig(com.qualcomm.ftccommon.BuildConfig.class);
-    //modified for turbo: don't log the blocks version
+    // Modified for Turbo: don't log the blocks version
     RobotLog.logBuildConfig(org.firstinspires.inspection.BuildConfig.class);
+    RobotLog.logBuildConfig(org.openftc.BuildConfig.class);
   }
 
   protected void readNetworkType() {
@@ -442,10 +465,10 @@ public class FtcRobotControllerActivity extends Activity
   public void onWindowFocusChanged(boolean hasFocus){
     super.onWindowFocusChanged(hasFocus);
 
-    ////////////// START VISION PROCESSING CODE //////////////
+    ////////////// START CUSTOM CODE //////////////
     if (OpenCVCam.instance != null)
       OpenCVCam.instance.onWindowFocusChanged(hasFocus);
-    ////////////// END VISION PROCESSING CODE //////////////
+    ////////////// END CUSTOM CODE //////////////
 
     // When the window loses focus (e.g., the action overflow is shown),
     // cancel any pending hide action. When the window gains focus,
@@ -492,7 +515,7 @@ public class FtcRobotControllerActivity extends Activity
       startActivityForResult(intentConfigure, RequestCode.CONFIGURE_ROBOT_CONTROLLER.ordinal());
     }
     else if (id == R.id.action_settings) {
-      // historical: this once erroneously used FTC_CONFIGURE_REQUEST_CODE_ROBOT_CONTROLLER
+	  // historical: this once erroneously used FTC_CONFIGURE_REQUEST_CODE_ROBOT_CONTROLLER
       Intent settingsIntent = new Intent(AppUtil.getDefContext(), FtcRobotControllerSettingsActivity.class);
       startActivityForResult(settingsIntent, RequestCode.SETTINGS_ROBOT_CONTROLLER.ordinal());
       return true;
@@ -508,7 +531,7 @@ public class FtcRobotControllerActivity extends Activity
       return true;
     }
 
-    return super.onOptionsItemSelected(item);
+   return super.onOptionsItemSelected(item);
   }
 
   @Override
