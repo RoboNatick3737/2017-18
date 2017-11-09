@@ -3,6 +3,7 @@ package hankextensions.threading;
 import android.os.AsyncTask;
 
 import hankextensions.Core;
+import hankextensions.logging.Log;
 import hankextensions.logging.ProcessConsole;
 
 /**
@@ -51,7 +52,8 @@ public abstract class ComplexTask extends AsyncTask <Void, Void, Void>
         catch(Exception e)
         {
             // Yes, I know this is bad, but it prevents crashes (which are worse).
-            Core.log.lines("Something weird happened!" + e.getMessage());
+            Log.instance.lines("Something weird happened!" + e.getMessage());
+            Log.instance.lines("Happened at " + getStackTrace(e));
         }
         finally
         {
@@ -59,6 +61,14 @@ public abstract class ComplexTask extends AsyncTask <Void, Void, Void>
         }
 
         return null;
+    }
+
+    /**
+     * Used to get stack trace info for weird errors.
+     */
+    private String getStackTrace(Exception e)
+    {
+        return "Class: " + e.getStackTrace()[0].getClassName() + ", Method: " + e.getStackTrace()[0].getMethodName() + ", Line: " + e.getStackTrace()[0].getLineNumber();
     }
 
     /**

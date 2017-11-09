@@ -15,22 +15,43 @@ public class EncoderMotor
      * The motor reference to which this corresponds.
      */
     public final DcMotor motor;
+
+    /**
+     * The PID controller which this motor uses to stabilize itself.
+     */
     public final PIDController pidController;
+
+    /**
+     * The process console which this motor needs to output data.
+     */
     private final ProcessConsole processConsole;
 
-    public EncoderMotor(DcMotor motor)
+    /**
+     * The number of encoder ticks it takes this motor to rotate 360 degrees once.
+     */
+    private final int ENCODER_TICKS_WHEEL_REVOLUTION;
+
+    /**
+     * The wheel circumference which this motor drives.
+     */
+    private final double WHEEL_CIRCUMFERENCE;
+
+    public EncoderMotor(String motorName, DcMotor motor)
     {
-        this(motor, new PIDConstants(0, 0, 0, 0));
+        this(motorName, motor, new PIDConstants(0.01, 0, 0, 0), 400, 4);
     }
-    public EncoderMotor(DcMotor motor, PIDConstants motorPID)
+    public EncoderMotor(String motorName, DcMotor motor, PIDConstants motorPID, int encoderTicksPerWheelRevolution, double wheelDiameterCM)
     {
         this.motor = motor;
+        resetEncoder();
 
         this.pidController = new PIDController(motorPID);
 
-        resetEncoder();
+        // The wheel which the motor drives.
+        ENCODER_TICKS_WHEEL_REVOLUTION = encoderTicksPerWheelRevolution;
+        WHEEL_CIRCUMFERENCE = wheelDiameterCM * Math.PI;
 
-        processConsole = Log.instance.newProcessConsole("Motor PC");
+        processConsole = Log.instance.newProcessConsole(motorName + " Process Console");
     }
 
     /**
@@ -47,7 +68,6 @@ public class EncoderMotor
     private double desiredVelocity = 0;
     private double lastMotorPosition = 0;
     private long lastAdjustmentTime = 0;
-    private boolean firstErrorCorrection = false;
     private double currentPower = 0, currentVelocity;
 
     /**
@@ -56,14 +76,13 @@ public class EncoderMotor
      */
     public void setVelocity(double velocity)
     {
-        if (Math.abs(velocity) <= .001)
+        if (Math.abs(velocity) < .001)
         {
             motor.setPower(0);
             currentPower = 0;
         }
 
         desiredVelocity = velocity;
-        firstErrorCorrection = true;
     }
 
     /**
@@ -71,20 +90,18 @@ public class EncoderMotor
      */
     public void updatePID()
     {
-        if (!firstErrorCorrection)
-        {
-            // Calculate PID by finding the number of ticks the motor SHOULD have gone minus the amount it actually went.
-            currentVelocity = (motor.getCurrentPosition() - lastMotorPosition) /  (System.currentTimeMillis() - lastAdjustmentTime);
-            currentPower += pidController.calculatePIDCorrection(desiredVelocity - currentVelocity);
-            motor.setPower(currentPower);
-        }
+        // Calculate PID by finding the number of ticks the motor SHOULD have gone minus the amount it actually went.
+        currentVelocity = ((motor.getCurrentPosition() - lastMotorPosition) / ENCODER_TICKS_WHEEL_REVOLUTION * WHEEL_CIRCUMFERENCE) /  ((System.currentTimeMillis() - lastAdjustmentTime) / 1000.0);
+        currentPower += pidController.calculatePIDCorrection(desiredVelocity - currentVelocity);
+        motor.setPower(currentPower);
 
         processConsole.write(
-                "Current position is " + lastMotorPosition,
-                "Desired velocity = " + (desiredVelocity),
-                "Current velocity " + currentVelocity);
+                "Current position: " + lastMotorPosition,
+                "Desired velocity: " + desiredVelocity + " cm/s",
+                "Current velocity: " + currentVelocity + " cm/s",
+                "PID constants: " + pidController.pidConstants.kP + ", " + pidController.pidConstants.kD);
+
         lastMotorPosition = motor.getCurrentPosition();
         lastAdjustmentTime = System.currentTimeMillis();
-        firstErrorCorrection = false;
     }
 }

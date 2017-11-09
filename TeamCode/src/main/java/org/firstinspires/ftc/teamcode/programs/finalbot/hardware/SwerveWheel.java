@@ -9,6 +9,8 @@
 
 package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
 
+import android.support.annotation.NonNull;
+
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -37,7 +39,7 @@ public class SwerveWheel
     private final ProcessConsole wheelConsole;
 
     // The vector components which should constitute the direction and power of this wheel.
-    private Vector2D targetVector = null;
+    private Vector2D targetVector = Vector2D.polar(0, 0);
 
     // The boolean which indicates to the parent swerve drive whether this wheel has swiveled to the correct position.
     private boolean swivelAcceptable = true;
@@ -81,7 +83,7 @@ public class SwerveWheel
      * Takes the desired rectangular coordinates for this motor, and converts them to polar
      * coordinates.
      */
-    public void setVectorTarget(Vector2D target)
+    public void setVectorTarget(@NonNull Vector2D target)
     {
         targetVector = target;
     }
@@ -101,8 +103,7 @@ public class SwerveWheel
         }
 
         // Prevent boxing/unboxing slowdown.
-        Vector2D localTargetVector = Vector2D.ZERO, currentVector = Vector2D.ZERO;
-        double turnPower, angleFromDesired, angleToTurn, turnCorrectionFactor;
+        double desiredAngle, currentAngle, turnPower, angleFromDesired, angleToTurn, turnCorrectionFactor;
 
         /**
          * Right here, we're given a vector which we have to match this wheel to as quickly as
@@ -111,17 +112,11 @@ public class SwerveWheel
         @Override
         protected long onContinueTask() throws InterruptedException
         {
-            // Don't turn if set to (0, 0), but do stop moving.
-            if (targetVector != null)
-                localTargetVector = Vector2D.clone(targetVector);
-            else
-                localTargetVector = Vector2D.justAngle(currentVector.angle());
-
-            // Calculate the current degree including the offset.
-            currentVector = Vector2D.justAngle(swerveEncoder.position() - physicalEncoderOffset);
-
             // Shortest angle from current heading to desired heading.
-            angleFromDesired = currentVector.leastAngleTo(localTargetVector);
+            desiredAngle = targetVector.angle;
+            currentAngle = swerveEncoder.position() - physicalEncoderOffset;
+            angleFromDesired = (Vector2D.clampAngle(desiredAngle - currentAngle) + 180) % 360 - 180;
+            angleFromDesired = angleFromDesired < -180 ? angleFromDesired + 360 : angleFromDesired;
 
             // Clip this angle to 90 degree maximum turns.
             if (angleFromDesired > 90)
@@ -151,19 +146,20 @@ public class SwerveWheel
             if (drivingEnabled)
             {
                 if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
-                    driveMotor.setVelocity(-localTargetVector.magnitude());
+                    driveMotor.setVelocity(-targetVector.magnitude);
                 else
-                    driveMotor.setVelocity(localTargetVector.magnitude());
+                    driveMotor.setVelocity(targetVector.magnitude);
 
                 driveMotor.updatePID();
             }
 
             // Add console information.
             wheelConsole.write(
-                    "Vector target: " + localTargetVector.toString(Vector2D.VectorCoordinates.POLAR),
-                    "Current vector: " + currentVector.toString(Vector2D.VectorCoordinates.POLAR),
+                    "Vector target: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
+                    "Current vector: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                     "Angle from desired: " + angleFromDesired,
-                    "Angle to turn: " + angleToTurn);
+                    "Angle to turn: " + angleToTurn,
+                    "Driving: " + drivingEnabled);
 
             // The ms to wait before updating again.
             return 30;

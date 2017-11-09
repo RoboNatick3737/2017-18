@@ -21,23 +21,35 @@ import hankextensions.threading.SimpleTaskPackage;
 @TeleOp(name="Drive Motor PID Adjuster", group= Constants.FINAL_BOT_EXPERIMENTATION)
 public class DriveMotorPIDAdjuster extends Core
 {
-    EncoderMotor frontLeft, backLeft, frontRight, backRight;
+    private EncoderMotor frontLeft, backLeft, frontRight, backRight;
 
     @Override
     protected void INITIALIZE() throws InterruptedException
     {
-        // All of the SwerveWheels (which align on independent threads)
-        frontLeft = new EncoderMotor(initHardwareDevice(DcMotor.class, "Front Left"),
-                new PIDConstants(0, 0, 0, 0));
+        // All of the drive motors and their respective PID.
+        frontLeft = new EncoderMotor(
+                "Front Left",
+                initHardwareDevice(DcMotor.class, "Front Left"),
+                new PIDConstants(.0008, 0, 0, 0),
+                407, 7.62);
 
-        frontRight = new EncoderMotor(initHardwareDevice(DcMotor.class, "Front Right"),
-                new PIDConstants(0, 0, 0, 0));
+        frontRight = new EncoderMotor(
+                "Front Right",
+                initHardwareDevice(DcMotor.class, "Front Right"),
+                new PIDConstants(.0008, 0, 0, 0),
+                202, 7.62);
 
-        backLeft =new EncoderMotor(initHardwareDevice(DcMotor.class, "Back Left"),
-                new PIDConstants(0, 0, 0, 0));;
+        backLeft = new EncoderMotor(
+                "Back Left",
+                initHardwareDevice(DcMotor.class, "Back Left"),
+                new PIDConstants(.0008, 0, 0, 0),
+                202, 7.62);
 
-        backRight = new EncoderMotor(initHardwareDevice(DcMotor.class, "Back Right"),
-                new PIDConstants(0, 0, 0, 0));
+        backRight = new EncoderMotor(
+                "Back Right",
+                initHardwareDevice(DcMotor.class, "Back Right"),
+                new PIDConstants(.0008, 0, 0, 0),
+                475, 7.62);
     }
 
     @Override
@@ -62,26 +74,26 @@ public class DriveMotorPIDAdjuster extends Core
 
         while (!gamepad1.start)
         {
-            double desiredVelocity = 3 * Range.clip(-gamepad1.left_stick_y , -1, 1);
+            double desiredVelocity = 50 * Range.clip(-gamepad1.left_stick_y , -1, 1);
 
             motor.setVelocity(desiredVelocity);
 
             for (int i = 0; i < 3; i++)
             {
                 if (gamepad1.a)
-                    motor.pidController.pidConstants.kP += .001;
+                    motor.pidController.pidConstants.kP += .00001;
                 else if (gamepad1.y)
-                    motor.pidController.pidConstants.kP -= .001;
+                    motor.pidController.pidConstants.kP -= .00001;
 
                 if (gamepad1.b)
-                    motor.pidController.pidConstants.kI += .001;
+                    motor.pidController.pidConstants.kI += .00001;
                 else if (gamepad1.x)
-                    motor.pidController.pidConstants.kI -= .001;
+                    motor.pidController.pidConstants.kI -= .00001;
 
                 if (gamepad1.dpad_up)
-                    motor.pidController.pidConstants.kD += .001;
+                    motor.pidController.pidConstants.kD += .00001;
                 else if (gamepad1.dpad_down)
-                    motor.pidController.pidConstants.kD -= .001;
+                    motor.pidController.pidConstants.kD -= .00001;
 
                 if (gamepad1.dpad_left)
                     motor.pidController.pidConstants.errorThreshold += .1;

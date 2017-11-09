@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
 
+import android.support.annotation.NonNull;
+
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.Range;
 
@@ -24,7 +26,8 @@ public class SwerveDrive
     public final Gyro gyro; // Public because teleop can manually reset.
 
     // Constantly shifting in autonomous and teleop.
-    private Vector2D desiredHeading = Vector2D.polar(1, 0), desiredMovement = Vector2D.ZERO;
+    private Vector2D desiredMovement = Vector2D.ZERO;
+    private double desiredHeading = 0;
 
     /**
      * This task package runs on a different thread, continually updating the vectors for each swerve wheel, while also
@@ -58,6 +61,8 @@ public class SwerveDrive
 
         swerveConsole = Log.instance.newProcessConsole("Swerve Console");
 
+        Log.instance.lines("Wheel orientations: " + WHEEL_ORIENTATIONS[0] + ", " + WHEEL_ORIENTATIONS[1] + ", " + WHEEL_ORIENTATIONS[2] + ", " + WHEEL_ORIENTATIONS[3]);
+
         drivingTasks.start();
     }
 
@@ -72,11 +77,11 @@ public class SwerveDrive
 
     /**
      * Sets a new desired orientation.
-     * @param newlyDesiredRotation the new orientation to align to.
+     * @param newlyDesiredHeading the new orientation to align to.
      */
-    public void setDesiredHeading(Vector2D newlyDesiredRotation)
+    public void setDesiredHeading(double newlyDesiredHeading)
     {
-        this.desiredHeading = newlyDesiredRotation;
+        this.desiredHeading = newlyDesiredHeading;
     }
 
     /**
@@ -84,9 +89,30 @@ public class SwerveDrive
      * @param newlyDesiredMovement the new desired movement vector.
      *
      */
-    public void setDesiredMovement(Vector2D newlyDesiredMovement)
+    public void setDesiredMovement(@NonNull Vector2D newlyDesiredMovement)
     {
         this.desiredMovement = newlyDesiredMovement;
+    }
+
+    /**
+     * Only takes effect if the gamepad has been supplied to this class.
+     */
+    private void updateTeleopInstructions() throws InterruptedException
+    {
+        // Rotate by -90 in order to make forward facing zero.
+        Vector2D joystickDesiredRotation = Vector2D.rectangular(gamepad.left_stick_x, -gamepad.left_stick_y).rotateBy(-90);
+        Vector2D joystickDesiredMovement = Vector2D.rectangular(gamepad.right_stick_x, -gamepad.right_stick_y).rotateBy(-90);
+
+        if (joystickDesiredRotation.magnitude > .05)
+            setDesiredHeading(joystickDesiredRotation.angle);
+
+        if (joystickDesiredMovement.magnitude > .05)
+            setDesiredMovement(joystickDesiredMovement);
+        else
+            setDesiredMovement(Vector2D.ZERO);
+
+        if (gamepad.a)
+            gyro.calibrate();
     }
 
     /**
@@ -95,62 +121,47 @@ public class SwerveDrive
     private class SwerveDriveTask extends SimpleTask
     {
         // Unboxing/boxing slowdown fix.
-        Vector2D currentHeading;
+        double gyroHeading = 0;
         double rotationSpeed;
         Vector2D fieldCentricTranslation;
         double angleOff;
 
-        // Teleop stuff
-        Vector2D desiredRotation, desiredMovement;
-
         @Override
         protected long onContinueTask() throws InterruptedException
         {
-            // Teleop instructions (only executed if provided).
             if (gamepad != null)
-            {
-                desiredRotation = Vector2D.rectangular(gamepad.left_stick_x, -gamepad.left_stick_y).rotateBy(-90);
-                desiredMovement = Vector2D.rectangular(gamepad.right_stick_x, -gamepad.right_stick_y).rotateBy(-90);
+                updateTeleopInstructions();
 
-                if (desiredRotation.magnitude() < .05)
-                    desiredRotation = null;
+            // Get current gyro val.
+            gyroHeading = gyro.z();
 
-                if (desiredMovement.magnitude() < .05)
-                    desiredMovement = Vector2D.ZERO;
-
-                // Rotate by -90 in order to make forward facing zero.
-                setDesiredHeading(desiredRotation);
-                setDesiredMovement(desiredMovement);
-
-                if (gamepad.a)
-                    gyro.calibrate();
-            }
-
-            // Figure out the direction which we will be rotating based on the rotation vector for input.
-            currentHeading = Vector2D.polar(1, gyro.z());
+            // Find the least heading between the gyro and the current heading.
+            angleOff = (Vector2D.clampAngle(desiredHeading - gyroHeading) + 180) % 360 - 180;
+            angleOff = angleOff < -180 ? angleOff + 360 : angleOff;
 
             // Figure out the actual translation vector for swerve wheels based on gyro value.
-            fieldCentricTranslation = desiredMovement.rotateBy(-currentHeading.angle());
-
-            // Only try to rotate when we aren't super close to the value we should be working to accomplish already.
-            angleOff = currentHeading.leastAngleTo(desiredHeading);
+            fieldCentricTranslation = desiredMovement.rotateBy(-gyroHeading);
 
             // Change the power of the turn speed depending on our distance from the desired heading.  Soon causes turn vector to be zero, allowing movement free of turning to occur.
             rotationSpeed = 0;
             if (Math.abs(angleOff) > 8) // Don't try to turn if we're close enough in the range.
-                rotationSpeed = -1 * Range.clip((.0015 * angleOff), -1, 1);
+                rotationSpeed = -1 * Range.clip((.15 * angleOff), -1, 1);
 
-            // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
-            frontLeft.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[0]).add(fieldCentricTranslation));
-            backLeft.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[1]).add(fieldCentricTranslation));
-            backRight.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[2]).add(fieldCentricTranslation));
-            frontRight.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[3]).add(fieldCentricTranslation));
+            /**
+             * Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
+             * Note that I'm scaling these up by 70 to convert to cm/s from encoder ticks/s
+             */
+            frontLeft.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[0]).add(fieldCentricTranslation).multiply(100));
+            backLeft.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[1]).add(fieldCentricTranslation).multiply(100));
+            backRight.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[2]).add(fieldCentricTranslation).multiply(100));
+            frontRight.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[3]).add(fieldCentricTranslation).multiply(70));
 
             // Write some information to the telemetry console.
             swerveConsole.write(
-                    "Current heading: " + currentHeading.angle(),
-                    "Desired angle: " + desiredHeading.angle(),
-                    "Rotation speed coeff: " + rotationSpeed
+                    "Current Heading: " + gyroHeading,
+                    "Desired Angle: " + desiredHeading,
+                    "Rotation Speed: " + rotationSpeed,
+                    "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR)
             );
 
             // Check to see whether it's okay to start moving by observing the state of all wheels.  .
