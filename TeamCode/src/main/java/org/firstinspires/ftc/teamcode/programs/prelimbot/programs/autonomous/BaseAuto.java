@@ -7,7 +7,13 @@ import hankextensions.music.Tunes;
 
 public abstract class BaseAuto extends HardwareBase {
 
-    protected ProcessConsole console = log.newProcessConsole("Prelim Auto Console");
+    protected ProcessConsole console;
+
+    @Override
+    protected void INITIALIZE()
+    {
+        console = log.newProcessConsole("Prelim Auto Console");
+    }
 
     protected enum DIRECTION {
         BACKWARDS(1,1,0), LEFT(0,0,-1), FORWARD(-1,-1,0), RIGHT(0,0,1), STOP(0,0,0);
