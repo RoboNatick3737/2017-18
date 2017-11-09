@@ -148,6 +148,10 @@ public class SwerveDrive
         Vector2D fieldCentricTranslation;
         double angleOff;
 
+        // Display latency to the drivers.
+        double averageUpdateRate = 0;
+        long lastRunTime = -1, totalRuns = 0;
+
         @Override
         protected long onContinueTask() throws InterruptedException
         {
@@ -176,12 +180,19 @@ public class SwerveDrive
             backRight.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[2]).add(fieldCentricTranslation).multiply(100));
             frontRight.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[3]).add(fieldCentricTranslation).multiply(100));
 
+            // Figure out latency (not really required persay but useful to see).
+            if (lastRunTime != -1)
+                averageUpdateRate = (averageUpdateRate * totalRuns + (System.currentTimeMillis() - lastRunTime)) / (totalRuns + 1);
+            totalRuns++;
+            lastRunTime = System.currentTimeMillis();
+
             // Write some information to the telemetry console.
             swerveConsole.write(
                     "Current Heading: " + gyroHeading,
                     "Desired Angle: " + desiredHeading,
                     "Rotation Speed: " + rotationSpeed,
                     "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
+                    "Average update rate: " + averageUpdateRate,
                     "PID kP: " + TURN_PID_CONSTANTS.kP,
                     "PID kD: " + TURN_PID_CONSTANTS.kD
             );

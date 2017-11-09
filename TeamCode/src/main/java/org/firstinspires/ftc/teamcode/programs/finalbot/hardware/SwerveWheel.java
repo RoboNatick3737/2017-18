@@ -106,6 +106,10 @@ public class SwerveWheel
         // Prevent boxing/unboxing slowdown.
         double desiredAngle, currentAngle, turnPower, angleFromDesired, angleToTurn, turnCorrectionFactor;
 
+        // Display latency to the drivers.
+        double averageUpdateRate = 0;
+        long lastRunTime = -1, totalRuns = 0;
+
         /**
          * Right here, we're given a vector which we have to match this wheel to as quickly as
          * possible.
@@ -161,13 +165,20 @@ public class SwerveWheel
                 }
             }
 
+            // Figure out latency (not really required persay but useful to see).
+            if (lastRunTime != -1)
+                averageUpdateRate = (averageUpdateRate * totalRuns + (System.currentTimeMillis() - lastRunTime)) / (totalRuns + 1);
+            totalRuns++;
+            lastRunTime = System.currentTimeMillis();
+
             // Add console information.
             wheelConsole.write(
                     "Vector target: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                     "Current vector: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                     "Angle from desired: " + angleFromDesired,
                     "Angle to turn: " + angleToTurn,
-                    "Driving: " + drivingEnabled);
+                    "Driving: " + drivingEnabled,
+                    "Average update rate: " + averageUpdateRate);
 
             // The ms to wait before updating again.
             return 30;
