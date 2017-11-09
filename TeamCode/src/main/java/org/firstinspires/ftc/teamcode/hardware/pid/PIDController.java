@@ -53,7 +53,7 @@ public class PIDController
     }
 
 
-    double timeSinceLastCorrection;
+    private double timeSinceLastCorrection;
     /**
      * If the method-caller already knows the error value, this does the heavy lifting
      * and figures out what to do with it next.

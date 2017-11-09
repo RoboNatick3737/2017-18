@@ -9,6 +9,8 @@ import hankextensions.logging.Log;
 import hankextensions.logging.ProcessConsole;
 import hankextensions.phonesensors.Gyro;
 
+import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.hardware.pid.PIDController;
 import org.firstinspires.ftc.teamcode.structs.Vector2D;
 
 import hankextensions.threading.SimpleTask;
@@ -20,10 +22,12 @@ public class SwerveDrive
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
+    private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 12);
 
     // Instance specific components.
     private final SwerveWheel frontLeft, frontRight, backLeft, backRight;
     public final Gyro gyro; // Public because teleop can manually reset.
+    private final PIDController pidController;
 
     // Constantly shifting in autonomous and teleop.
     private Vector2D desiredMovement = Vector2D.ZERO;
@@ -60,6 +64,8 @@ public class SwerveDrive
         drivingTasks.add(new SwerveDriveTask());
 
         swerveConsole = Log.instance.newProcessConsole("Swerve Console");
+
+        pidController = new PIDController(TURN_PID_CONSTANTS);
 
         Log.instance.lines("Wheel orientations: " + WHEEL_ORIENTATIONS[0] + ", " + WHEEL_ORIENTATIONS[1] + ", " + WHEEL_ORIENTATIONS[2] + ", " + WHEEL_ORIENTATIONS[3]);
 
@@ -103,10 +109,10 @@ public class SwerveDrive
         Vector2D joystickDesiredRotation = Vector2D.rectangular(gamepad.left_stick_x, -gamepad.left_stick_y).rotateBy(-90);
         Vector2D joystickDesiredMovement = Vector2D.rectangular(gamepad.right_stick_x, -gamepad.right_stick_y).rotateBy(-90);
 
-        if (joystickDesiredRotation.magnitude > .05)
+        if (joystickDesiredRotation.magnitude > .005)
             setDesiredHeading(joystickDesiredRotation.angle);
 
-        if (joystickDesiredMovement.magnitude > .05)
+        if (joystickDesiredMovement.magnitude > .005)
             setDesiredMovement(joystickDesiredMovement);
         else
             setDesiredMovement(Vector2D.ZERO);
@@ -116,6 +122,21 @@ public class SwerveDrive
             gyro.calibrate();
             setDesiredHeading(0);
         }
+
+        if (gamepad.x)
+            TURN_PID_CONSTANTS.kP += .0001;
+        else if (gamepad.b)
+            TURN_PID_CONSTANTS.kP -= .0001;
+
+        if (gamepad.dpad_left)
+            TURN_PID_CONSTANTS.errorThreshold += .1;
+        else if (gamepad.dpad_right)
+            TURN_PID_CONSTANTS.errorThreshold -= .1;
+
+        if (gamepad.dpad_up)
+            TURN_PID_CONSTANTS.kD += .00001;
+        else if (gamepad.dpad_down)
+            TURN_PID_CONSTANTS.kD -= .00001;
     }
 
     /**
@@ -146,7 +167,7 @@ public class SwerveDrive
             fieldCentricTranslation = desiredMovement.rotateBy(-gyroHeading);
 
             // Don't bother trying to be more accurate than 8 degrees while turning.
-            rotationSpeed = Math.abs(angleOff) > 15 ? -1 * Math.signum(.00005 * angleOff) : 0;
+            rotationSpeed = -pidController.calculatePIDCorrection(angleOff);
 
             /*
              * Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
@@ -162,7 +183,9 @@ public class SwerveDrive
                     "Current Heading: " + gyroHeading,
                     "Desired Angle: " + desiredHeading,
                     "Rotation Speed: " + rotationSpeed,
-                    "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR)
+                    "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
+                    "PID kP: " + TURN_PID_CONSTANTS.kP,
+                    "PID kD: " + TURN_PID_CONSTANTS.kD
             );
 
             // Check to see whether it's okay to start moving by observing the state of all wheels.  .
