@@ -28,6 +28,7 @@ public class SwerveWheel
 {
     // Swerve wheel constants.
     private static final double ACCEPTABLE_ORIENTATION_THRESHOLD = 25;
+    private static final double NO_ALIGNMENT_THRESHOLD = 0.00001;
 
     // Swerve wheel specific components.
     public final String motorName;
@@ -112,45 +113,52 @@ public class SwerveWheel
         @Override
         protected long onContinueTask() throws InterruptedException
         {
-            // Shortest angle from current heading to desired heading.
-            desiredAngle = targetVector.angle;
-            currentAngle = swerveEncoder.position() - physicalEncoderOffset;
-            angleFromDesired = (Vector2D.clampAngle(desiredAngle - currentAngle) + 180) % 360 - 180;
-            angleFromDesired = angleFromDesired < -180 ? angleFromDesired + 360 : angleFromDesired;
-
-            // Clip this angle to 90 degree maximum turns.
-            if (angleFromDesired > 90)
-                angleToTurn = -angleFromDesired + 180;
-            else if (angleFromDesired < -90)
-                angleToTurn = -angleFromDesired - 180;
-            else
-                angleToTurn = angleFromDesired;
-
-            // Set turn power.
-            turnPower = 0.5;
-
-            // Use PID to calculate the correction factor (error bars contained within PID).
-            turnCorrectionFactor = pidController.calculatePIDCorrection(angleToTurn);
-
-            // Change the turn factor depending on our distance from the angle desired (180 vs 0)
-            if (angleFromDesired > 90 || angleFromDesired < -90)
-                turnPower -= turnCorrectionFactor;
-            else
-                turnPower += turnCorrectionFactor;
-            turnMotor.setPosition(Range.clip(turnPower, 0, 1));
-
-            // Set swivel acceptable.
-            swivelAcceptable = Math.abs(angleToTurn) < ACCEPTABLE_ORIENTATION_THRESHOLD;
-
-            // Set drive power (if angle between this and desired angle is greater than 90, reverse motor).
-            if (drivingEnabled)
+            if (targetVector.magnitude < NO_ALIGNMENT_THRESHOLD)
             {
-                if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
-                    driveMotor.setVelocity(-targetVector.magnitude);
-                else
-                    driveMotor.setVelocity(targetVector.magnitude);
+                turnMotor.setPosition(0.5);
+                driveMotor.setVelocity(0);
+            }
+            else
+            {
+                // Shortest angle from current heading to desired heading.
+                desiredAngle = targetVector.angle;
+                currentAngle = swerveEncoder.position() - physicalEncoderOffset;
+                angleFromDesired = (Vector2D.clampAngle(desiredAngle - currentAngle) + 180) % 360 - 180;
+                angleFromDesired = angleFromDesired < -180 ? angleFromDesired + 360 : angleFromDesired;
 
-                driveMotor.updatePID();
+                // Clip this angle to 90 degree maximum turns.
+                if (angleFromDesired > 90)
+                    angleToTurn = -angleFromDesired + 180;
+                else if (angleFromDesired < -90)
+                    angleToTurn = -angleFromDesired - 180;
+                else
+                    angleToTurn = angleFromDesired;
+
+                // Set turn power.
+                turnPower = 0.5;
+
+                // Use PID to calculate the correction factor (error bars contained within PID).
+                turnCorrectionFactor = pidController.calculatePIDCorrection(angleToTurn);
+
+                // Change the turn factor depending on our distance from the angle desired (180 vs 0)
+                if (angleFromDesired > 90 || angleFromDesired < -90)
+                    turnPower -= turnCorrectionFactor;
+                else
+                    turnPower += turnCorrectionFactor;
+                turnMotor.setPosition(Range.clip(turnPower, 0, 1));
+
+                // Set swivel acceptable.
+                swivelAcceptable = Math.abs(angleToTurn) < ACCEPTABLE_ORIENTATION_THRESHOLD;
+
+                // Set drive power (if angle between this and desired angle is greater than 90, reverse motor).
+                if (drivingEnabled) {
+                    if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
+                        driveMotor.setVelocity(-targetVector.magnitude);
+                    else
+                        driveMotor.setVelocity(targetVector.magnitude);
+
+                    driveMotor.updatePID();
+                }
             }
 
             // Add console information.

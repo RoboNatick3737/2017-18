@@ -112,7 +112,10 @@ public class SwerveDrive
             setDesiredMovement(Vector2D.ZERO);
 
         if (gamepad.a)
+        {
             gyro.calibrate();
+            setDesiredHeading(0);
+        }
     }
 
     /**
@@ -142,10 +145,8 @@ public class SwerveDrive
             // Figure out the actual translation vector for swerve wheels based on gyro value.
             fieldCentricTranslation = desiredMovement.rotateBy(-gyroHeading);
 
-            // Change the power of the turn speed depending on our distance from the desired heading.  Soon causes turn vector to be zero, allowing movement free of turning to occur.
-            rotationSpeed = 0;
-            if (Math.abs(angleOff) > 8) // Don't try to turn if we're close enough in the range.
-                rotationSpeed = -1 * Range.clip((.1 * angleOff), -1, 1);
+            // Don't bother trying to be more accurate than 8 degrees while turning.
+            rotationSpeed = Math.abs(angleOff) > 15 ? -1 * Math.signum(.00005 * angleOff) : 0;
 
             /*
              * Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf

@@ -36,25 +36,25 @@ public abstract class HardwareBase extends Core
         EncoderMotor frontLeftDrive = new EncoderMotor(
                 "Front Left",
                 initHardwareDevice(DcMotor.class, "Front Left"),
-                new PIDConstants(.0008, 0, 0, 0),
+                new PIDConstants(.004, 0, 0, 0),
                 407, 7.62);
 
         EncoderMotor frontRightDrive = new EncoderMotor(
                 "Front Right",
                 initHardwareDevice(DcMotor.class, "Front Right"),
-                new PIDConstants(.0008, 0, 0, 0),
+                new PIDConstants(.004, 0, 0, 0),
                 202, 7.62);
 
         EncoderMotor backLeftDrive = new EncoderMotor(
                 "Back Left",
                 initHardwareDevice(DcMotor.class, "Back Left"),
-                new PIDConstants(.0008, 0, 0, 0),
+                new PIDConstants(.004, 0, 0, 0),
                 202, 7.62);
 
         EncoderMotor backRightDrive = new EncoderMotor(
                 "Back Right",
                 initHardwareDevice(DcMotor.class, "Back Right"),
-                new PIDConstants(.0008, 0, 0, 0),
+                new PIDConstants(.004, 0, 0, 0),
                 475, 7.62);
 
 
@@ -64,7 +64,7 @@ public abstract class HardwareBase extends Core
                 frontLeftDrive,
                 initHardwareDevice(Servo.class, "Front Left Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Left Vex Encoder")),
-                new PIDConstants(0.012042, 0, 0.000508, 5.194),
+                new PIDConstants(0.011042, 0, 0.000508, 5.194),
                 61.58);
 
         SwerveWheel frontRight = new SwerveWheel(
@@ -72,7 +72,7 @@ public abstract class HardwareBase extends Core
                 frontRightDrive,
                 initHardwareDevice(Servo.class, "Front Right Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Right Vex Encoder")),
-                new PIDConstants(0.011465, 0, 0.000645, 2.5),
+                new PIDConstants(0.010465, 0, 0.000645, 2.5),
                 228.38);
 
         SwerveWheel backLeft = new SwerveWheel(
@@ -80,7 +80,7 @@ public abstract class HardwareBase extends Core
                 backLeftDrive,
                 initHardwareDevice(Servo.class, "Back Left Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Left Vex Encoder")),
-                new PIDConstants(0.0117, 0, 0.000604, 2.85),
+                new PIDConstants(0.0107, 0, 0.000604, 2.85),
                 43.636);
 
         SwerveWheel backRight = new SwerveWheel(
@@ -88,7 +88,7 @@ public abstract class HardwareBase extends Core
                 backRightDrive,
                 initHardwareDevice(Servo.class, "Back Right Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Right Vex Encoder")),
-                new PIDConstants(0.01204, 0, 0.000569, 5.678),
+                new PIDConstants(0.0104, 0, 0.000369, 5.678),
                 257.24);
 
         // Creates the swerve drive with the correct joystick.

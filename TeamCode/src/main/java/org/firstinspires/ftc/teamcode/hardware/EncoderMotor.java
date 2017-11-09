@@ -51,7 +51,7 @@ public class EncoderMotor
         ENCODER_TICKS_WHEEL_REVOLUTION = encoderTicksPerWheelRevolution;
         WHEEL_CIRCUMFERENCE = wheelDiameterCM * Math.PI;
 
-        processConsole = Log.instance.newProcessConsole(motorName + " Process Console");
+        processConsole = Log.instance.newProcessConsole(motorName + " Motor Process Console");
     }
 
     /**
@@ -68,7 +68,7 @@ public class EncoderMotor
     private double desiredVelocity = 0;
     private double lastMotorPosition = 0;
     private long lastAdjustmentTime = 0;
-    private double currentPower = 0, currentVelocity;
+    private double currentPower = 0, currentVelocity = 0;
 
     /**
      * Tells this motor the number of revolutions that it should be moving per second.
@@ -76,10 +76,17 @@ public class EncoderMotor
      */
     public void setVelocity(double velocity)
     {
+        // Some really quick adjustments we can make.
         if (Math.abs(velocity) < .001)
         {
             motor.setPower(0);
             currentPower = 0;
+        } else if (currentPower < 0 && desiredVelocity > 0) {
+            motor.setPower(.1);
+            currentPower = .1;
+        } else if (currentPower > 0 && desiredVelocity < 0) {
+            motor.setPower(-.1);
+            currentPower = -.1;
         }
 
         desiredVelocity = velocity;
