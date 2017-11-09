@@ -13,16 +13,15 @@ echo ""
 echo "Setting up..."
 cd ~/Library/Android/sdk/platform-tools
 ./adb kill-server
-./adb devices
 ./adb tcpip 5555
 
-./adb shell ip -f inet addr show wlan0
+./adb connect 192.168.49.1:5555
 
 echo "Now please remove the USB cable from the phone."
 read -p "Press any key to continue... " -n1 -s
 echo ""
 echo ""
 
-
 ./adb connect 192.168.49.1:5555
+
 echo "Done! :)"

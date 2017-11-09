@@ -27,7 +27,7 @@ import hankextensions.threading.SimpleTask;
 public class SwerveWheel
 {
     // Swerve wheel constants.
-    private static final double ACCEPTABLE_ORIENTATION_THRESHOLD = 25;
+    private static final double ACCEPTABLE_ORIENTATION_THRESHOLD = 45;
     private static final double NO_ALIGNMENT_THRESHOLD = 0.00001;
 
     // Swerve wheel specific components.
@@ -117,6 +117,7 @@ public class SwerveWheel
         @Override
         protected long onContinueTask() throws InterruptedException
         {
+            // If we aren't going to be driving anywhere, don't try to align.
             if (targetVector.magnitude < NO_ALIGNMENT_THRESHOLD)
             {
                 turnMotor.setPosition(0.5);
@@ -155,7 +156,11 @@ public class SwerveWheel
                 swivelAcceptable = Math.abs(angleToTurn) < ACCEPTABLE_ORIENTATION_THRESHOLD;
 
                 // Set drive power (if angle between this and desired angle is greater than 90, reverse motor).
-                if (drivingEnabled) {
+                if (drivingEnabled)
+                {
+                    // Scale up/down motor power depending on how far we are from the ideal heading.
+                    double motorPower = targetVector.magnitude / (5 * Math.abs(turnCorrectionFactor) + 1);
+
                     if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
                         driveMotor.setVelocity(-targetVector.magnitude);
                     else
@@ -181,7 +186,7 @@ public class SwerveWheel
                     "Average update rate: " + averageUpdateRate);
 
             // The ms to wait before updating again.
-            return 30;
+            return 10;
         }
     }
 

@@ -182,8 +182,10 @@ public class SwerveDrive
 
             // Figure out latency (not really required persay but useful to see).
             if (lastRunTime != -1)
+            {
                 averageUpdateRate = (averageUpdateRate * totalRuns + (System.currentTimeMillis() - lastRunTime)) / (totalRuns + 1);
-            totalRuns++;
+                totalRuns++;
+            }
             lastRunTime = System.currentTimeMillis();
 
             // Write some information to the telemetry console.
@@ -215,7 +217,7 @@ public class SwerveDrive
                 backRight.setDrivingState(false);
             }
 
-            return 100;
+            return 40;
         }
     }
 

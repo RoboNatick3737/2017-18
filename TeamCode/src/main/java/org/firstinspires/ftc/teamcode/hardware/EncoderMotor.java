@@ -106,6 +106,7 @@ public class EncoderMotor
                 "Current position: " + lastMotorPosition,
                 "Desired velocity: " + desiredVelocity + " cm/s",
                 "Current velocity: " + currentVelocity + " cm/s",
+                "Current power: " + currentPower,
                 "PID constants: " + pidController.pidConstants.kP + ", " + pidController.pidConstants.kD);
 
         lastMotorPosition = motor.getCurrentPosition();

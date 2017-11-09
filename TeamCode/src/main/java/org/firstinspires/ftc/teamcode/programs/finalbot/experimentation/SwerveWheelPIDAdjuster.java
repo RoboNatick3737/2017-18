@@ -25,7 +25,6 @@ public class SwerveWheelPIDAdjuster extends Core
     protected void INITIALIZE() throws InterruptedException {
         taskPackage = new SimpleTaskPackage("Swerve Wheel Adjustments");
 
-
         // All of the SwerveWheels (which align on independent threads)
         frontLeft = new SwerveWheel(
                 "Front Left",

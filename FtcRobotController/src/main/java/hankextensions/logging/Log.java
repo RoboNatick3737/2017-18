@@ -88,7 +88,7 @@ public class Log
             while (true)
             {
                 rebuildConsole ();
-                Flow.msPause(50);
+                Flow.msPause(300);
             }
         }
     }
