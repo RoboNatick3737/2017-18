@@ -8,6 +8,11 @@ import org.firstinspires.ftc.teamcode.structs.Vector2D;
 public class PIDController
 {
     /**
+     * The value at which kP, kI, and kD become pointless to calculate.
+     */
+    private final static double NO_CALCULATION_THRESHOLD = .000000005;
+
+    /**
      * The constants required to evaluate the PID formula.
      */
     public final PIDConstants pidConstants;
@@ -60,24 +65,41 @@ public class PIDController
             return 0;
 
         // Calculate proportional correction, the "quick" correction factor.
-        proportionalCorrection = pidConstants.kP * error;
+        if (Math.abs(pidConstants.kP) > NO_CALCULATION_THRESHOLD)
+            proportionalCorrection = pidConstants.kP * error;
+        else
+            proportionalCorrection = 0;
 
-        if (lastCorrectionTime != -1)
+        // Only calculate integral and derivative correction if we have to.
+        if (lastCorrectionTime != -1 && (Math.abs(pidConstants.kD) > NO_CALCULATION_THRESHOLD || Math.abs(pidConstants.kI) > NO_CALCULATION_THRESHOLD))
         {
             // Calculate time passed since last loop.
             timeSinceLastCorrection = (System.currentTimeMillis() - lastCorrectionTime) / 1000.0;
 
-            // Calculate derivative correction, which reduces the oscillation of the kP function.
-            derivativeCorrection = pidConstants.kD * (error - lastError) / timeSinceLastCorrection;
+            if (Math.abs(pidConstants.kD) > NO_CALCULATION_THRESHOLD) {
+                // Calculate derivative correction, which reduces the oscillation of the kP function.
+                derivativeCorrection = pidConstants.kD * (error - lastError) / timeSinceLastCorrection;
+            } else
+                derivativeCorrection = 0;
 
-            // Calculate integral correction, which further reduces oscillation.
-            errorAccumulation += error * timeSinceLastCorrection;
-            integralCorrection = pidConstants.kI * errorAccumulation;
+            if (Math.abs(pidConstants.kI) > NO_CALCULATION_THRESHOLD) {
+                // Calculate integral correction, which further reduces oscillation.
+                errorAccumulation += error * timeSinceLastCorrection;
+                integralCorrection = pidConstants.kI * errorAccumulation;
+            } else
+                integralCorrection = 0;
+
+            // Record the last correction time.
+            lastCorrectionTime = System.currentTimeMillis();
+            lastError = error;
         }
-
-        // Record the last correction time.
-        lastCorrectionTime = System.currentTimeMillis();
-        lastError = error;
+        else
+        {
+            derivativeCorrection = 0;
+            integralCorrection = 0;
+            lastCorrectionTime = -1;
+            lastError = 0;
+        }
 
         // Return the total correction (PID)
         return proportionalCorrection + derivativeCorrection + integralCorrection;
