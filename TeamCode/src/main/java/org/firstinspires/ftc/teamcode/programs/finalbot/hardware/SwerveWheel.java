@@ -16,7 +16,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDController;
-import org.firstinspires.ftc.teamcode.structs.Vector2D;
+import hankextensions.structs.Vector2D;
 
 import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
 

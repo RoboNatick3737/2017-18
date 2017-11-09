@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.structs;
+package hankextensions.structs;
 
 public class Vector2D
 {

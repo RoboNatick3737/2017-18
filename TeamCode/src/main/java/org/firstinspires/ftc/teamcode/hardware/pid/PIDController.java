@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.hardware.pid;
 
-import org.firstinspires.ftc.teamcode.structs.Vector2D;
+import hankextensions.structs.Vector2D;
 
 /**
  * Largely based on http://www.societyofrobots.com/programming_PID.shtml.

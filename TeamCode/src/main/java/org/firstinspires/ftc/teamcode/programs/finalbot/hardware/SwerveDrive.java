@@ -3,15 +3,15 @@ package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
 import android.support.annotation.NonNull;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.util.Range;
 
+import hankextensions.input.GamepadInterface;
 import hankextensions.logging.Log;
 import hankextensions.logging.ProcessConsole;
 import hankextensions.phonesensors.Gyro;
 
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDController;
-import org.firstinspires.ftc.teamcode.structs.Vector2D;
+import hankextensions.structs.Vector2D;
 
 import hankextensions.threading.SimpleTask;
 import hankextensions.threading.SimpleTaskPackage;
@@ -43,7 +43,7 @@ public class SwerveDrive
     private final ProcessConsole swerveConsole;
 
     // The gamepad which controls the bot.
-    private Gamepad gamepad;
+    private GamepadInterface gamepad;
 
     // The swerve drive constructor, starts all swerve wheel alignment threads.
     public SwerveDrive(Gyro gyro, SwerveWheel frontLeft, SwerveWheel frontRight, SwerveWheel backLeft, SwerveWheel backRight) throws InterruptedException
@@ -78,7 +78,7 @@ public class SwerveDrive
      */
     public void provideGamepad(Gamepad gamepad)
     {
-        this.gamepad = gamepad;
+        this.gamepad = new GamepadInterface(gamepad);
     }
 
     /**
@@ -106,37 +106,35 @@ public class SwerveDrive
     private void updateTeleopInstructions() throws InterruptedException
     {
         // Rotate by -90 in order to make forward facing zero.
-        Vector2D joystickDesiredRotation = Vector2D.rectangular(gamepad.left_stick_x, -gamepad.left_stick_y).rotateBy(-90);
-        Vector2D joystickDesiredMovement = Vector2D.rectangular(gamepad.right_stick_x, -gamepad.right_stick_y).rotateBy(-90);
+        Vector2D joystickDesiredRotation = gamepad.leftJoystick();
+        Vector2D joystickDesiredMovement = gamepad.rightJoystick();
 
-        if (joystickDesiredRotation.magnitude > .005)
+        // Use the left joystick for rotation unless nothing is supplied, in which case check the DPAD.
+        if (joystickDesiredRotation.magnitude > .0005)
             setDesiredHeading(joystickDesiredRotation.angle);
+        else
+        {
+            Vector2D dpadDesiredRotation = gamepad.dpad();
 
-        if (joystickDesiredMovement.magnitude > .005)
+            if (dpadDesiredRotation.magnitude > .0005)
+                setDesiredHeading(dpadDesiredRotation.angle);
+        }
+
+        if (joystickDesiredMovement.magnitude > .0005)
             setDesiredMovement(joystickDesiredMovement);
         else
             setDesiredMovement(Vector2D.ZERO);
 
-        if (gamepad.a)
+        if (gamepad.gamepad.a)
         {
             gyro.calibrate();
             setDesiredHeading(0);
         }
 
-        if (gamepad.x)
+        if (gamepad.gamepad.x)
             TURN_PID_CONSTANTS.kP += .0001;
-        else if (gamepad.b)
+        else if (gamepad.gamepad.b)
             TURN_PID_CONSTANTS.kP -= .0001;
-
-        if (gamepad.dpad_left)
-            TURN_PID_CONSTANTS.errorThreshold += .1;
-        else if (gamepad.dpad_right)
-            TURN_PID_CONSTANTS.errorThreshold -= .1;
-
-        if (gamepad.dpad_up)
-            TURN_PID_CONSTANTS.kD += .00001;
-        else if (gamepad.dpad_down)
-            TURN_PID_CONSTANTS.kD -= .00001;
     }
 
     /**

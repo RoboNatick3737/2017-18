@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.programs.finalbot.HardwareBase;
-import org.firstinspires.ftc.teamcode.structs.Vector2D;
+import hankextensions.structs.Vector2D;
 
 import hankextensions.threading.Flow;
 

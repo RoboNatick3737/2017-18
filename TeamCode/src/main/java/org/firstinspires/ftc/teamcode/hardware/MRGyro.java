@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.GyroSensor;
 
-import org.firstinspires.ftc.teamcode.structs.Vector2D;
+import hankextensions.structs.Vector2D;
 
 import hankextensions.logging.Log;
 import hankextensions.phonesensors.Gyro;

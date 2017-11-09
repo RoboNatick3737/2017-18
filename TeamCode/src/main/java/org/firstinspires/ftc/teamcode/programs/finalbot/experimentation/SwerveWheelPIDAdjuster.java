@@ -2,18 +2,15 @@ package org.firstinspires.ftc.teamcode.programs.finalbot.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.programs.finalbot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.programs.finalbot.hardware.SwerveWheel;
-import org.firstinspires.ftc.teamcode.structs.Vector2D;
+import hankextensions.structs.Vector2D;
 
 import hankextensions.Core;
-import hankextensions.logging.Log;
 import hankextensions.logging.ProcessConsole;
 import hankextensions.threading.Flow;
 import hankextensions.threading.SimpleTaskPackage;
