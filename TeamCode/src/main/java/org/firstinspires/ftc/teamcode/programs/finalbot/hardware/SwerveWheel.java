@@ -162,9 +162,9 @@ public class SwerveWheel
                     double motorPower = targetVector.magnitude / (5 * Math.abs(turnCorrectionFactor) + 1);
 
                     if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
-                        driveMotor.setVelocity(-targetVector.magnitude);
+                        driveMotor.setVelocity(-motorPower);
                     else
-                        driveMotor.setVelocity(targetVector.magnitude);
+                        driveMotor.setVelocity(motorPower);
 
                     driveMotor.updatePID();
                 }
