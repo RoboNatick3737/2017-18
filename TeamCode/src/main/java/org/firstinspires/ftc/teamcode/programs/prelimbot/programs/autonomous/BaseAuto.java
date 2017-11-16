@@ -13,6 +13,7 @@ public abstract class BaseAuto extends HardwareBase {
     protected void INITIALIZE()
     {
         console = log.newProcessConsole("Prelim Auto Console");
+        closeClamps();
     }
 
     protected enum DIRECTION {
@@ -52,6 +53,9 @@ public abstract class BaseAuto extends HardwareBase {
         } else {
             drive(DIRECTION.BACKWARDS, 10);
         }
+    }
+
+    protected void getDistanceFromWall(){
     }
 
     private void hailTheSoviets() {

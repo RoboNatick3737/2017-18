@@ -26,15 +26,6 @@ public class BlueNonPicSide extends BaseAuto
     @Override
     protected void START() throws InterruptedException
     {
-       while(true) {
-            console.write(
-                    "RED:" + colorSensor.red(),
-                    "BLUE:" + colorSensor.blue(),
-                    "GREEN:" + colorSensor.green()
-            );
 
-
-            Flow.yield();
-        }
     }
 }
