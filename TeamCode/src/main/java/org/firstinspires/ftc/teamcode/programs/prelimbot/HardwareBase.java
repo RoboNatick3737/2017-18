@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+
 
 import hankextensions.Core;
 
@@ -20,6 +22,7 @@ public abstract class HardwareBase extends Core
     protected DcMotor left, right, middle, miniLift, primaryLift;
     protected Servo topLeftGrabber, topRightGrabber, bottomLeftGrabber, bottomRightGrabber, swingServo;
     protected ColorSensor colorSensor;
+    protected DistanceSensor rangeSensor;
 
     private final double OPEN_LEFT_POS   = .7;
     private final double OPEN_RIGHT_POS  = .2;
@@ -60,6 +63,8 @@ public abstract class HardwareBase extends Core
         swingServo         = initHardwareDevice(Servo.class, "Swing Servo");
 
         colorSensor        = initHardwareDevice(ColorSensor.class, "Color Sensor");
+
+        rangeSensor        = initHardwareDevice(DistanceSensor.class, "Range Sensor");
 
         right.setDirection(DcMotorSimple.Direction.REVERSE);
     }
