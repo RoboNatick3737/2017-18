@@ -6,7 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDController;
 
-import hankextensions.logging.Log;
+import hankextensions.RobotCore;
+import hankextensions.logging.TelemetryWrapper;
 
 public class EncoderMotor
 {
@@ -50,7 +51,7 @@ public class EncoderMotor
         ENCODER_TICKS_WHEEL_REVOLUTION = encoderTicksPerWheelRevolution;
         WHEEL_CIRCUMFERENCE = wheelDiameterCM * Math.PI;
 
-        processConsole = Log.instance.newProcessConsole(motorName + " Motor Process Console");
+        processConsole = RobotCore.instance.log.newProcessConsole(motorName + " Motor Process Console");
     }
 
     /**

@@ -21,7 +21,7 @@ public class VexMotorWithEncoder extends RobotCore
 
         toTurn.setPosition(0.8);
 
-        ProcessConsole processConsole = log.newProcessConsole("Position Log");
+        ProcessConsole processConsole = log.newProcessConsole("Position TelemetryWrapper");
         while (true) {
             processConsole.write("Position " + toTurnEncoder.getCurrentPosition());
             flow.yield();

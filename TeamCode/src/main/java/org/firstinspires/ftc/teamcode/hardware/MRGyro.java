@@ -3,9 +3,9 @@ package org.firstinspires.ftc.teamcode.hardware;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 
 import hankextensions.RobotCore;
+import hankextensions.logging.TelemetryWrapper;
 import hankextensions.structs.Vector2D;
 
-import hankextensions.logging.Log;
 import hankextensions.phonesensors.Gyro;
 
 /**
@@ -30,7 +30,7 @@ public class MRGyro implements Gyro
      */
     public void calibrate(boolean zeroHeading) throws InterruptedException
     {
-        Log.instance.lines("Gyroscope calibrating...");
+        RobotCore.instance.log.lines("Gyroscope calibrating...");
 
         //Pause to prevent odd errors in which it says it's configured but is actually LYING.
         RobotCore.instance.flow.msPause (1000);
@@ -43,7 +43,7 @@ public class MRGyro implements Gyro
         if (zeroHeading)
             zero();
 
-        Log.instance.lines("Gyroscope calibration complete!");
+        RobotCore.instance.log.lines("Gyroscope calibration complete!");
     }
 
     /**

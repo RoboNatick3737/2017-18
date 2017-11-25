@@ -15,7 +15,8 @@ import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 
-import hankextensions.logging.Log;
+import hankextensions.RobotCore;
+import hankextensions.logging.TelemetryWrapper;
 
 /**
  * Singleton class instead of a static class because the BaseLoaderCallback doesn't like
@@ -60,7 +61,7 @@ public class OpenCVCam
                         RobotLog.vv(LOG_TAG, "OpenCV Manager Connected");
                         //from now onwards, you can use OpenCV API
                         // Mat m = new Mat(5, 10, CvType.CV_8UC1, new Scalar(0));
-                        Log.instance.lines("loader callback");
+                        RobotCore.instance.log.lines("loader callback");
                         setCameraViewState(true);
                         break;
                     case LoaderCallbackInterface.INIT_FAILED:
@@ -156,7 +157,7 @@ public class OpenCVCam
     // Called when the FtcRobotControllerActivity changes activity states.
     public void newActivityState(final State state)
     {
-        Log.instance.lines("Activity requested " + state.toString());
+        RobotCore.instance.log.lines("Activity requested " + state.toString());
 
         FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
             @Override
@@ -183,7 +184,7 @@ public class OpenCVCam
     // HAS to run on UI thread or view thread error.
     private void onCreate()
     {
-        Log.instance.lines("onCreate()");
+        RobotCore.instance.log.lines("onCreate()");
 
         FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -197,7 +198,7 @@ public class OpenCVCam
 
     private void onResume()
     {
-        Log.instance.lines("onResume()");
+        RobotCore.instance.log.lines("onResume()");
         currentState = State.RESUME;
 
         if (!OpenCVLoader.initDebug()) {
@@ -223,7 +224,7 @@ public class OpenCVCam
 
     private void onPause()
     {
-        Log.instance.lines("onPause()");
+        RobotCore.instance.log.lines("onPause()");
         currentState = State.PAUSE;
 
         setCameraViewState(false);

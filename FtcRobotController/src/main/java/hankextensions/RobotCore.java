@@ -5,10 +5,10 @@ import com.makiah.makiahsandroidlib.threading.TaskParent;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 
+import hankextensions.logging.TelemetryWrapper;
 import hankextensions.phonesensors.AndroidGyro;
 import hankextensions.vision.OpenCVCam;
 import hankextensions.vision.VuforiaCam;
-import hankextensions.logging.Log;
 import hankextensions.music.Tunes;
 
 /**
@@ -20,7 +20,7 @@ public abstract class RobotCore extends LinearOpMode implements TaskParent
     public static RobotCore instance;
 
     // Properties of the current RobotCore instance.
-    public Log log;
+    public TelemetryWrapper log;
     public Flow flow;
 
     /**
@@ -28,7 +28,7 @@ public abstract class RobotCore extends LinearOpMode implements TaskParent
      */
     public boolean isTaskActive()
     {
-        return opModeIsActive();
+        return !isStopRequested();
     }
 
     /**
@@ -41,11 +41,12 @@ public abstract class RobotCore extends LinearOpMode implements TaskParent
     {
         try
         {
+            // Singleton robot.
             instance = this;
 
             //Classes such as NiFTMusic require this so that they can get the context they require.
             flow = new Flow(this);
-            log = new Log();
+            log = new TelemetryWrapper(telemetry);
 
             //REQUIRED in child classes.
             HARDWARE();
@@ -91,9 +92,6 @@ public abstract class RobotCore extends LinearOpMode implements TaskParent
             // Disable the Android gyro (in case the op mode didn't turn it off).
             if (AndroidGyro.instance != null)
                 AndroidGyro.instance.quit();
-
-            // Clear the log.
-            Log.instance.close();
 
             STOP();
         }

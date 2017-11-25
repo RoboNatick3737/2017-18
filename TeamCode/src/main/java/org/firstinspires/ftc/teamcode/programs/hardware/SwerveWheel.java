@@ -18,11 +18,13 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDController;
+
+import hankextensions.RobotCore;
 import hankextensions.structs.Vector2D;
 
 import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
 
-import hankextensions.logging.Log;
+import hankextensions.logging.TelemetryWrapper;
 
 public class SwerveWheel
 {
@@ -73,7 +75,7 @@ public class SwerveWheel
         this.swerveEncoder = swerveEncoder;
         this.physicalEncoderOffset = physicalEncoderOffset;
 
-        wheelConsole = Log.instance.newProcessConsole(motorName + " Swivel Console");
+        wheelConsole = RobotCore.instance.log.newProcessConsole(motorName + " Swivel Console");
 
         this.pidController = new PIDController(pidConstants);
 

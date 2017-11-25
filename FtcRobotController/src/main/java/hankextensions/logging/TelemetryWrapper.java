@@ -10,30 +10,22 @@ import hankextensions.RobotCore;
 /**
  * Uses my lib to visualize task states on the driver station.
  */
-public class Log extends LoggingBase
+public class TelemetryWrapper extends LoggingBase
 {
-    public static Log instance;
-
     private final Telemetry mainTelemetry;
 
     /**
      * Resets the entire console with empty content.
      */
-    public Log() throws InterruptedException
+    public TelemetryWrapper(Telemetry mainTelemetry) throws InterruptedException
     {
         super(RobotCore.instance);
 
         // Set instance and static components.
-        instance = this;
-        mainTelemetry = RobotCore.instance.telemetry;
+        this.mainTelemetry = mainTelemetry;
 
         // Start the updater ASAP.
         this.run();
-    }
-
-    public void close()
-    {
-        instance = null;
     }
 
     /**

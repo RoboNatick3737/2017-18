@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import hankextensions.RobotCore;
 import hankextensions.input.GamepadInterface;
-import hankextensions.logging.Log;
+import hankextensions.logging.TelemetryWrapper;
 import hankextensions.phonesensors.Gyro;
 
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
@@ -63,11 +63,11 @@ public class SwerveDrive
         drivingTasks.add(this.backRight.swivelTask);
         drivingTasks.add(new SwerveDriveTask());
 
-        swerveConsole = Log.instance.newProcessConsole("Swerve Console");
+        swerveConsole = RobotCore.instance.log.newProcessConsole("Swerve Console");
 
         pidController = new PIDController(TURN_PID_CONSTANTS);
 
-        Log.instance.lines("Wheel orientations: " + WHEEL_ORIENTATIONS[0] + ", " + WHEEL_ORIENTATIONS[1] + ", " + WHEEL_ORIENTATIONS[2] + ", " + WHEEL_ORIENTATIONS[3]);
+        RobotCore.instance.log.lines("Wheel orientations: " + WHEEL_ORIENTATIONS[0] + ", " + WHEEL_ORIENTATIONS[1] + ", " + WHEEL_ORIENTATIONS[2] + ", " + WHEEL_ORIENTATIONS[3]);
 
         drivingTasks.run();
     }

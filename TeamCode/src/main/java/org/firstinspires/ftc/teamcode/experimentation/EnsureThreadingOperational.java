@@ -10,7 +10,7 @@ public class EnsureThreadingOperational extends RobotCore
 {
     protected void START() throws InterruptedException
     {
-        ParallelTask task1 = new ParallelTask(RobotCore.instance) {
+        ParallelTask task1 = new ParallelTask(this, "Task 1", log) {
             @Override
             protected void onDoTask() throws InterruptedException {
                 int i = 0;
@@ -22,7 +22,7 @@ public class EnsureThreadingOperational extends RobotCore
             }
         };
 
-        ParallelTask task2 = new ParallelTask(RobotCore.instance) {
+        ParallelTask task2 = new ParallelTask(this, "Task 2", log) {
             @Override
             protected void onDoTask() throws InterruptedException {
                 int i = 0;
