@@ -104,8 +104,8 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import hankextensions.phonesensors.AndroidGyro;
-import hankextensions.vision.OpenCVCam;
-import hankextensions.vision.VuforiaCam;
+import hankextensions.vision.opencv.OpenCVCam;
+import hankextensions.vision.vuforia.VuforiaCam;
 
 @SuppressWarnings("WeakerAccess")
 public class FtcRobotControllerActivity extends Activity

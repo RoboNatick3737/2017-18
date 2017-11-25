@@ -7,8 +7,8 @@ import com.qualcomm.robotcore.hardware.HardwareDevice;
 
 import hankextensions.logging.TelemetryWrapper;
 import hankextensions.phonesensors.AndroidGyro;
-import hankextensions.vision.OpenCVCam;
-import hankextensions.vision.VuforiaCam;
+import hankextensions.vision.opencv.OpenCVCam;
+import hankextensions.vision.vuforia.VuforiaCam;
 import hankextensions.music.Tunes;
 
 /**

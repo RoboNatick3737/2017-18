@@ -1,4 +1,4 @@
-package hankextensions.vision;
+package hankextensions.vision.vuforia;
 
 import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaLocalizerImpl;
 

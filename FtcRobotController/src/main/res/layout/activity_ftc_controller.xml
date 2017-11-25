@@ -250,15 +250,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
       </FrameLayout>
 
-      <Button
-          android:id="@+id/cameraSwitchButton"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_alignParentLeft="true"
-          android:layout_alignParentBottom="true"
-          android:onClick="swapCameraViewer"
-          android:text="Switch" />
-
     </RelativeLayout>
   </LinearLayout>
 

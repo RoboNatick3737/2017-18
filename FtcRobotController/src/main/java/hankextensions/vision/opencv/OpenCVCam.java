@@ -1,4 +1,4 @@
-package hankextensions.vision;
+package hankextensions.vision.opencv;
 
 import android.view.View;
 import android.view.WindowManager;
@@ -14,16 +14,31 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+
+import java.util.ArrayList;
 
 import hankextensions.RobotCore;
-import hankextensions.logging.TelemetryWrapper;
+import hankextensions.vision.old.BeaconProcessor;
+import hankextensions.vision.old.FrameGrabber;
+
+import static org.opencv.core.CvType.CV_8UC3;
 
 /**
  * Singleton class instead of a static class because the BaseLoaderCallback doesn't like
  * when there is a static
  */
-public class OpenCVCam
+public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener2
 {
+    // Whether or not this camera is just supplying RGBA frames to the driver station or passing back frames to a listener.
+    public enum CameraMode {REQUEST, CONTINUOUS}
+    private CameraMode currentCameraMode = CameraMode.CONTINUOUS;
+    private ArrayList<OpenCVMatReceiver> frameCallbacks = new ArrayList<>(); // It's possible that multiple might call.
+
     public static OpenCVCam instance = null;
 
     private BaseLoaderCallback mLoaderCallback;
@@ -35,10 +50,12 @@ public class OpenCVCam
     private final int FRAME_WIDTH_REQUEST = 176, FRAME_HEIGHT_REQUEST = 144;
 
     // Tag for file logging
-    private final String LOG_TAG = "OpenCV";
+    private final String LOG_TAG = "OpenCVCam";
 
+    // The camera view.
     private CameraBridgeViewBase cameraBridgeViewBase = null;
-    public FrameGrabber frameGrabber = null;
+
+    private Mat cameraViewMat, mRgbaF, mRgbaT;
 
     // The activity's current state.
     public enum State {
@@ -189,11 +206,10 @@ public class OpenCVCam
         FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         cameraBridgeViewBase = (JavaCameraView) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
-        frameGrabber = new FrameGrabber(cameraBridgeViewBase, FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
-        frameGrabber.setImageProcessor(new BeaconProcessor());
+        cameraBridgeViewBase.setMinimumHeight(FRAME_HEIGHT_REQUEST);
+        cameraBridgeViewBase.setMinimumWidth(FRAME_WIDTH_REQUEST);
 
-        // Determines whether the app saves every image it gets.
-        frameGrabber.setSaveImages(false);
+        cameraBridgeViewBase.setCvCameraViewListener(this);
     }
 
     private void onResume()
@@ -214,12 +230,6 @@ public class OpenCVCam
     {
         if (!currentlyActive)
             return;
-
-        if (hasFocus) {
-            frameGrabber.stopFrameGrabber();
-        } else {
-            frameGrabber.throwAwayFrames();
-        }
     }
 
     private void onPause()
@@ -230,26 +240,76 @@ public class OpenCVCam
         setCameraViewState(false);
     }
 
-    //when the "Grab" button is pressed
-    private boolean currentlyProcessingFrame = false;
-    public void frameButtonOnClick(View v){
-        if (currentlyProcessingFrame) {
+    public void onCameraViewStarted(int width, int height)
+    {
+        cameraViewMat = new Mat(height, width, CvType.CV_8UC4);
+        mRgbaF = new Mat(height, width, CvType.CV_8UC4);
+        mRgbaT = new Mat(height, width, CvType.CV_8UC4);
+    }
+
+    public void onCameraViewStopped() {
+        cameraViewMat.release();
+    }
+
+    /**
+     * When the JavaCameraView sees a new frame (called very often).  This method has to
+     * be modified in order to view single images.
+     *
+     * @param inputFrame the pixel array which the camera currently sees.
+     * @return
+     */
+    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame)
+    {
+        // Pass back the last frame if we're in the request mode and we don't want a new frame.
+        if (currentCameraMode == CameraMode.REQUEST && frameCallbacks.size() == 0)
+        {
+            // In case not even a single picture has been taken.
+            if (cameraViewMat == null)
+                cameraViewMat = new Mat(FRAME_HEIGHT_REQUEST, FRAME_WIDTH_REQUEST, CV_8UC3, new Scalar(0, 0, 0));
+
+            return cameraViewMat;
+        }
+
+        // TODO Auto-generated method stub
+        cameraViewMat = inputFrame.rgba();
+
+        // Rotate cameraViewMat 90 degrees
+        //Core.transpose(cameraViewMat, mRgbaT);
+        //Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0, 0, 0);
+        //Core.flip(mRgbaF, cameraViewMat, 1);
+
+        if (currentCameraMode == CameraMode.REQUEST && frameCallbacks.size() > 0)
+        {
+            // Provide all callbacks the frame they requested.
+            for (OpenCVMatReceiver callback : frameCallbacks)
+                callback.receiveMat(cameraViewMat);
+
+            // Remove all callbacks.
+            frameCallbacks.clear();
+        }
+
+        return cameraViewMat;
+    }
+
+    public void setCameraMode(CameraMode mode)
+    {
+        if (currentCameraMode == mode)
             return;
-        }
 
-        currentlyProcessingFrame = true;
+        currentCameraMode = mode;
 
-        frameGrabber.grabSingleFrame();
-        while (!frameGrabber.isResultReady()) {
-            try {
-                Thread.sleep(5); //sleep for 5 milliseconds
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        Object result = frameGrabber.getResult();
-        ((TextView) FtcRobotControllerActivity.instance.findViewById(R.id.resultText)).setText(result.toString());
+        if (currentCameraMode == CameraMode.REQUEST)
+            RobotCore.instance.log.lines("Changed camera mode to request");
+        else if (currentCameraMode == CameraMode.CONTINUOUS)
+            RobotCore.instance.log.lines("Changed camera mode to continuous");
 
-        currentlyProcessingFrame = false;
+        // Ensure that we clear the list if we changed the mode.
+        if (currentCameraMode == CameraMode.REQUEST)
+            frameCallbacks.clear();
+    }
+
+    public void requestFrame(OpenCVMatReceiver callback)
+    {
+        frameCallbacks.add(callback);
     }
 }

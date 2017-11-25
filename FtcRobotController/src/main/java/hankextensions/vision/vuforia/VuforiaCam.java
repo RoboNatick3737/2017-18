@@ -1,4 +1,4 @@
-package hankextensions.vision;
+package hankextensions.vision.vuforia;
 
 import android.view.View;
 import android.widget.FrameLayout;

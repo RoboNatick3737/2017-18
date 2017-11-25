@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
 
-import hankextensions.vision.OpenCVCam;
-import hankextensions.vision.VuforiaCam;
+import hankextensions.vision.opencv.OpenCVCam;
+import hankextensions.vision.vuforia.VuforiaCam;
 import hankextensions.RobotCore;
 
 @Autonomous(name="Vision Swap", group=Constants.EXPERIMENTATION)
