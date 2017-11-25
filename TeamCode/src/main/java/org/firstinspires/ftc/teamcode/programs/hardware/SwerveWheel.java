@@ -7,10 +7,12 @@
  *     the encoder into a motor encoder port.  This works, although it's super gross (maybe we'll find a solution at some point).
  */
 
-package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
+package org.firstinspires.ftc.teamcode.programs.hardware;
 
 import android.support.annotation.NonNull;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import com.makiah.makiahsandroidlib.threading.SimpleTask;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -21,8 +23,6 @@ import hankextensions.structs.Vector2D;
 import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
 
 import hankextensions.logging.Log;
-import hankextensions.logging.ProcessConsole;
-import hankextensions.threading.SimpleTask;
 
 public class SwerveWheel
 {

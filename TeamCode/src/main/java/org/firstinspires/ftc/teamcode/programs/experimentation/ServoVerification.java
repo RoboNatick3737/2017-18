@@ -1,15 +1,14 @@
-package org.firstinspires.ftc.teamcode.programs.finalbot.experimentation;
+package org.firstinspires.ftc.teamcode.programs.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Constants;
 
-import hankextensions.Core;
-import hankextensions.threading.Flow;
+import hankextensions.RobotCore;
 
 @Autonomous(name="Servo Verification", group=Constants.FINAL_BOT_EXPERIMENTATION)
-public class ServoVerification extends Core
+public class ServoVerification extends RobotCore
 {
     @Override
     protected void START() throws InterruptedException
@@ -18,14 +17,14 @@ public class ServoVerification extends Core
 
         test.setPosition(0);
         log.lines("This is 0");
-        Flow.msPause(3000);
+        flow.msPause(3000);
 
         test.setPosition(0.5);
         log.lines("This is 0.5");
-        Flow.msPause(3000);
+        flow.msPause(3000);
 
         test.setPosition(1);
         log.lines("This is 1");
-        Flow.msPause(3000);
+        flow.msPause(3000);
     }
 }

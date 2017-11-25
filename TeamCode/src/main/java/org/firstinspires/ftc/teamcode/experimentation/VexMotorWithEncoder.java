@@ -1,13 +1,12 @@
 package org.firstinspires.ftc.teamcode.experimentation;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import hankextensions.Core;
-import hankextensions.logging.ProcessConsole;
-import hankextensions.threading.Flow;
+import hankextensions.RobotCore;
 
-public class VexMotorWithEncoder extends Core
+public class VexMotorWithEncoder extends RobotCore
 {
     private Servo toTurn;
     private DcMotor toTurnEncoder;
@@ -25,7 +24,7 @@ public class VexMotorWithEncoder extends Core
         ProcessConsole processConsole = log.newProcessConsole("Position Log");
         while (true) {
             processConsole.write("Position " + toTurnEncoder.getCurrentPosition());
-            Flow.yield();
+            flow.yield();
         }
     }
 }

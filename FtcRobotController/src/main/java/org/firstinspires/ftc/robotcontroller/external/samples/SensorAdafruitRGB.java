@@ -45,22 +45,22 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
  * This is an example LinearOpMode that shows how to use
  * the Adafruit RGB Sensor.  It assumes that the I2C
  * cable for the sensor is connected to an I2C port on the
- * Core Device Interface Module.
+ * RobotCore Device Interface Module.
  *
  * It also assuems that the LED pin of the sensor is connected
  * to the digital signal pin of a digital port on the
- * Core Device Interface Module.
+ * RobotCore Device Interface Module.
  *
  * You can use the digital port to turn the sensor's onboard
  * LED on or off.
  *
- * The op mode assumes that the Core Device Interface Module
+ * The op mode assumes that the RobotCore Device Interface Module
  * is configured with a name of "dim" and that the Adafruit color sensor
  * is configured as an I2C device with a name of "sensor_color".
  *
  * It also assumes that the LED pin of the RGB sensor
  * is connected to the signal pin of digital port #5 (zero indexed)
- * of the Core Device Interface Module.
+ * of the RobotCore Device Interface Module.
  *
  * You can use the X button on gamepad1 to toggle the LED on and off.
  *

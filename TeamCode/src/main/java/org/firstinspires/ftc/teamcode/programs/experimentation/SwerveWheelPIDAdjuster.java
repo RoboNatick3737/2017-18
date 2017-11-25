@@ -1,29 +1,28 @@
-package org.firstinspires.ftc.teamcode.programs.finalbot.experimentation;
+package org.firstinspires.ftc.teamcode.programs.experimentation;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import com.makiah.makiahsandroidlib.threading.SimpleTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.programs.finalbot.hardware.AbsoluteEncoder;
-import org.firstinspires.ftc.teamcode.programs.finalbot.hardware.SwerveWheel;
+import org.firstinspires.ftc.teamcode.programs.hardware.AbsoluteEncoder;
+import org.firstinspires.ftc.teamcode.programs.hardware.SwerveWheel;
 import hankextensions.structs.Vector2D;
 
-import hankextensions.Core;
-import hankextensions.logging.ProcessConsole;
-import hankextensions.threading.Flow;
-import hankextensions.threading.SimpleTaskPackage;
+import hankextensions.RobotCore;
 
 @TeleOp(name="Swerve Wheel PID Adjuster", group= Constants.FINAL_BOT_EXPERIMENTATION)
-public class SwerveWheelPIDAdjuster extends Core
+public class SwerveWheelPIDAdjuster extends RobotCore
 {
     private SwerveWheel frontLeft, backLeft, frontRight, backRight;
     private SimpleTaskPackage taskPackage;
 
     @Override
     protected void INITIALIZE() throws InterruptedException {
-        taskPackage = new SimpleTaskPackage("Swerve Wheel Adjustments");
+        taskPackage = new SimpleTaskPackage(this, "Swerve Wheel Adjustments");
 
         // All of the SwerveWheels (which align on independent threads)
         frontLeft = new SwerveWheel(
@@ -76,7 +75,7 @@ public class SwerveWheelPIDAdjuster extends Core
     private void figureOutPIDConstantsFor(SwerveWheel swerveWheel) throws InterruptedException
     {
         taskPackage.add(swerveWheel.swivelTask);
-        taskPackage.start();
+        taskPackage.run();
         Vector2D desiredRotation;
 
         swerveConsole = log.newProcessConsole(swerveWheel.motorName + " PID");
@@ -118,14 +117,14 @@ public class SwerveWheelPIDAdjuster extends Core
                         "x = " + gamepad1.left_stick_x + " and y = " + gamepad1.left_stick_y
                 );
 
-                Flow.msPause(30);
+                flow.msPause(30);
             }
         }
 
-        taskPackage.pause();
+        taskPackage.stop();
         taskPackage.remove(swerveWheel.swivelTask);
         swerveWheel.turnMotor.setPosition(0.5);
 
-        Flow.msPause(3000);
+        flow.msPause(3000);
     }
 }

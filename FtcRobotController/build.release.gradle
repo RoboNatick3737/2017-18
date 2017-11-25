@@ -1,4 +1,5 @@
 dependencies {
+    compile project(':makiahsandroidlib')
     compile project(':RobotCore')
     compile project(':Inspection')
     compile project(':Hardware')

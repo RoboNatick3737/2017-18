@@ -1,14 +1,13 @@
 package org.firstinspires.ftc.teamcode.experimentation;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import hankextensions.Core;
-import hankextensions.logging.ProcessConsole;
-import hankextensions.threading.Flow;
+import hankextensions.RobotCore;
 
-public class FollowJoystickOrientation extends Core
+public class FollowJoystickOrientation extends RobotCore
 {
     private DcMotor toTurn;
     private ModernRoboticsI2cColorSensor calibrationSensor;
@@ -22,7 +21,7 @@ public class FollowJoystickOrientation extends Core
             try
             {
                 motor.setMode (runMode);
-                Flow.msPause (100 + additionalTime);
+                flow.msPause (100 + additionalTime);
                 doneSuccessfully = true;
             }
             catch (Exception e)
@@ -129,7 +128,7 @@ public class FollowJoystickOrientation extends Core
                 while (calibrationSensor.alpha() <= 5)
                 {
                     calibrationConsole.write("Alpha is " + calibrationSensor.alpha() + " threshold is 5");
-                    Flow.yield();
+                    flow.yield();
                 }
                 calibrationSensor.enableLed(true);
                 previousVal = 0;
@@ -162,11 +161,11 @@ public class FollowJoystickOrientation extends Core
                     "X=" + gamepad1.left_stick_x + " Y=" + -gamepad1.left_stick_y + " so degree is " + getDesiredJoystickHeading(),
                     "Current Pos=" + currentPosition + " and desired=" + desiredMotorPosition + " offset=" + offsetRevolutions);
 
-            Flow.yield();
+            flow.yield();
         }
 
         toTurn.setPower(0);
         log.lines("Done");
-        Flow.msPause(2000);
+        flow.msPause(2000);
     }
 }

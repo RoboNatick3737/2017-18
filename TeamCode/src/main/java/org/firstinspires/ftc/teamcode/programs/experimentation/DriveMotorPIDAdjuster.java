@@ -1,5 +1,6 @@
-package org.firstinspires.ftc.teamcode.programs.finalbot.experimentation;
+package org.firstinspires.ftc.teamcode.programs.experimentation;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
@@ -8,12 +9,10 @@ import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
 
-import hankextensions.Core;
-import hankextensions.logging.ProcessConsole;
-import hankextensions.threading.Flow;
+import hankextensions.RobotCore;
 
 @TeleOp(name="Drive Motor PID Adjuster", group= Constants.FINAL_BOT_EXPERIMENTATION)
-public class DriveMotorPIDAdjuster extends Core
+public class DriveMotorPIDAdjuster extends RobotCore
 {
     private EncoderMotor frontLeft, backLeft, frontRight, backRight;
 
@@ -104,10 +103,10 @@ public class DriveMotorPIDAdjuster extends Core
                         "error threshold is " + motor.pidController.pidConstants.errorThreshold
                 );
 
-                Flow.msPause(30);
+                flow.msPause(30);
             }
         }
 
-        Flow.msPause(3000);
+        flow.msPause(3000);
     }
 }

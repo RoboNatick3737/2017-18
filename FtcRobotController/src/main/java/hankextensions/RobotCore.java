@@ -1,5 +1,7 @@
 package hankextensions;
 
+import com.makiah.makiahsandroidlib.threading.Flow;
+import com.makiah.makiahsandroidlib.threading.TaskParent;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 
@@ -8,18 +10,26 @@ import hankextensions.vision.OpenCVCam;
 import hankextensions.vision.VuforiaCam;
 import hankextensions.logging.Log;
 import hankextensions.music.Tunes;
-import hankextensions.threading.Flow;
 
 /**
  * NiFTBase is the class from which all user OpModes should inherit.  With advanced error handling, it takes care of the scenarios in which the user requests an early stop, fails to take an error into account, etc.
  */
-public abstract class Core extends LinearOpMode
+public abstract class RobotCore extends LinearOpMode implements TaskParent
 {
+    // Useful for other files which require custom initialization steps or components from this op mode which they cannot otherwise obtain.
+    public static RobotCore instance;
+
+    // Properties of the current RobotCore instance.
+    public Log log;
+    public Flow flow;
+
     /**
-     * Useful for other files which require custom initialization steps or components from this op mode which they cannot otherwise obtain.
+     * As a TaskParent, RobotCore must implement this method.
      */
-    public static Core instance;
-    public static Log log;
+    public boolean isTaskActive()
+    {
+        return opModeIsActive();
+    }
 
     /**
      * runOpMode() is the method called by LinearOpMode to start the program, but is really low-level.  What this method does is split the sequence into a set of steps which every autonomous program should include, while also observing errors and either stopping the code or outputting them based on their severity.
@@ -29,13 +39,13 @@ public abstract class Core extends LinearOpMode
     @Override
     public void runOpMode () throws InterruptedException
     {
-        instance = this;
-
         try
         {
+            instance = this;
+
             //Classes such as NiFTMusic require this so that they can get the context they require.
+            flow = new Flow(this);
             log = new Log();
-            log.startConsoleUpdater();
 
             //REQUIRED in child classes.
             HARDWARE();
@@ -47,7 +57,7 @@ public abstract class Core extends LinearOpMode
             waitForStart ();
 
             // Since hitting stop makes waitForStart be bypassed.
-            Flow.yield();
+            flow.yield();
 
             //This is where the child classes mainly differ in their instructions.
             START();
@@ -63,7 +73,7 @@ public abstract class Core extends LinearOpMode
             try
             {
                 while (true)
-                    Flow.yield ();
+                    flow.yield ();
             }
             catch (InterruptedException e2) {} //The user has read the message and stops the program.
         }

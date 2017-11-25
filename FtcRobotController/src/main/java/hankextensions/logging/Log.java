@@ -1,45 +1,34 @@
 package hankextensions.logging;
 
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import java.util.ArrayList;
-
-import hankextensions.Core;
-import hankextensions.threading.ComplexTask;
-import hankextensions.threading.Flow;
+import hankextensions.RobotCore;
 
 /**
- * The Advanced Console is an easy way to visualize a large number of tasks in parallel without having to rely
- * on superhuman vision.  It also supports sequential logging in the same window.
- *
- * This console uses a task to update its content so that it isn't jumpy when displayed on the driver station.
- *
- * Local so that resetting is not an issue.
+ * Uses my lib to visualize task states on the driver station.
  */
-
-public class Log
+public class Log extends LoggingBase
 {
     public static Log instance;
 
-    /*-- USE TO OUTPUT DATA IN A SLIGHTLY BETTER WAY THAT LINEAR OP MODES PROVIDE --*/
-    private ArrayList<String> sequentialConsoleData; //Lines being added and removed.
-    private ArrayList<ProcessConsole> privateProcessConsoles;
-    private Telemetry mainTelemetry;
-
-    private static final int MAX_SEQUENTIAL_LINES = 13;
+    private final Telemetry mainTelemetry;
 
     /**
      * Resets the entire console with empty content.
      */
     public Log() throws InterruptedException
     {
+        super(RobotCore.instance);
+
+        // Set instance and static components.
         instance = this;
+        mainTelemetry = RobotCore.instance.telemetry;
 
-        mainTelemetry = Core.instance.telemetry;
-
-        //Initialize required components.
-        sequentialConsoleData = new ArrayList<>();
-        privateProcessConsoles = new ArrayList<>();
+        // Start the updater ASAP.
+        this.run();
     }
 
     public void close()
@@ -47,82 +36,11 @@ public class Log
         instance = null;
     }
 
-    public void lines(String... newLines)
-    {
-        //Add new line at beginning of the lines.
-        for (String line: newLines)
-            sequentialConsoleData.add (0, line);
-        //If there is more than 5 lines there, remove one.
-        while (sequentialConsoleData.size () > MAX_SEQUENTIAL_LINES)
-            sequentialConsoleData.remove (MAX_SEQUENTIAL_LINES);
-    }
-
-    public void appendToLastSequentialLine (String toAppend)
-    {
-        String result = sequentialConsoleData.get (0) + toAppend;
-        sequentialConsoleData.remove (0);
-        sequentialConsoleData.add (0, result);
-    }
-
     /**
-     * To get a private process console, create a new Log.ProcessConsole(<name here>) and then run write() to provide new content.
+     * Rebuilds the whole telemetry console (call minimally, allow the task to take care of it.)
      */
-
-    public ProcessConsole newProcessConsole(String name)
-    {
-        return new ProcessConsole(name, privateProcessConsoles);
-    }
-
-    /**
-     * The task which updates the console at a fairly slow rate but your eye can't tell the difference.
-     */
-    private class ConsoleUpdater extends ComplexTask
-    {
-        public ConsoleUpdater() {
-            super("Console Updater");
-        }
-
-        @Override
-        protected void onDoTask () throws InterruptedException
-        {
-            while (true)
-            {
-                rebuildConsole ();
-                Flow.msPause(300);
-            }
-        }
-    }
-
-    private ConsoleUpdater consoleUpdaterInstance = null;
-
-    /**
-     * Creates a new console updater instance and runs it.
-     */
-    public void startConsoleUpdater ()
-    {
-        if (consoleUpdaterInstance == null)
-        {
-            consoleUpdaterInstance = new ConsoleUpdater ();
-            consoleUpdaterInstance.run();
-        }
-    }
-
-    /**
-     * Nullifies a new console instance and stops it.
-     */
-    public void stopConsoleUpdater ()
-    {
-        if (consoleUpdaterInstance != null)
-        {
-            consoleUpdaterInstance.stop ();
-            consoleUpdaterInstance = null;
-        }
-    }
-
-    /**
-     * Rebuilds the whole console (call minimally, allow the task to take care of it.)
-     */
-    public void rebuildConsole ()
+    @Override
+    protected void refreshOnScreenConsole()
     {
         if (mainTelemetry != null)
         {

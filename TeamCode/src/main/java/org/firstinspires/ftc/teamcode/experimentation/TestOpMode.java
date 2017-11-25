@@ -2,15 +2,14 @@ package org.firstinspires.ftc.teamcode.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import hankextensions.Core;
-import hankextensions.threading.Flow;
+import hankextensions.RobotCore;
 
 @Autonomous(name = "Test Op Mode", group = "Experimentation")
-public class TestOpMode extends Core
+public class TestOpMode extends RobotCore
 {
     @Override
     protected void START() throws InterruptedException {
         while (true)
-            Flow.yield();
+            flow.yield();
     }
 }

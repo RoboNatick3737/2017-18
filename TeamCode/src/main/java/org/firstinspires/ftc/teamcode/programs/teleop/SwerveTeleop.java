@@ -1,11 +1,9 @@
-package org.firstinspires.ftc.teamcode.programs.finalbot.teleop;
+package org.firstinspires.ftc.teamcode.programs.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.programs.finalbot.HardwareBase;
-
-import hankextensions.threading.Flow;
+import org.firstinspires.ftc.teamcode.programs.HardwareBase;
 
 @TeleOp(name="Swerve Teleop", group= Constants.FINAL_BOT_OPMODES)
 public class SwerveTeleop extends HardwareBase
@@ -17,7 +15,7 @@ public class SwerveTeleop extends HardwareBase
 
         while (true)
         {
-            Flow.yield();
+            flow.yield();
         }
     }
 }

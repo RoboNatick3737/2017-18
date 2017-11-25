@@ -1,36 +1,35 @@
 package org.firstinspires.ftc.teamcode.experimentation;
 
+import com.makiah.makiahsandroidlib.threading.ParallelTask;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import hankextensions.Core;
-import hankextensions.threading.ComplexTask;
-import hankextensions.threading.Flow;
+import hankextensions.RobotCore;
 
 @Autonomous(name="Test Threading", group="Experimentation")
-public class EnsureThreadingOperational extends Core
+public class EnsureThreadingOperational extends RobotCore
 {
     protected void START() throws InterruptedException
     {
-        ComplexTask task1 = new ComplexTask("Task 1") {
+        ParallelTask task1 = new ParallelTask(RobotCore.instance) {
             @Override
             protected void onDoTask() throws InterruptedException {
                 int i = 0;
                 while (true) {
-                    processConsole.write("Task 1 Update" + i + "!");
+                    logLinesToProcessConsole("Task 1 Update" + i + "!");
                     i++;
-                    Flow.msPause(200);
+                    flow.msPause(200);
                 }
             }
         };
 
-        ComplexTask task2 = new ComplexTask("Task 2") {
+        ParallelTask task2 = new ParallelTask(RobotCore.instance) {
             @Override
             protected void onDoTask() throws InterruptedException {
                 int i = 0;
                 while (true) {
-                    processConsole.write("Task 1 Update" + i + "!");
+                    logLinesToProcessConsole("Task 2 Update" + i + "!");
                     i++;
-                    Flow.msPause(500);
+                    flow.msPause(500);
                 }
             }
         };
@@ -41,8 +40,6 @@ public class EnsureThreadingOperational extends Core
         log.lines("Task 1 updating per 200 ms, Task 2 every 500");
 
         while (true)
-        {
-            Flow.msPause(2000);
-        }
+            flow.msPause(2000);
     }
 }

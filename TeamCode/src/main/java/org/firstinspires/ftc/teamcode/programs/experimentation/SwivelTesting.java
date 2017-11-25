@@ -1,11 +1,9 @@
-package org.firstinspires.ftc.teamcode.programs.finalbot.experimentation;
+package org.firstinspires.ftc.teamcode.programs.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.programs.finalbot.HardwareBase;
-
-import hankextensions.threading.Flow;
+import org.firstinspires.ftc.teamcode.programs.HardwareBase;
 
 @Autonomous(name="Swivel Testing", group=Constants.FINAL_BOT_EXPERIMENTATION)
 public class SwivelTesting extends HardwareBase
@@ -16,7 +14,7 @@ public class SwivelTesting extends HardwareBase
         while (true) {
             swerveDrive.setDesiredHeading(Math.random() * 359);
 
-            Flow.msPause(3000);
+            flow.msPause(3000);
         }
     }
 }

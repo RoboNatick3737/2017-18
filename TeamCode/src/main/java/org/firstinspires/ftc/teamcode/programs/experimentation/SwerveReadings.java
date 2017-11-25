@@ -1,19 +1,17 @@
-package org.firstinspires.ftc.teamcode.programs.finalbot.experimentation;
+package org.firstinspires.ftc.teamcode.programs.experimentation;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.programs.finalbot.hardware.AbsoluteEncoder;
+import org.firstinspires.ftc.teamcode.programs.hardware.AbsoluteEncoder;
 
-import hankextensions.Core;
-import hankextensions.logging.ProcessConsole;
-import hankextensions.threading.Flow;
+import hankextensions.RobotCore;
 
 @Autonomous(name="Swerve Readings", group=Constants.FINAL_BOT_EXPERIMENTATION)
-public class SwerveReadings extends Core
+public class SwerveReadings extends RobotCore
 {
     @Override
     protected void START() throws InterruptedException
@@ -28,7 +26,6 @@ public class SwerveReadings extends Core
         DcMotor backLeftDrive = initHardwareDevice(DcMotor.class, "Back Left");
         DcMotor backRightDrive = initHardwareDevice(DcMotor.class, "Back Right");
 
-
         ProcessConsole swervePositionsConsole = log.newProcessConsole("Swerve positions");
         while (true)
         {
@@ -42,7 +39,7 @@ public class SwerveReadings extends Core
                     "Back Left D: " + backLeftDrive.getCurrentPosition(),
                     "Back Right D: " + backRightDrive.getCurrentPosition());
 
-            Flow.yield();
+            flow.yield();
         }
     }
 }

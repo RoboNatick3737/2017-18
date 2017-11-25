@@ -5,10 +5,10 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
-import hankextensions.Core;
+import hankextensions.RobotCore;
 
 @Autonomous(name="Make Some Toast", group="Experimentation")
-public class MakeSomeToast extends Core
+public class MakeSomeToast extends RobotCore
 {
     protected void START() throws InterruptedException
     {

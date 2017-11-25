@@ -6,11 +6,10 @@ import org.firstinspires.ftc.teamcode.Constants;
 
 import hankextensions.vision.OpenCVCam;
 import hankextensions.vision.VuforiaCam;
-import hankextensions.Core;
-import hankextensions.threading.Flow;
+import hankextensions.RobotCore;
 
 @Autonomous(name="Vision Swap", group=Constants.EXPERIMENTATION)
-public class VisionSwap extends Core
+public class VisionSwap extends RobotCore
 {
     OpenCVCam openCVCam;
     VuforiaCam vuforiaCam;
@@ -33,8 +32,6 @@ public class VisionSwap extends Core
         log.lines("Started Vuforia");
 
         while (true)
-        {
-            Flow.yield();
-        }
+            flow.yield();
     }
 }

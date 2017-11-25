@@ -2,11 +2,11 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.GyroSensor;
 
+import hankextensions.RobotCore;
 import hankextensions.structs.Vector2D;
 
 import hankextensions.logging.Log;
 import hankextensions.phonesensors.Gyro;
-import hankextensions.threading.Flow;
 
 /**
  * Encapsulates the gyro sensor in an easy to access set of methods.
@@ -33,11 +33,11 @@ public class MRGyro implements Gyro
         Log.instance.lines("Gyroscope calibrating...");
 
         //Pause to prevent odd errors in which it says it's configured but is actually LYING.
-        Flow.msPause (1000);
+        RobotCore.instance.flow.msPause (1000);
 
         //Wait for gyro to finish calibrating.
         while (sensor.isCalibrating())
-            Flow.msPause (50);
+            RobotCore.instance.flow.msPause (50);
 
         //Zero gyro heading.
         if (zeroHeading)
@@ -57,9 +57,9 @@ public class MRGyro implements Gyro
     //Just resets the gyro.
     public void zero() throws InterruptedException
     {
-        Flow.msPause (400);
+        RobotCore.instance.flow.msPause (400);
         sensor.resetZAxisIntegrator();
-        Flow.msPause (400);
+        RobotCore.instance.flow.msPause (400);
     }
 
     /**

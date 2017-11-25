@@ -6,12 +6,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import java.io.File;
 
-import hankextensions.Core;
+import hankextensions.RobotCore;
 import hankextensions.files.FileManager;
-import hankextensions.threading.Flow;
 
 @Autonomous(name="Test File IO", group="Experimentation")
-public class EnsureFileIO extends Core
+public class EnsureFileIO extends RobotCore
 {
     protected void START() throws InterruptedException
     {
@@ -32,6 +31,6 @@ public class EnsureFileIO extends Core
         }
 
         while (true)
-            Flow.msPause(2000);
+            flow.msPause(2000);
     }
 }

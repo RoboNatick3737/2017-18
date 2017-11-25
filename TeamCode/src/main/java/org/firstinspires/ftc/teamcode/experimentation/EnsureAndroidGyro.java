@@ -2,15 +2,14 @@ package org.firstinspires.ftc.teamcode.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import hankextensions.Core;
+import hankextensions.RobotCore;
 import hankextensions.phonesensors.AndroidGyro;
 import hankextensions.phonesensors.Gyro;
 
-import hankextensions.logging.ProcessConsole;
-import hankextensions.threading.Flow;
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 
 @Autonomous(name = "Test Android Gyro", group = "Experimentation")
-public class EnsureAndroidGyro extends Core
+public class EnsureAndroidGyro extends RobotCore
 {
     Gyro phoneGyro;
 
@@ -32,7 +31,7 @@ public class EnsureAndroidGyro extends Core
                     "Z: " + phoneGyro.z()
             );
 
-            Flow.yield();
+            flow.yield();
         }
     }
 }

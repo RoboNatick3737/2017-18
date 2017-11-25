@@ -1,20 +1,20 @@
-package org.firstinspires.ftc.teamcode.programs.finalbot.hardware;
+package org.firstinspires.ftc.teamcode.programs.hardware;
 
 import android.support.annotation.NonNull;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import com.makiah.makiahsandroidlib.threading.SimpleTask;
+import com.makiah.makiahsandroidlib.threading.SimpleTaskPackage;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import hankextensions.RobotCore;
 import hankextensions.input.GamepadInterface;
 import hankextensions.logging.Log;
-import hankextensions.logging.ProcessConsole;
 import hankextensions.phonesensors.Gyro;
 
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDController;
 import hankextensions.structs.Vector2D;
-
-import hankextensions.threading.SimpleTask;
-import hankextensions.threading.SimpleTaskPackage;
 
 public class SwerveDrive
 {
@@ -56,7 +56,7 @@ public class SwerveDrive
         this.backRight = backRight;
 
         // Construct the task package which will update all of the turning for the swerve motors.
-        drivingTasks = new SimpleTaskPackage("Swerve Turn Alignments");
+        drivingTasks = new SimpleTaskPackage(RobotCore.instance, "Swerve Turn Alignments");
         drivingTasks.add(this.frontLeft.swivelTask);
         drivingTasks.add(this.frontRight.swivelTask);
         drivingTasks.add(this.backLeft.swivelTask);
@@ -69,7 +69,7 @@ public class SwerveDrive
 
         Log.instance.lines("Wheel orientations: " + WHEEL_ORIENTATIONS[0] + ", " + WHEEL_ORIENTATIONS[1] + ", " + WHEEL_ORIENTATIONS[2] + ", " + WHEEL_ORIENTATIONS[3]);
 
-        drivingTasks.start();
+        drivingTasks.run();
     }
 
     /**

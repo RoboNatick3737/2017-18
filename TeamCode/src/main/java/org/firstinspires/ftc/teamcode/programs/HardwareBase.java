@@ -1,24 +1,20 @@
-package org.firstinspires.ftc.teamcode.programs.finalbot;
+package org.firstinspires.ftc.teamcode.programs;
 
-import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.hardware.MRGyro;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.programs.finalbot.hardware.AbsoluteEncoder;
-import org.firstinspires.ftc.teamcode.programs.finalbot.hardware.SwerveDrive;
-import org.firstinspires.ftc.teamcode.programs.finalbot.hardware.SwerveWheel;
+import org.firstinspires.ftc.teamcode.programs.hardware.AbsoluteEncoder;
+import org.firstinspires.ftc.teamcode.programs.hardware.SwerveDrive;
+import org.firstinspires.ftc.teamcode.programs.hardware.SwerveWheel;
 
-import hankextensions.Core;
+import hankextensions.RobotCore;
 import hankextensions.phonesensors.AndroidGyro;
 
 import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
 
-public abstract class HardwareBase extends Core
+public abstract class HardwareBase extends RobotCore
 {
     protected SwerveDrive swerveDrive;
 

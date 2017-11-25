@@ -1,13 +1,12 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDController;
 
 import hankextensions.logging.Log;
-import hankextensions.logging.ProcessConsole;
 
 public class EncoderMotor
 {
