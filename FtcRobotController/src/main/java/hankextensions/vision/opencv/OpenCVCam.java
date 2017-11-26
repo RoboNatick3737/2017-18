@@ -45,6 +45,13 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener2
 
     // States of the code progression.
     private boolean currentlyActive = false;
+    // The activity's current state.
+    public enum State {
+        CREATE,
+        RESUME,
+        PAUSE,
+        DESTROY
+    }
 
     // Picture dimensions for analysis
     private final int FRAME_WIDTH_REQUEST = 176, FRAME_HEIGHT_REQUEST = 144;
@@ -57,13 +64,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener2
 
     private Mat cameraViewMat, mRgbaF, mRgbaT;
 
-    // The activity's current state.
-    public enum State {
-        CREATE,
-        RESUME,
-        PAUSE,
-        DESTROY
-    }
+
     private State currentState;
 
     public OpenCVCam()
