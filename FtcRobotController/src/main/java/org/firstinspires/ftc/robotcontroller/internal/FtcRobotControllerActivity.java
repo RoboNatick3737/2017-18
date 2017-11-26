@@ -32,7 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 package org.firstinspires.ftc.robotcontroller.internal;
 
 import android.app.ActionBar;
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -103,15 +102,11 @@ import org.openftc.Utils;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import hankextensions.phonesensors.AndroidGyro;
-import hankextensions.vision.opencv.OpenCVCam;
-import hankextensions.vision.vuforia.VuforiaCam;
+import hankextensions.HankuBaseActivity;
 
 @SuppressWarnings("WeakerAccess")
-public class FtcRobotControllerActivity extends Activity
+public class FtcRobotControllerActivity extends HankuBaseActivity
   {
-    // Singleton
-    public static FtcRobotControllerActivity instance;
 
   public static final String TAG = "RCActivity";
   public String getTag() { return TAG; }
@@ -318,13 +313,6 @@ public class FtcRobotControllerActivity extends Activity
     ServiceController.startService(FtcRobotControllerWatchdogService.class);
     bindToService();
     logPackageVersions();
-
-    ////////////// START CUSTOM CODE //////////////
-    instance = this;
-    OpenCVCam.instance = null;
-    VuforiaCam.instance = null;
-    AndroidGyro.instance = null;
-    ////////////// END CUSTOM CODE //////////////
   }
 
   protected UpdateUI createUpdateUI() {
@@ -367,11 +355,6 @@ public class FtcRobotControllerActivity extends Activity
   protected void onResume() {
     super.onResume();
     RobotLog.vv(TAG, "onResume()");
-
-    ////////////// START CUSTOM CODE //////////////
-    if (OpenCVCam.instance != null)
-      OpenCVCam.instance.newActivityState(OpenCVCam.State.RESUME);
-    ////////////// END CUSTOM CODE //////////////
   }
 
   @Override
@@ -379,11 +362,6 @@ public class FtcRobotControllerActivity extends Activity
     super.onPause();
     RobotLog.vv(TAG, "onPause()");
     //modified for turbo: We don't need to stop the programming mode when the app is paused
-
-    ////////////// START CUSTOM CODE //////////////
-    if (OpenCVCam.instance != null)
-      OpenCVCam.instance.newActivityState(OpenCVCam.State.PAUSE);
-    ////////////// END CUSTOM CODE //////////////
   }
 
   @Override
@@ -398,11 +376,6 @@ public class FtcRobotControllerActivity extends Activity
   protected void onDestroy() {
     super.onDestroy();
     RobotLog.vv(TAG, "onDestroy()");
-
-    ////////////// START CUSTOM CODE //////////////
-    if (OpenCVCam.instance != null)
-      OpenCVCam.instance.newActivityState(OpenCVCam.State.DESTROY);
-    ////////////// END CUSTOM CODE //////////////
 
     shutdownRobot();  // Ensure the robot is put away to bed
     if (callback != null) callback.close();
@@ -464,11 +437,6 @@ public class FtcRobotControllerActivity extends Activity
   @Override
   public void onWindowFocusChanged(boolean hasFocus){
     super.onWindowFocusChanged(hasFocus);
-
-    ////////////// START CUSTOM CODE //////////////
-    if (OpenCVCam.instance != null)
-      OpenCVCam.instance.onWindowFocusChanged(hasFocus);
-    ////////////// END CUSTOM CODE //////////////
 
     // When the window loses focus (e.g., the action overflow is shown),
     // cancel any pending hide action. When the window gains focus,
