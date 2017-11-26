@@ -102,7 +102,7 @@ import org.openftc.Utils;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import hankextensions.HankuBaseActivity;
+import hankextensions.activity.HankuBaseActivity;
 
 @SuppressWarnings("WeakerAccess")
 public class FtcRobotControllerActivity extends HankuBaseActivity
@@ -596,7 +596,7 @@ public class FtcRobotControllerActivity extends HankuBaseActivity
   }
 
   protected class SharedPreferencesListener implements SharedPreferences.OnSharedPreferenceChangeListener {
-    @Override public void onSharedPreferenceCnged(SharedPreferences sharedPreferences, String key) {
+    @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
       if (key.equals(context.getString(R.string.pref_app_theme))) {
         ThemedActivity.restartForAppThemeChange(getTag(), getString(R.string.appThemeChangeRestartNotifyRC));
       }

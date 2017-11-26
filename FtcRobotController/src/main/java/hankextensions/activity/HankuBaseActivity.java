@@ -1,4 +1,4 @@
-package hankextensions;
+package hankextensions.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -24,6 +24,8 @@ public abstract class HankuBaseActivity extends Activity
         OpenCVCam.instance = null;
         VuforiaCam.instance = null;
         AndroidGyro.instance = null;
+
+        Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler(this, this));
     }
 
     @Override
