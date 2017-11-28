@@ -3,7 +3,7 @@ package hankextensions.input;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import hankextensions.structs.Vector2D;
 
-public class GamepadInterface
+public class HankuTankuGamepad
 {
     /**
      * The wait time before the controller registers that a distinct button tap has occurred.
@@ -15,7 +15,7 @@ public class GamepadInterface
      */
     public final Gamepad gamepad;
 
-    public GamepadInterface(Gamepad gamepad)
+    public HankuTankuGamepad(Gamepad gamepad)
     {
         this.gamepad = gamepad;
     }

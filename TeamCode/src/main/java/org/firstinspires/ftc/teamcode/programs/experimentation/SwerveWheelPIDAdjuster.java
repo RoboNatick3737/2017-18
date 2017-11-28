@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.programs.experimentation;
 
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
-import com.makiah.makiahsandroidlib.threading.SimpleTaskPackage;
+import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -18,11 +18,11 @@ import hankextensions.RobotCore;
 public class SwerveWheelPIDAdjuster extends RobotCore
 {
     private SwerveWheel frontLeft, backLeft, frontRight, backRight;
-    private SimpleTaskPackage taskPackage;
+    private ScheduledTaskPackage taskPackage;
 
     @Override
     protected void INITIALIZE() throws InterruptedException {
-        taskPackage = new SimpleTaskPackage(this, "Swerve Wheel Adjustments");
+        taskPackage = new ScheduledTaskPackage(this, "Swerve Wheel Adjustments");
 
         // All of the SwerveWheels (which align on independent threads)
         frontLeft = new SwerveWheel(
