@@ -16,6 +16,9 @@ public class SwerveTeleopSync extends HardwareBase
         swerveDrive.setSwerveUpdateMode(SwerveDrive.SwerveUpdateMode.SYNCHRONOUS);
 
         while (true)
+        {
             swerveDrive.synchronousUpdate();
+            flow.yield();
+        }
     }
 }

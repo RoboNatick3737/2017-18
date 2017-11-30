@@ -74,7 +74,7 @@ public class SwerveWheelPIDAdjuster extends RobotCore
 
     private void figureOutPIDConstantsFor(SwerveWheel swerveWheel) throws InterruptedException
     {
-        taskPackage.add(swerveWheel.swivelTask);
+        taskPackage.add(swerveWheel);
         taskPackage.run();
         Vector2D desiredRotation;
 
@@ -122,7 +122,7 @@ public class SwerveWheelPIDAdjuster extends RobotCore
         }
 
         taskPackage.stop();
-        taskPackage.remove(swerveWheel.swivelTask);
+        taskPackage.remove(swerveWheel);
         swerveWheel.turnMotor.setPosition(0.5);
 
         flow.msPause(3000);
