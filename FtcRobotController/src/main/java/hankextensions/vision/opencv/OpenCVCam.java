@@ -3,7 +3,6 @@ package hankextensions.vision.opencv;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 
 import com.qualcomm.ftcrobotcontroller.R;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -14,44 +13,24 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
-
-import java.util.ArrayList;
 
 import hankextensions.RobotCore;
-import hankextensions.vision.old.BeaconProcessor;
-import hankextensions.vision.old.FrameGrabber;
-
-import static org.opencv.core.CvType.CV_8UC3;
 
 /**
  * Singleton class instead of a static class because the BaseLoaderCallback doesn't like
  * when there is a static
  */
-public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener2
+public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 {
-    // Whether or not this camera is just supplying RGBA frames to the driver station or passing back frames to a listener.
-    public enum CameraMode {REQUEST, CONTINUOUS}
-    private CameraMode currentCameraMode = CameraMode.CONTINUOUS;
-    private ArrayList<OpenCVMatReceiver> frameCallbacks = new ArrayList<>(); // It's possible that multiple might call.
-
+    // Singleton class.
     public static OpenCVCam instance = null;
 
     private BaseLoaderCallback mLoaderCallback;
 
     // States of the code progression.
     private boolean currentlyActive = false;
-    // The activity's current state.
-    public enum State {
-        CREATE,
-        RESUME,
-        PAUSE,
-        DESTROY
-    }
 
     // Picture dimensions for analysis
     private final int FRAME_WIDTH_REQUEST = 176, FRAME_HEIGHT_REQUEST = 144;
@@ -64,9 +43,20 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener2
 
     private Mat cameraViewMat, mRgbaF, mRgbaT;
 
-
+    // The activity's current state.
+    public enum State {
+        CREATE,
+        RESUME,
+        PAUSE,
+        DESTROY
+    }
     private State currentState;
 
+    // The current camera frame listener.
+    private CameraBridgeViewBase.CvCameraViewListener currentCameraListener = this;
+    private boolean bridgeViewDisabled = false;
+
+    // Prepares the callback for OpenCV initialization.
     public OpenCVCam()
     {
         instance = this;
@@ -259,58 +249,32 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener2
      * @param inputFrame the pixel array which the camera currently sees.
      * @return
      */
-    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame)
+    public Mat onCameraFrame(Mat inputFrame)
     {
-        // Pass back the last frame if we're in the request mode and we don't want a new frame.
-        if (currentCameraMode == CameraMode.REQUEST && frameCallbacks.size() == 0)
-        {
-            // In case not even a single picture has been taken.
-            if (cameraViewMat == null)
-                cameraViewMat = new Mat(FRAME_HEIGHT_REQUEST, FRAME_WIDTH_REQUEST, CV_8UC3, new Scalar(0, 0, 0));
-
-            return cameraViewMat;
-        }
-
-        // TODO Auto-generated method stub
-        cameraViewMat = inputFrame.rgba();
-
-        // Rotate cameraViewMat 90 degrees
-        //Core.transpose(cameraViewMat, mRgbaT);
-        //Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0, 0, 0);
-        //Core.flip(mRgbaF, cameraViewMat, 1);
-
-        if (currentCameraMode == CameraMode.REQUEST && frameCallbacks.size() > 0)
-        {
-            // Provide all callbacks the frame they requested.
-            for (OpenCVMatReceiver callback : frameCallbacks)
-                callback.receiveMat(cameraViewMat);
-
-            // Remove all callbacks.
-            frameCallbacks.clear();
-        }
-
-        return cameraViewMat;
+        return inputFrame;
     }
 
-    public void setCameraMode(CameraMode mode)
+    /**
+     * Sets the current camera frame listener (will differ depending on the current opmode).
+     */
+    public void setCameraFrameListener(CameraBridgeViewBase.CvCameraViewListener viewListener)
     {
-        if (currentCameraMode == mode)
-            return;
+        if (bridgeViewDisabled)
+            cameraBridgeViewBase.enableView();
 
-        currentCameraMode = mode;
-
-        if (currentCameraMode == CameraMode.REQUEST)
-            RobotCore.instance.log.lines("Changed camera mode to request");
-        else if (currentCameraMode == CameraMode.CONTINUOUS)
-            RobotCore.instance.log.lines("Changed camera mode to continuous");
-
-        // Ensure that we clear the list if we changed the mode.
-        if (currentCameraMode == CameraMode.REQUEST)
-            frameCallbacks.clear();
+        currentCameraListener = viewListener;
+        cameraBridgeViewBase.setCvCameraViewListener(viewListener);
     }
 
-    public void requestFrame(OpenCVMatReceiver callback)
+    /**
+     * Resets the current camera frame listener and optionally stops camera output.
+     */
+    public void resetCameraFrameListener(boolean disableView)
     {
-        frameCallbacks.add(callback);
+        cameraBridgeViewBase.setCvCameraViewListener(this);
+
+        bridgeViewDisabled = disableView;
+        if (bridgeViewDisabled)
+            cameraBridgeViewBase.disableView();
     }
 }
