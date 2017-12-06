@@ -249,6 +249,18 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
      */
     public void setCameraFrameListener(CameraBridgeViewBase.CvCameraViewListener viewListener)
     {
+
+        if (cameraBridgeViewBase == null)
+            return;
+
+        if (bridgeViewDisabled)
+        {
+            cameraBridgeViewBase.enableView();
+            bridgeViewDisabled = false;
+        }
+
+        cameraBridgeViewBase.setCvCameraViewListener(viewListener);
+
         cameraBridgeViewBase.setCvCameraViewListener(viewListener);
         RobotCore.instance.log.lines("Set listener");
     }
