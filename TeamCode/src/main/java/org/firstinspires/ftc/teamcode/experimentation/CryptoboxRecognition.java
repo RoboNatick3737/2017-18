@@ -14,9 +14,6 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import hankextensions.RobotCore;
 import hankextensions.vision.opencv.OpenCVCam;
 
@@ -24,6 +21,11 @@ import hankextensions.vision.opencv.OpenCVCam;
 public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewBase.CvCameraViewListener
 {
     private OpenCVCam openCVCam;
+
+    private int frameHeight, frameWidth;
+    private double frameConversionHeight, frameConversionWidth;
+
+    private Mat kernel;
 
     @Override
     protected void INITIALIZE()
@@ -35,131 +37,80 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
         openCVCam.setCameraFrameListener(this);
     }
 
-    private boolean readyForNewCryptoboxTest = false;
-
     @Override
     protected void START() throws InterruptedException
     {
+        while (true)
+            flow.yield();
     }
 
     @Override
     public void onCameraViewStarted(int width, int height)
     {
+        frameHeight = height;
+        frameWidth = width;
 
+        frameConversionWidth = width / 740.0;
+        frameConversionHeight = height / 360.0;
+
+        kernel = Mat.ones((int)(frameConversionHeight * 15),(int)(frameConversionWidth * 3),CvType.CV_32F);
     }
 
     @Override
-    public void onCameraViewStopped() {
-
+    public void onCameraViewStopped()
+    {
+        kernel.release();
     }
 
     @Override
     public Mat onCameraFrame(Mat raw)
     {
-        // Ensure that we shouldn't wait for a while first (to avoid using computational power excessively).
-        try
+//        if (true)
+//        {
+//            Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2GRAY);
+//            return raw;
+//        }
+
+        log.lines("Called!");
+
+
+        ////// Equalize luminance ///////
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HLS);
+
+
+        ///// Try to filter low saturation values ////
+        for (int y = 0; y < raw.rows(); y++)
         {
-            while (!readyForNewCryptoboxTest)
-                flow.yield();
-        }
-        catch (InterruptedException e)
-        {
-            // The OpenCVCam will quit on its own.
-            return raw;
-        }
+            for (int x = 0; x < raw.cols(); x++)
+            {
+                double[] pixel = raw.get(y, x);
 
-        Imgproc.resize(raw,raw,new Size(480,360));
-
-        Mat hsv = new Mat();
-        Mat mask = new Mat();
-        Mat hierarchy = new Mat();
-        List<MatOfPoint> contours = new ArrayList<>();
-        List<Rect> boxes = new ArrayList<>();
-
-        Imgproc.cvtColor(raw,hsv,Imgproc.COLOR_BGR2HSV);
-
-        Mat kernel = Mat.ones(5,5, CvType.CV_32F);
-
-        Imgproc.erode(hsv,hsv,kernel);
-        Imgproc.dilate(hsv,hsv,kernel);
-        Imgproc.blur(hsv,hsv,new Size(6,6));
-
-        Scalar lower = new Scalar(90,135,25);
-        Scalar upper = new Scalar(130,250,150);
-
-        Core.inRange(hsv,lower,upper,mask);
-        hsv.release();
-
-        Mat structure = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2,30));
-        Imgproc.morphologyEx(mask,mask,Imgproc.MORPH_CLOSE, structure);
-
-        Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-        hierarchy.release();
-
-        for(MatOfPoint c : contours) {
-            if(Imgproc.contourArea(c) >= 100) { //Filter by area
-                Rect column = Imgproc.boundingRect(c);
-                int ratio = Math.abs(column.height / column.width);
-
-                if(ratio > 1.5) { //Check to see if the box is tall
-                    boxes.add(column); //If all true add the box to array
+                // Fix saturation
+                if (pixel[1] < 99)
+                {
+                    pixel[1] = 100;
+                    pixel[2] = 255;
+                } else
+                {
+                    pixel[1] = 0;
                 }
+
+                raw.put(y, x, pixel);
             }
         }
-        for(Rect box : boxes) {
-            Imgproc.rectangle(raw,new Point(box.x,box.y),new Point(box.x+box.width,box.y+box.height),new Scalar(255,0,0),2);
-        }
 
-        // Have to sort boxes here but lambdas don't work atm
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_HLS2RGB);
 
-        if(boxes.size() >=4 ){
-            Point left = drawSlot(0,boxes);
-            Point center = drawSlot(1,boxes);
-            Point right = drawSlot(2,boxes);
+        Core.inRange(raw,
+                new Scalar(0, 0, 170),
+                new Scalar(52, 93, 255), raw);
 
-            Imgproc.putText(raw, "Left", new Point(left.x - 10, left.y - 20), 0,0.8, new Scalar(0,255,255),2);
-            Imgproc.circle(raw,left,5,new Scalar(0,255,255), 3);
+        Imgproc.blur(raw, raw, new Size(2, 10));
+        Imgproc.erode(raw,raw,kernel);
+        Imgproc.dilate(raw,raw,kernel);
+        Imgproc.threshold(raw, raw, 200, 255, Imgproc.THRESH_BINARY);
 
-            Imgproc.putText(raw, "Center", new Point(center.x - 10, center.y - 20), 0,0.8, new Scalar(0,255,255),2);
-            Imgproc.circle(raw,center, 5,new Scalar(0,255,255), 3);
-
-            Imgproc.putText(raw, "Right", new Point(right.x - 10, right.y - 20), 0,0.8, new Scalar(0,255,255),2);
-            Imgproc.circle(raw,right, 5,new Scalar(0,255,255), 3);
-        }
-
-
-        Imgproc.resize(raw,raw, new Size(1280,960));
-        mask.release();
 
         return raw;
-    }
-
-        // Helper methods
-    public Object getKey(List item) {
-        return item.get(0);
-    }
-    public Point drawSlot(int slot, List<Rect> boxes){
-        Rect leftColumn = boxes.get(slot); //Get the pillar to the left
-        Rect rightColumn = boxes.get(slot + 1); //Get the pillar to the right
-
-        int leftX = leftColumn.x; //Get the X Coord
-        int rightX = rightColumn.x; //Get the X Coord
-
-        int drawX = ((rightX - leftX) / 2) + leftX; //Calculate the point between the two
-        int drawY = leftColumn.height + leftColumn.y; //Calculate Y Coord. We wont use this in our bot's opetation, buts its nice for drawing
-
-        return new Point(drawX, drawY);
-    }
-
-    public ArrayList ones(int width, int height) {
-        ArrayList output = new ArrayList();
-        for(int i = 1; i <= height; i++) {
-            ArrayList row = new ArrayList();
-            for(int j = 1; i <= width; i++) {
-                row.add(1);
-            }
-            output.add(row);
-        }
-        return output;
     }
 }

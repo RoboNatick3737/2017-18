@@ -48,8 +48,8 @@ public abstract class HankuBaseActivity extends Activity
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
 
-        if (OpenCVCam.instance != null)
-            OpenCVCam.instance.onWindowFocusChanged(hasFocus);
+//        if (OpenCVCam.instance != null)
+//            OpenCVCam.instance.onWindowFocusChanged(hasFocus);
     }
 
     @Override

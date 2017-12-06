@@ -24,6 +24,9 @@ import hankextensions.RobotCore;
  */
 public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 {
+    // Picture dimensions for analysis
+    private static final int FRAME_WIDTH_REQUEST = 700, FRAME_HEIGHT_REQUEST = 360;
+
     // Singleton class.
     public static OpenCVCam instance = null;
 
@@ -32,16 +35,13 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     // States of the code progression.
     private boolean currentlyActive = false;
 
-    // Picture dimensions for analysis
-    private final int FRAME_WIDTH_REQUEST = 176, FRAME_HEIGHT_REQUEST = 144;
-
     // Tag for file logging
     private final String LOG_TAG = "OpenCVCam";
 
     // The camera view.
     private CameraBridgeViewBase cameraBridgeViewBase = null;
 
-    private Mat cameraViewMat, mRgbaF, mRgbaT;
+    private Mat cameraViewMat;
 
     // The activity's current state.
     public enum State {
@@ -53,7 +53,6 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     private State currentState;
 
     // The current camera frame listener.
-    private CameraBridgeViewBase.CvCameraViewListener currentCameraListener = this;
     private boolean bridgeViewDisabled = false;
 
     // Prepares the callback for OpenCV initialization.
@@ -197,8 +196,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         cameraBridgeViewBase = (JavaCameraView) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
-        cameraBridgeViewBase.setMinimumHeight(FRAME_HEIGHT_REQUEST);
-        cameraBridgeViewBase.setMinimumWidth(FRAME_WIDTH_REQUEST);
+        cameraBridgeViewBase.setMaxFrameSize(FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
 
         cameraBridgeViewBase.setCvCameraViewListener(this);
     }
@@ -217,12 +215,6 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         }
     }
 
-    public void onWindowFocusChanged(boolean hasFocus)
-    {
-        if (!currentlyActive)
-            return;
-    }
-
     private void onPause()
     {
         RobotCore.instance.log.lines("onPause()");
@@ -234,8 +226,6 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     public void onCameraViewStarted(int width, int height)
     {
         cameraViewMat = new Mat(height, width, CvType.CV_8UC4);
-        mRgbaF = new Mat(height, width, CvType.CV_8UC4);
-        mRgbaT = new Mat(height, width, CvType.CV_8UC4);
     }
 
     public void onCameraViewStopped() {
@@ -259,11 +249,8 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
      */
     public void setCameraFrameListener(CameraBridgeViewBase.CvCameraViewListener viewListener)
     {
-        if (bridgeViewDisabled)
-            cameraBridgeViewBase.enableView();
-
-        currentCameraListener = viewListener;
         cameraBridgeViewBase.setCvCameraViewListener(viewListener);
+        RobotCore.instance.log.lines("Set listener");
     }
 
     /**
@@ -271,6 +258,9 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
      */
     public void resetCameraFrameListener(boolean disableView)
     {
+        if (cameraBridgeViewBase == null)
+            return;
+
         cameraBridgeViewBase.setCvCameraViewListener(this);
 
         bridgeViewDisabled = disableView;
