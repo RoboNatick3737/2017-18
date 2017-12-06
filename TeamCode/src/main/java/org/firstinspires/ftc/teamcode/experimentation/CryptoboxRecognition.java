@@ -70,14 +70,12 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
     @Override
     public Mat onCameraFrame(Mat raw)
     {
-        log.lines("Called!");
-
         ///// Get rid of high luminance pixels (working in HLS space) ////
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HLS);
         LinkedList<Mat> channels = new LinkedList<>();
         Core.split(raw, channels);
         Mat mask = new Mat();
-        Imgproc.threshold(channels.get(1), mask, 0, 240, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
+        Imgproc.threshold(channels.get(1), mask, 0, 170, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
         channels.get(1).setTo(new Scalar(100), mask);
         channels.get(2).setTo(new Scalar(255), mask);
         Core.merge(channels, raw);
@@ -85,8 +83,8 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
         ////// Filter based on RGB ///////
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_HLS2RGB);
         Core.inRange(raw,
-                new Scalar(0, 0, 170),
-                new Scalar(52, 93, 255), raw);
+                new Scalar(0, 0, 120),
+                new Scalar(52, 120, 255), raw);
 
         ////// Get rid of excessive noise ///////
         Imgproc.blur(raw, raw, new Size(2, 10));

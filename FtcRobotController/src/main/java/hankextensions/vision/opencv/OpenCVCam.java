@@ -249,9 +249,18 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
      */
     public void setCameraFrameListener(CameraBridgeViewBase.CvCameraViewListener viewListener)
     {
-
-        if (cameraBridgeViewBase == null)
-            return;
+        // Possible that this is still initting.
+        while (cameraBridgeViewBase == null)
+        {
+            try
+            {
+                RobotCore.instance.flow.yield();
+            }
+            catch (InterruptedException e)
+            {
+                return;
+            }
+        }
 
         if (bridgeViewDisabled)
         {
