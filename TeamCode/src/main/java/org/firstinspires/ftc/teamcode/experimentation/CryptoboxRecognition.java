@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.experimentation;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
@@ -14,6 +15,8 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.LinkedList;
+
 import hankextensions.RobotCore;
 import hankextensions.vision.opencv.OpenCVCam;
 
@@ -26,6 +29,8 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
     private double frameConversionHeight, frameConversionWidth;
 
     private Mat kernel;
+
+    private ProcessConsole cameraProcessConsole;
 
     @Override
     protected void INITIALIZE()
@@ -65,51 +70,31 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
     @Override
     public Mat onCameraFrame(Mat raw)
     {
-//        if (true)
-//        {
-//            Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2GRAY);
-//            return raw;
-//        }
-
         log.lines("Called!");
 
-
-        ////// Equalize luminance ///////
+        ///// Get rid of high luminance pixels (working in HLS space) ////
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HLS);
+        LinkedList<Mat> channels = new LinkedList<>();
+        Core.split(raw, channels);
+        Mat mask = new Mat();
+        Imgproc.threshold(channels.get(1), mask, 0, 240, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
+        channels.get(1).setTo(new Scalar(100), mask);
+        channels.get(2).setTo(new Scalar(255), mask);
+        Core.merge(channels, raw);
 
-
-        ///// Try to filter low saturation values ////
-        for (int y = 0; y < raw.rows(); y++)
-        {
-            for (int x = 0; x < raw.cols(); x++)
-            {
-                double[] pixel = raw.get(y, x);
-
-                // Fix saturation
-                if (pixel[1] < 99)
-                {
-                    pixel[1] = 100;
-                    pixel[2] = 255;
-                } else
-                {
-                    pixel[1] = 0;
-                }
-
-                raw.put(y, x, pixel);
-            }
-        }
-
+        ////// Filter based on RGB ///////
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_HLS2RGB);
-
         Core.inRange(raw,
                 new Scalar(0, 0, 170),
                 new Scalar(52, 93, 255), raw);
 
+        ////// Get rid of excessive noise ///////
         Imgproc.blur(raw, raw, new Size(2, 10));
         Imgproc.erode(raw,raw,kernel);
         Imgproc.dilate(raw,raw,kernel);
         Imgproc.threshold(raw, raw, 200, 255, Imgproc.THRESH_BINARY);
 
+        // TODO filter contours
 
         return raw;
     }
