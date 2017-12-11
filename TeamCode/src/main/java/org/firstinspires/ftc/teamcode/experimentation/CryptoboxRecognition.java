@@ -25,11 +25,12 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
 {
     private OpenCVCam openCVCam;
 
-    private Mat resize, lContours;
+    private LinkedList<Mat> channels;
+    private Mat blueMask, lContours;
 
     private ProcessConsole cameraProcessConsole;
 
-    private int width, height;
+    private Size cameraFrameSize;
 
     @Override
     protected void INITIALIZE() throws InterruptedException
@@ -49,35 +50,42 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
     @Override
     public void onCameraViewStarted(int width, int height)
     {
-        this.width = width;
-        this.height = height;
+        cameraFrameSize = new Size(width, height);
 
-        resize = new Mat();
-        lContours = new Mat();
+        channels = new LinkedList<>();
+        blueMask = new Mat();
     }
 
     @Override
     public void onCameraViewStopped()
     {
-        resize.release();
-        lContours.release();
+        blueMask.release();
     }
 
     @Override
     public Mat onCameraFrame(Mat raw)
     {
-//        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGBA2RGB);
-//        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HLS);
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HLS);
 
-        // Extract blue region.
-//        Core.inRange(raw, new Scalar(200, 0, 0), new Scalar(255, 255, 255), raw);
-//
-//        Mat structure = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(3,12));
-//        Imgproc.morphologyEx(blue,blue,Imgproc.MORPH_CLOSE, structure);
-//        Imgproc.erode(blue, blue, Mat.ones(15, 3, CvType.CV_32F));
+        Core.split(raw, channels);
 
-//        Imgproc.resize(lContours, blue, new Size(width, height));
+        // Blur the hue (not the luminance).
+        Imgproc.blur(channels.get(0), channels.get(0), new Size(3, 3));
 
-        return raw;
+        // Set generous bounds for a vaguely blue hue before doing the adaptive threshold thing.
+        Core.inRange(channels.get(0), new Scalar(40), new Scalar(150), blueMask);
+
+        // Invert the blue mask.
+        Core.bitwise_not(blueMask, blueMask);
+
+        // Set all pixels in the inverted mask to zero.
+        channels.get(1).setTo(new Scalar(0), blueMask);
+
+        // Do the adaptive threshold bit
+        Imgproc.adaptiveThreshold(channels.get(1), channels.get(1), 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 11, 2);
+
+        // TODO contours
+
+        return channels.get(1);
     }
 }
