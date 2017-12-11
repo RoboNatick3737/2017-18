@@ -33,7 +33,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     private BaseLoaderCallback mLoaderCallback;
 
     // States of the code progression.
-    private boolean currentlyActive = false;
+    private boolean currentlyActive = false, loadingComplete = false;
 
     // Tag for file logging
     private final String LOG_TAG = "OpenCVCam";
@@ -52,9 +52,6 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     }
     private State currentState;
 
-    // The current camera frame listener.
-    private boolean bridgeViewDisabled = false;
-
     // Prepares the callback for OpenCV initialization.
     public OpenCVCam()
     {
@@ -68,8 +65,8 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
                         RobotLog.vv(LOG_TAG, "OpenCV Manager Connected");
                         //from now onwards, you can use OpenCV API
                         // Mat m = new Mat(5, 10, CvType.CV_8UC1, new Scalar(0));
-                        RobotCore.instance.log.lines("loader callback");
-                        setCameraViewState(true);
+                        RobotCore.instance.log.lines("OpenCV loaded from internal package successfully!");
+                        loadingComplete = true;
                         break;
                     case LoaderCallbackInterface.INIT_FAILED:
                         RobotLog.vv(LOG_TAG, "Init Failed");
@@ -90,26 +87,51 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
                 }
             }
         };
+
+        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                onCreate();
+                onResume();
+            }
+        });
     }
 
     //Starts OpenCV and ensures that the camera shows up on the Robot Controller app.
-    public void start()
+    public void start() throws InterruptedException
+    {
+        start(this);
+    }
+    public void start(CameraBridgeViewBase.CvCameraViewListener listener) throws InterruptedException
     {
         if (currentlyActive)
+        {
+            RobotCore.instance.log.lines("Can't start with listener " + listener.getClass().toString() + " because already running");
             return;
+        }
 
         currentlyActive = true;
-        currentState = State.RESUME;
+
+        RobotCore.instance.log.lines("Starting with listener " + listener.getClass().toString());
 
         // Enable the view and start the camera.  This NEEDS to move procedurally, so we run them synchronously on the UI thread.
         FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 setViewStatus(true);
-                onCreate();
-                onResume();
             }
         });
+
+        // Wait for loading to complete.
+        while (!loadingComplete)
+            RobotCore.instance.flow.yield();
+
+        if (cameraBridgeViewBase != null) {
+            cameraBridgeViewBase.setCvCameraViewListener(listener);
+            setCameraViewState(true); // Might have to run on main activity.
+        }
+        else
+            RobotCore.instance.log.lines("Camera Bridge View Base was null, couldn't enable listener!");
     }
 
     //Stops OpenCV and hides it from the Robot Controller.
@@ -118,7 +140,6 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         if (!currentlyActive)
             return;
 
-        instance = null;
         currentlyActive = false;
 
         FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
@@ -164,22 +185,23 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     // Called when the FtcRobotControllerActivity changes activity states.
     public void newActivityState(final State state)
     {
-        RobotCore.instance.log.lines("Activity requested " + state.toString());
+        RobotCore.instance.log.lines("Activity state change to " + state.toString());
 
         FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 switch (state) {
-                    case PAUSE:
-                        if (currentlyActive && currentState != State.PAUSE)
-                            onPause();
-                        break;
-                    case RESUME:
-                        if (currentlyActive && currentState != State.RESUME)
-                            onResume();
-                        break;
+//                    case PAUSE:
+//                        if (currentlyActive && currentState != State.PAUSE)
+//                            onPause();
+//                        break;
+//                    case RESUME:
+//                        if (currentlyActive && currentState != State.RESUME)
+//                            onResume();
+//                        break;
                     case DESTROY:
                         stop();
+                        instance = null;
                         break;
                 }
             }
@@ -196,9 +218,8 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         cameraBridgeViewBase = (JavaCameraView) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
-        cameraBridgeViewBase.setMaxFrameSize(FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
-
-        cameraBridgeViewBase.setCvCameraViewListener(this);
+        cameraBridgeViewBase.setMinimumWidth(FRAME_WIDTH_REQUEST);
+        cameraBridgeViewBase.setMinimumHeight(FRAME_HEIGHT_REQUEST);
     }
 
     private void onResume()
@@ -241,51 +262,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
      */
     public Mat onCameraFrame(Mat inputFrame)
     {
+        //RobotCore.instance.log.lines("Normal frame called");
         return inputFrame;
-    }
-
-    /**
-     * Sets the current camera frame listener (will differ depending on the current opmode).
-     */
-    public void setCameraFrameListener(CameraBridgeViewBase.CvCameraViewListener viewListener)
-    {
-        // Possible that this is still initting.
-        while (cameraBridgeViewBase == null)
-        {
-            try
-            {
-                RobotCore.instance.flow.yield();
-            }
-            catch (InterruptedException e)
-            {
-                return;
-            }
-        }
-
-        if (bridgeViewDisabled)
-        {
-            cameraBridgeViewBase.enableView();
-            bridgeViewDisabled = false;
-        }
-
-        cameraBridgeViewBase.setCvCameraViewListener(viewListener);
-
-        cameraBridgeViewBase.setCvCameraViewListener(viewListener);
-        RobotCore.instance.log.lines("Set listener");
-    }
-
-    /**
-     * Resets the current camera frame listener and optionally stops camera output.
-     */
-    public void resetCameraFrameListener(boolean disableView)
-    {
-        if (cameraBridgeViewBase == null)
-            return;
-
-        cameraBridgeViewBase.setCvCameraViewListener(this);
-
-        bridgeViewDisabled = disableView;
-        if (bridgeViewDisabled)
-            cameraBridgeViewBase.disableView();
     }
 }

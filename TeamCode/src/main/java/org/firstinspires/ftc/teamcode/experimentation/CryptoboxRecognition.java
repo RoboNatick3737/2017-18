@@ -25,21 +25,18 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
 {
     private OpenCVCam openCVCam;
 
-    private int frameHeight, frameWidth;
-    private double frameConversionHeight, frameConversionWidth;
-
-    private Mat kernel;
+    private Mat resize, lContours;
 
     private ProcessConsole cameraProcessConsole;
 
+    private int width, height;
+
     @Override
-    protected void INITIALIZE()
+    protected void INITIALIZE() throws InterruptedException
     {
         // Start the good old OpenCV camera.
         openCVCam = new OpenCVCam();
-        openCVCam.start();
-
-        openCVCam.setCameraFrameListener(this);
+        openCVCam.start(this);
     }
 
     @Override
@@ -52,47 +49,34 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
     @Override
     public void onCameraViewStarted(int width, int height)
     {
-        frameHeight = height;
-        frameWidth = width;
+        this.width = width;
+        this.height = height;
 
-        frameConversionWidth = width / 740.0;
-        frameConversionHeight = height / 360.0;
-
-        kernel = Mat.ones((int)(frameConversionHeight * 15),(int)(frameConversionWidth * 3),CvType.CV_32F);
+        resize = new Mat();
+        lContours = new Mat();
     }
 
     @Override
     public void onCameraViewStopped()
     {
-        kernel.release();
+        resize.release();
+        lContours.release();
     }
 
     @Override
     public Mat onCameraFrame(Mat raw)
     {
-        ///// Get rid of high luminance pixels (working in HLS space) ////
-        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HLS);
-        LinkedList<Mat> channels = new LinkedList<>();
-        Core.split(raw, channels);
-        Mat mask = new Mat();
-        Imgproc.threshold(channels.get(1), mask, 0, 170, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
-        channels.get(1).setTo(new Scalar(100), mask);
-        channels.get(2).setTo(new Scalar(255), mask);
-        Core.merge(channels, raw);
+//        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGBA2RGB);
+//        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HLS);
 
-        ////// Filter based on RGB ///////
-        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_HLS2RGB);
-        Core.inRange(raw,
-                new Scalar(0, 0, 120),
-                new Scalar(52, 120, 255), raw);
+        // Extract blue region.
+//        Core.inRange(raw, new Scalar(200, 0, 0), new Scalar(255, 255, 255), raw);
+//
+//        Mat structure = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(3,12));
+//        Imgproc.morphologyEx(blue,blue,Imgproc.MORPH_CLOSE, structure);
+//        Imgproc.erode(blue, blue, Mat.ones(15, 3, CvType.CV_32F));
 
-        ////// Get rid of excessive noise ///////
-        Imgproc.blur(raw, raw, new Size(2, 10));
-        Imgproc.erode(raw,raw,kernel);
-        Imgproc.dilate(raw,raw,kernel);
-        Imgproc.threshold(raw, raw, 200, 255, Imgproc.THRESH_BINARY);
-
-        // TODO filter contours
+//        Imgproc.resize(lContours, blue, new Size(width, height));
 
         return raw;
     }
