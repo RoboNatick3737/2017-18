@@ -1,14 +1,14 @@
 package org.firstinspires.ftc.teamcode.programs.teleop;
 
+import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.programs.HardwareBase;
 
-@TeleOp(name="Misc Debug", group= Constants.FINAL_BOT_EXPERIMENTATION)
-public class FunctionsDebug extends HardwareBase
+@TeleOp(name="Final Teleop", group= Constants.FINAL_BOT_OPMODES)
+public class FinalTeleop extends HardwareBase
 {
     private double flipServoPos = 0;
     private final double FLIP_INCREMENT = .02, FLIP_MAX = .8, FLIP_MIN = .137;
@@ -32,9 +32,6 @@ public class FunctionsDebug extends HardwareBase
 
         leftFlipper.setPosition(Range.clip(flipServoPos, 0, 1));
         rightFlipper.setPosition(Range.clip(1.08 - flipServoPos, 0, 1));
-
-        telemetry.addLine("Flip position is " + flipServoPos);
-        telemetry.update();
     }
 
     private void updateConveyor()
@@ -55,6 +52,9 @@ public class FunctionsDebug extends HardwareBase
     @Override
     protected void START() throws InterruptedException
     {
+        swerveDrive.provideGamepad(gamepad1);
+        swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.ASYNCHRONOUS);
+
         while (true)
         {
             updateConveyor();

@@ -3,9 +3,14 @@ package org.firstinspires.ftc.teamcode.hardware;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 
-import hankextensions.RobotCore;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
-public class HankuTankuIMU
+import hankextensions.RobotCore;
+import hankextensions.phonesensors.Gyro;
+
+public class HankuTankuIMU implements Gyro
 {
     public final BNO055IMU imu;
 
@@ -31,5 +36,30 @@ public class HankuTankuIMU
 
         imu.initialize(parameters);
         RobotCore.instance.log.lines("IMU initialized!");
+    }
+
+    @Override
+    public void calibrate() throws InterruptedException
+    {
+    }
+
+    @Override
+    public void zero() throws InterruptedException
+    {
+    }
+
+    @Override
+    public double x() {
+        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).thirdAngle;
+    }
+
+    @Override
+    public double y() {
+        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).secondAngle;
+    }
+
+    @Override
+    public double z() {
+        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
     }
 }

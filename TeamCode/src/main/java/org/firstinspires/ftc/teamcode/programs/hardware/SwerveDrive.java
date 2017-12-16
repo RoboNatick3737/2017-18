@@ -68,6 +68,9 @@ public class SwerveDrive extends ScheduledTask
     public void setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode updateMode)
     {
         swerveUpdatePackage.setUpdateMode(updateMode);
+
+        if (updateMode == ScheduledTaskPackage.ScheduledUpdateMode.ASYNCHRONOUS)
+            swerveUpdatePackage.run();
     }
 
     /**
@@ -113,8 +116,8 @@ public class SwerveDrive extends ScheduledTask
     private void updateVectorsByGamepadInstructions()
     {
         // Rotate by -90 in order to make forward facing zero.
-        Vector2D joystickDesiredRotation = gamepad.leftJoystick();
-        Vector2D joystickDesiredMovement = gamepad.rightJoystick();
+        Vector2D joystickDesiredRotation = gamepad.rightJoystick();
+        Vector2D joystickDesiredMovement = gamepad.leftJoystick();
 
         // Use the left joystick for rotation unless nothing is supplied, in which case check the DPAD.
         if (joystickDesiredRotation.magnitude > .0005)

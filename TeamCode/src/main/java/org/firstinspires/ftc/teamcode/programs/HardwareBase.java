@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.programs;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.hardware.HankuTankuIMU;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.programs.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.programs.hardware.SwerveDrive;
@@ -34,9 +36,12 @@ public abstract class HardwareBase extends RobotCore
     protected void HARDWARE() throws InterruptedException
     {
         // Init the android gyro (make sure to call start()).
-        AndroidGyro androidGyro = new AndroidGyro();
-        androidGyro.start();
-        androidGyro.zero();
+//        AndroidGyro androidGyro = new AndroidGyro();
+//        androidGyro.start();
+//        androidGyro.zero();
+
+        // Init the ADAFRUIT gyro.
+        HankuTankuIMU gyro = new HankuTankuIMU(hardwareMap.get(BNO055IMU.class, "IMU"));
 
         // Harvester and Lift
         harvester = initHardwareDevice(DcMotor.class, "Harvester");
@@ -49,8 +54,6 @@ public abstract class HardwareBase extends RobotCore
         leftFlipper = initHardwareDevice(Servo.class, "Left Flipper");
         rightFlipper = initHardwareDevice(Servo.class, "Right Flipper");
         conveyor = initHardwareDevice(Servo.class, "Conveyor");
-
-        // MRGyro mrGyro = new MRGyro(initHardwareDevice(GyroSensor.class, "MR Gyroscope"));
 
         // All of the drive motors and their respective PID.
         EncoderMotor frontLeftDrive = new EncoderMotor(
@@ -85,7 +88,7 @@ public abstract class HardwareBase extends RobotCore
                 initHardwareDevice(Servo.class, "Front Left Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Left Vex Encoder")),
                 new PIDConstants(0.007, 0, 0, 1.66),
-                61.58);
+                32.55);
 
         SwerveWheel frontRight = new SwerveWheel(
                 "Front Right",
@@ -93,7 +96,7 @@ public abstract class HardwareBase extends RobotCore
                 initHardwareDevice(Servo.class, "Front Right Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Right Vex Encoder")),
                 new PIDConstants(0.006, 0, 0, 1.66),
-                233.66);
+                192.3);
 
         SwerveWheel backLeft = new SwerveWheel(
                 "Back Left",
@@ -101,7 +104,7 @@ public abstract class HardwareBase extends RobotCore
                 initHardwareDevice(Servo.class, "Back Left Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Left Vex Encoder")),
                 new PIDConstants(0.006, 0, 0, 1.66),
-                47.5);
+                51);
 
         SwerveWheel backRight = new SwerveWheel(
                 "Back Right",
@@ -109,9 +112,9 @@ public abstract class HardwareBase extends RobotCore
                 initHardwareDevice(Servo.class, "Back Right Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Right Vex Encoder")),
                 new PIDConstants(0.005, 0, 0, 1.66),
-                257.9);
+                309.50);
 
         // Creates the swerve drive with the correct joystick.
-        swerveDrive = new SwerveDrive(androidGyro, frontLeft, frontRight, backLeft, backRight);
+        swerveDrive = new SwerveDrive(gyro, frontLeft, frontRight, backLeft, backRight);
     }
 }
