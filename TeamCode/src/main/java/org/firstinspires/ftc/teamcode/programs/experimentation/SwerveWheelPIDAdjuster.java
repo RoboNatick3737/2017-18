@@ -70,15 +70,16 @@ public class SwerveWheelPIDAdjuster extends RobotCore
         figureOutPIDConstantsFor(backRight);
     }
 
-    private ProcessConsole swerveConsole;
+    private ProcessConsole swervePIDConsole;
 
     private void figureOutPIDConstantsFor(SwerveWheel swerveWheel) throws InterruptedException
     {
         taskPackage.add(swerveWheel);
         taskPackage.run();
+
         Vector2D desiredRotation;
 
-        swerveConsole = log.newProcessConsole(swerveWheel.motorName + " PID");
+        swervePIDConsole = log.newProcessConsole(swerveWheel.motorName + " PID");
 
         while (!gamepad1.start)
         {
@@ -87,6 +88,7 @@ public class SwerveWheelPIDAdjuster extends RobotCore
             if (desiredRotation.magnitude > .05)
                 swerveWheel.setVectorTarget(desiredRotation);
 
+            // Simulate controller latency of 90 ms
             for (int i = 0; i < 3; i++)
             {
                 if (gamepad1.a)
@@ -109,7 +111,7 @@ public class SwerveWheelPIDAdjuster extends RobotCore
                 else if (gamepad1.dpad_right)
                     swerveWheel.pidController.pidConstants.errorThreshold -= .01;
 
-                swerveConsole.write(
+                swervePIDConsole.write(
                         "kP is " + swerveWheel.pidController.pidConstants.kP,
                         "kI is " + swerveWheel.pidController.pidConstants.kI,
                         "kD is " + swerveWheel.pidController.pidConstants.kD,

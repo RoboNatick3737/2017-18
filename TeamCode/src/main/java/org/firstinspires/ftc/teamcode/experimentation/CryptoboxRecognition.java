@@ -26,7 +26,7 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
     private OpenCVCam openCVCam;
 
     private LinkedList<Mat> channels;
-    private Mat blueMask, lContours;
+    private Mat blueMask, whiteMask, finalMask;
 
     private ProcessConsole cameraProcessConsole;
 
@@ -54,38 +54,43 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
 
         channels = new LinkedList<>();
         blueMask = new Mat();
+        whiteMask = new Mat();
+        finalMask = new Mat();
     }
 
     @Override
     public void onCameraViewStopped()
     {
         blueMask.release();
+        whiteMask.release();
+        finalMask.release();
     }
 
     @Override
-    public Mat onCameraFrame(Mat raw)
+    public Mat onCameraFrame(Mat rgb)
     {
-        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HLS);
+        // Remove the alpha channel
+        Imgproc.cvtColor(rgb, rgb, Imgproc.COLOR_RGBA2RGB);
+//
+//        // Get blue mask.
+//        Core.inRange(rgb, new Scalar(10, 20, 60), new Scalar(120, 160, 255), blueMask);
 
-        Core.split(raw, channels);
+        // Get white mask (the white stripes).
+        Core.inRange(rgb, new Scalar(125, 125, 125), new Scalar(255, 255, 255), whiteMask);
 
-        // Blur the hue (not the luminance).
-        Imgproc.blur(channels.get(0), channels.get(0), new Size(3, 3));
-
-        // Set generous bounds for a vaguely blue hue before doing the adaptive threshold thing.
-        Core.inRange(channels.get(0), new Scalar(40), new Scalar(150), blueMask);
-
-        // Invert the blue mask.
-        Core.bitwise_not(blueMask, blueMask);
-
-        // Set all pixels in the inverted mask to zero.
-        channels.get(1).setTo(new Scalar(0), blueMask);
-
-        // Do the adaptive threshold bit
-        Imgproc.adaptiveThreshold(channels.get(1), channels.get(1), 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 11, 2);
+        // Get the final mask (the combination of the two
+//        Core.bitwise_or(blueMask, whiteMask, finalMask);
+//
+//        // Invert the final mask.
+//        Core.bitwise_not(finalMask, finalMask);
+//
+//        // Now convert the image to grayscale and generate the Gaussian adaptive threshold over the mask.
+//        Imgproc.cvtColor(rgb, rgb, Imgproc.COLOR_RGB2GRAY);
+//        rgb.setTo(new Scalar(0), finalMask);
+//        Imgproc.adaptiveThreshold(rgb, rgb, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 11, 2);
 
         // TODO contours
 
-        return channels.get(1);
+        return whiteMask;
     }
 }

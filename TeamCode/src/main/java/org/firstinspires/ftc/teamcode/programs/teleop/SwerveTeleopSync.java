@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.programs.teleop;
 
+import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Constants;
@@ -13,7 +14,7 @@ public class SwerveTeleopSync extends HardwareBase
     protected void START() throws InterruptedException
     {
         swerveDrive.provideGamepad(gamepad1);
-        swerveDrive.setSwerveUpdateMode(SwerveDrive.SwerveUpdateMode.SYNCHRONOUS);
+        swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         while (true)
         {

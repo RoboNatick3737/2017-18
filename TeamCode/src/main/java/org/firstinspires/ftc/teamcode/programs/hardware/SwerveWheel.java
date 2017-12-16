@@ -102,13 +102,15 @@ public class SwerveWheel extends ScheduledTask
      * possible.
      */
     @Override
-    protected long onContinueTask() throws InterruptedException
+    public long onContinueTask() throws InterruptedException
     {
         // If we aren't going to be driving anywhere, don't try to align.
         if (targetVector.magnitude < NO_ALIGNMENT_THRESHOLD)
         {
             turnMotor.setPosition(0.5);
-            driveMotor.setVelocity(0);
+
+            if (driveMotor != null)
+                driveMotor.setVelocity(0);
         }
         else
         {
@@ -143,7 +145,7 @@ public class SwerveWheel extends ScheduledTask
             swivelAcceptable = Math.abs(angleToTurn) < ACCEPTABLE_ORIENTATION_THRESHOLD;
 
             // Set drive power (if angle between this and desired angle is greater than 90, reverse motor).
-            if (drivingEnabled)
+            if (driveMotor != null && drivingEnabled)
             {
                 // Scale up/down motor power depending on how far we are from the ideal heading.
                 double motorPower = targetVector.magnitude / (5 * Math.abs(turnCorrectionFactor) + 1);

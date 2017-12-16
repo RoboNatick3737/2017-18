@@ -24,15 +24,6 @@ public class SwerveDrive extends ScheduledTask
     private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 12);
 
     //////  Instance specific components ////////
-    public enum SwerveUpdateMode
-    {
-        ASYNCHRONOUS, // If chosen, the swerve drive operates in its own AsyncTask (in a ScheduledTaskPackage).
-        SYNCHRONOUS   // If chosen, the swerve drive updates wheel orientation upon calling recalculateSwerveWheelVectors()
-
-        // While the former is more convenient, the latter can ensure thread safety.
-    }
-    private SwerveUpdateMode currentUpdateMode = null;
-
     private final SwerveWheel frontLeft, frontRight, backLeft, backRight;
     public final Gyro gyro; // Public because teleop can manually reset.
     private final PIDController pidController;
@@ -42,7 +33,7 @@ public class SwerveDrive extends ScheduledTask
     private double desiredHeading = 0;
 
     // Required for operation of the driving tasks.
-    private final ScheduledTaskPackage drivingTasks;
+    public final ScheduledTaskPackage swerveUpdatePackage;
 
     // The gamepad which controls the bot.
     private HankuTankuGamepad gamepad;
@@ -63,7 +54,7 @@ public class SwerveDrive extends ScheduledTask
         this.backRight = backRight;
 
         // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
-        drivingTasks = new ScheduledTaskPackage(RobotCore.instance, "Swerve Turn Alignments",
+        swerveUpdatePackage = new ScheduledTaskPackage(RobotCore.instance, "Swerve Turn Alignments",
                 this, this.frontLeft, this.frontRight, this.backLeft, this.backRight);
 
         pidController = new PIDController(TURN_PID_CONSTANTS);
@@ -74,26 +65,9 @@ public class SwerveDrive extends ScheduledTask
     /**
      * Shifts the current swerve control system between synchronous and asynchronous.
      */
-    public void setSwerveUpdateMode(@NonNull SwerveUpdateMode updateMode)
+    public void setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode updateMode)
     {
-        // Don't switch to the same mode.
-        if (updateMode == currentUpdateMode)
-            return;
-
-        switch (updateMode)
-        {
-            case ASYNCHRONOUS:
-                if (!drivingTasks.isCurrentlyRunning())
-                    drivingTasks.run();
-                break;
-
-            case SYNCHRONOUS:
-                if (drivingTasks.isCurrentlyRunning())
-                    drivingTasks.stop();
-                break;
-        }
-
-        this.currentUpdateMode = updateMode;
+        swerveUpdatePackage.setUpdateMode(updateMode);
     }
 
     /**
@@ -101,10 +75,8 @@ public class SwerveDrive extends ScheduledTask
      */
     public void synchronousUpdate() throws InterruptedException
     {
-        if (currentUpdateMode == SwerveUpdateMode.ASYNCHRONOUS)
-            return;
-
-        drivingTasks.synchronousUpdate();
+        // Only updates if the control system has been set to synchronous.
+        swerveUpdatePackage.synchronousUpdate();
     }
 
     /**
