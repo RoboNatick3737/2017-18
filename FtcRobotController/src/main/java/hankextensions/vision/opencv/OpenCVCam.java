@@ -15,6 +15,7 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 
 import hankextensions.RobotCore;
 
@@ -25,7 +26,7 @@ import hankextensions.RobotCore;
 public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 {
     // Picture dimensions for analysis
-    private static final int FRAME_WIDTH_REQUEST = 700, FRAME_HEIGHT_REQUEST = 360;
+    private static final int FRAME_WIDTH_REQUEST = 600, FRAME_HEIGHT_REQUEST = 400;
 
     // Singleton class.
     public static OpenCVCam instance = null;
@@ -218,8 +219,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         cameraBridgeViewBase = (JavaCameraView) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
-        cameraBridgeViewBase.setMinimumWidth(FRAME_WIDTH_REQUEST);
-        cameraBridgeViewBase.setMinimumHeight(FRAME_HEIGHT_REQUEST);
+        cameraBridgeViewBase.setMaxFrameSize(FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
     }
 
     private void onResume()

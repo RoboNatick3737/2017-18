@@ -67,30 +67,32 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
     }
 
     @Override
-    public Mat onCameraFrame(Mat rgb)
+    public Mat onCameraFrame(Mat raw)
     {
-        // Remove the alpha channel
-        Imgproc.cvtColor(rgb, rgb, Imgproc.COLOR_RGBA2RGB);
-//
-//        // Get blue mask.
-//        Core.inRange(rgb, new Scalar(10, 20, 60), new Scalar(120, 160, 255), blueMask);
+        // Fix the lighting contrast that results from using different fields.
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2YCrCb);
+        Core.split(raw, channels);
+        Imgproc.equalizeHist(channels.get(0), channels.get(0));
+        Core.merge(channels, raw);
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_YCrCb2RGB);
 
-        // Get white mask (the white stripes).
-        Core.inRange(rgb, new Scalar(125, 125, 125), new Scalar(255, 255, 255), whiteMask);
+        // Get blue mask.
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HSV);
+        Core.inRange(raw, new Scalar(40, 0, 0), new Scalar(150, 255, 255), blueMask);
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_HSV2RGB);
 
-        // Get the final mask (the combination of the two
-//        Core.bitwise_or(blueMask, whiteMask, finalMask);
-//
-//        // Invert the final mask.
-//        Core.bitwise_not(finalMask, finalMask);
-//
-//        // Now convert the image to grayscale and generate the Gaussian adaptive threshold over the mask.
-//        Imgproc.cvtColor(rgb, rgb, Imgproc.COLOR_RGB2GRAY);
-//        rgb.setTo(new Scalar(0), finalMask);
-//        Imgproc.adaptiveThreshold(rgb, rgb, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 11, 2);
+        // Dilate the blue mask so we can find contours within it.
+        Imgproc.dilate(blueMask, blueMask, Mat.ones(1, 50, CvType.CV_32F));
 
-        // TODO contours
+        // Invert the mask and neutralize non-included pixels in raw after making it grayscale.
+//        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_BGR2GRAY);
+        Core.bitwise_not(blueMask, blueMask);
+        raw.setTo(new Scalar(0), blueMask);
 
-        return whiteMask;
+        // Adaptive threshold the raw image.
+//        Imgproc.adaptiveThreshold(raw, raw, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 11, 2);
+//        Imgproc.equalizeHist(raw, raw);
+
+        return raw;
     }
 }

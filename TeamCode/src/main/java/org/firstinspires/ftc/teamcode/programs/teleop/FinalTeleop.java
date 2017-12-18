@@ -59,7 +59,6 @@ public class FinalTeleop extends HardwareBase
         {
             updateConveyor();
             updateFlippers();
-
             updateHarvester();
 
             flow.yield();

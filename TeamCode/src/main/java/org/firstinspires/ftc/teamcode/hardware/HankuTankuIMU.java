@@ -9,10 +9,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
 import hankextensions.RobotCore;
 import hankextensions.phonesensors.Gyro;
+import hankextensions.structs.Vector2D;
 
 public class HankuTankuIMU implements Gyro
 {
     public final BNO055IMU imu;
+
+    private double resetOffset = 0;
 
     public HankuTankuIMU(BNO055IMU imu)
     {
@@ -35,6 +38,7 @@ public class HankuTankuIMU implements Gyro
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
 
         imu.initialize(parameters);
+
         RobotCore.instance.log.lines("IMU initialized!");
     }
 
@@ -46,6 +50,7 @@ public class HankuTankuIMU implements Gyro
     @Override
     public void zero() throws InterruptedException
     {
+        resetOffset = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
     }
 
     @Override
@@ -60,6 +65,6 @@ public class HankuTankuIMU implements Gyro
 
     @Override
     public double z() {
-        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+        return Vector2D.clampAngle(imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle - resetOffset);
     }
 }
