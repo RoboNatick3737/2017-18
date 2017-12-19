@@ -8,10 +8,6 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
@@ -25,12 +21,7 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
 {
     private OpenCVCam openCVCam;
 
-    private LinkedList<Mat> channels;
-    private Mat blueMask, whiteMask, finalMask;
-
     private ProcessConsole cameraProcessConsole;
-
-    private Size cameraFrameSize;
 
     @Override
     protected void INITIALIZE() throws InterruptedException
@@ -47,52 +38,218 @@ public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewB
             flow.yield();
     }
 
+
+    /////// Analysis ///////
+
+    // Analysis variables (declare once to improve run speed).
+    enum CryptoColor {PRIMARY, WHITE, NONE}
+
+    private Size originalResolution;
+    private Size analysisResolution;
+    private CryptoColor[][] cryptoColors;
+    private Mat cryptoColorMat;
+
     @Override
     public void onCameraViewStarted(int width, int height)
     {
-        cameraFrameSize = new Size(width, height);
+        originalResolution = new Size(width, height);
+        analysisResolution = originalResolution;
 
-        channels = new LinkedList<>();
-        blueMask = new Mat();
-        whiteMask = new Mat();
-        finalMask = new Mat();
+        cryptoColors = new CryptoColor[(int)(analysisResolution.width)][(int)(analysisResolution.height)];
+        cryptoColorMat = new Mat((int)(analysisResolution.height), (int)(analysisResolution.width), CvType.CV_8UC3);
     }
 
     @Override
     public void onCameraViewStopped()
     {
-        blueMask.release();
-        whiteMask.release();
-        finalMask.release();
+        cryptoColorMat.release();
+    }
+
+    public Mat getMatFromCryptoColors(CryptoColor[][] cryptoColors)
+    {
+        // Square.
+        int cols = cryptoColors.length;
+        int rows = cryptoColors[0].length;
+
+        for (int row = 0; row < rows; row++)
+        {
+            for (int col = 0; col < cols; col++)
+            {
+                switch (cryptoColors[col][row])
+                {
+                    case PRIMARY:
+                        cryptoColorMat.put(row, col, 100, 255, 255);
+                        break;
+
+                    case WHITE:
+                        cryptoColorMat.put(row, col, 0, 0, 255);
+                        break;
+
+                    case NONE:
+                        cryptoColorMat.put(row, col, 0, 0, 0);
+                        break;
+                }
+            }
+        }
+
+        return cryptoColorMat;
+    }
+
+    private CryptoColor getProminentColorFrom(CryptoColor[] colors)
+    {
+        int primaries = 0, whites = 0, nones = 0;
+
+        for (CryptoColor color : colors)
+        {
+            switch (color)
+            {
+                case PRIMARY:
+                    primaries++;
+                    break;
+
+                case WHITE:
+                    whites++;
+                    break;
+
+                case NONE:
+                    nones++;
+                    break;
+            }
+        }
+
+        // Return prominent color.
+        if (primaries > whites && primaries > nones)
+            return CryptoColor.PRIMARY;
+        else if (whites > primaries && whites > nones)
+            return CryptoColor.WHITE;
+        else
+            return CryptoColor.NONE;
+    }
+
+    private CryptoColor[] blurColumnArray(CryptoColor[] pixelColumn, int radius)
+    {
+        // Sort of "blur" the barcode type array with a radius of 5.
+        for (int i = 0; i < pixelColumn.length - radius; i += radius)
+        {
+            CryptoColor[] radiusArray = new CryptoColor[radius];
+            for (int j = 0; j < radius; j++)
+                radiusArray[j] = pixelColumn[i + j];
+
+            CryptoColor prominentColor = getProminentColorFrom(radiusArray);
+
+            for (int j = 0; j < radius; j++)
+                pixelColumn[i + j] = prominentColor;
+        }
+
+        return pixelColumn;
     }
 
     @Override
     public Mat onCameraFrame(Mat raw)
     {
+        // Set low resolution for analysis (to speed this up)
+        Imgproc.resize(raw, raw, analysisResolution);
+
+
         // Fix the lighting contrast that results from using different fields.
+        LinkedList<Mat> channels = new LinkedList<>();
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2YCrCb);
         Core.split(raw, channels);
         Imgproc.equalizeHist(channels.get(0), channels.get(0));
         Core.merge(channels, raw);
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_YCrCb2RGB);
 
-        // Get blue mask.
+
+        // Remove noise from image.
+        Imgproc.blur(raw, raw, new Size(3, 3));
+
+
+        // Analyze frame in HSV
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HSV);
-        Core.inRange(raw, new Scalar(40, 0, 0), new Scalar(150, 255, 255), blueMask);
-        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_HSV2RGB);
 
-        // Dilate the blue mask so we can find contours within it.
-        Imgproc.dilate(blueMask, blueMask, Mat.ones(1, 50, CvType.CV_32F));
+        // Process the original image into CryptoColors.
+        for (int colIndex = 0; colIndex < raw.cols(); colIndex++)
+        {
+            CryptoColor[] pixelColumn = new CryptoColor[raw.height()];
 
-        // Invert the mask and neutralize non-included pixels in raw after making it grayscale.
-//        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_BGR2GRAY);
-        Core.bitwise_not(blueMask, blueMask);
-        raw.setTo(new Scalar(0), blueMask);
+            // Define the pixel column
+            for (int rowIndex = 0; rowIndex < raw.rows(); rowIndex++)
+            {
+                double[] pixel = raw.get(rowIndex, colIndex);
 
-        // Adaptive threshold the raw image.
-//        Imgproc.adaptiveThreshold(raw, raw, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 11, 2);
-//        Imgproc.equalizeHist(raw, raw);
+                double changeFactor = .1 * (pixel[2] - 55);
 
-        return raw;
+                if ((75 - changeFactor < pixel[0] && pixel[0] < 135 - changeFactor) && 59 < pixel[1])
+                    pixelColumn[rowIndex] = CryptoColor.PRIMARY;
+
+                else if (pixel[1] < 59 && 49 < pixel[2])
+                    pixelColumn[rowIndex] = CryptoColor.WHITE;
+
+                else
+                    pixelColumn[rowIndex] = CryptoColor.NONE;
+            }
+
+            // Short circuit to the next loop if we detect very few blue pixels.
+//            if (bluePixels < camResolution.height / 5 && whitePixels < camResolution.height / 10)
+//                continue;
+
+            cryptoColors[colIndex] = pixelColumn;
+        }
+
+//        if (true)
+//        {
+//            // Convert this analysis to a visible mat.
+//            Mat result = getMatFromCryptoColors(cryptoColors);
+//
+//            // Return the item mat to the phone screen.
+//            Imgproc.resize(result, result, originalResolution);
+//            return result;
+//        }
+
+        // Blur the resulting CryptoColor image.
+        for (int colIndex = 0; colIndex < cryptoColors.length; colIndex++)
+            // Blur the column.
+            cryptoColors[colIndex] = blurColumnArray(cryptoColors[colIndex], 3);
+
+
+        // Filter through the columns
+        for (int colIndex = 0; colIndex < cryptoColors.length; colIndex++)
+        {
+            // Now start filtering out non-columns
+            int[] pixelQuantities = new int[3];
+            for (int i = 0; i < cryptoColors[colIndex].length; i++)
+            {
+                switch (cryptoColors[colIndex][i])
+                {
+                    case PRIMARY:
+                        pixelQuantities[0]++;
+                        break;
+
+                    case WHITE:
+                        pixelQuantities[1]++;
+                        break;
+
+                    case NONE:
+                        pixelQuantities[2]++;
+                        break;
+                }
+            }
+
+            // If this isn't a column, then make it appear as empty.
+            if (!(pixelQuantities[0] > .6 * analysisResolution.height && pixelQuantities[1] > .1 * analysisResolution.height))
+            {
+                for (int j = 0; j < cryptoColors[colIndex].length; j++)
+                {
+                    cryptoColors[colIndex][j] = CryptoColor.NONE;
+                }
+            }
+        }
+
+        // Convert this analysis to a visible mat.
+        Mat result = getMatFromCryptoColors(cryptoColors);
+
+        // Return the item mat to the phone screen.
+        Imgproc.resize(result, result, originalResolution);
+        return result;
     }
 }
