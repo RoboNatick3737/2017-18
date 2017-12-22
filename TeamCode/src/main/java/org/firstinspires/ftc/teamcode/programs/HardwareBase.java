@@ -3,16 +3,19 @@ package org.firstinspires.ftc.teamcode.programs;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.hardware.HankuTankuIMU;
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.programs.hardware.AbsoluteEncoder;
+import org.firstinspires.ftc.teamcode.programs.hardware.Flipper;
+import org.firstinspires.ftc.teamcode.programs.hardware.Intake;
+import org.firstinspires.ftc.teamcode.programs.hardware.Lift;
 import org.firstinspires.ftc.teamcode.programs.hardware.SwerveDrive;
 import org.firstinspires.ftc.teamcode.programs.hardware.SwerveWheel;
 
 import hankextensions.RobotCore;
-import hankextensions.phonesensors.AndroidGyro;
 
 import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
 
@@ -21,16 +24,15 @@ public abstract class HardwareBase extends RobotCore
     // The drive system (wrapper for all complex swervey methods)
     protected SwerveDrive swerveDrive;
 
-    // Harvester and lift
-    protected DcMotor harvester;
-    protected DcMotor lift;
+    // Intake and lift
+    protected Intake intake;
+    protected Lift lift;
 
     // Relic system
     protected DcMotor relicArm;
 
     // Depositor system
-    protected Servo leftFlipper, rightFlipper;
-    protected Servo conveyor;
+    protected Flipper flipper;
 
     @Override
     protected void HARDWARE() throws InterruptedException
@@ -43,17 +45,19 @@ public abstract class HardwareBase extends RobotCore
         // Init the ADAFRUIT gyro.
         HankuTankuIMU gyro = new HankuTankuIMU(hardwareMap.get(BNO055IMU.class, "IMU"));
 
-        // Harvester and Lift
-        harvester = initHardwareDevice(DcMotor.class, "Harvester");
-        lift = initHardwareDevice(DcMotor.class, "Lift");
+        // Intake and Lift
+        DcMotor harvesterMotor = initHardwareDevice(DcMotor.class, "Harvester");
+        harvesterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake = new Intake(harvesterMotor, initHardwareDevice(Servo.class, "Conveyor"));
+        DcMotor liftMotor = initHardwareDevice(DcMotor.class, "Lift");
+        liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        lift = new Lift(liftMotor);
 
         // Relic Arm
         relicArm = initHardwareDevice(DcMotor.class, "Relic Arm");
 
-        // Flipper and conveyor.
-        leftFlipper = initHardwareDevice(Servo.class, "Left Flipper");
-        rightFlipper = initHardwareDevice(Servo.class, "Right Flipper");
-        conveyor = initHardwareDevice(Servo.class, "Conveyor");
+        // Flipper.
+        flipper = new Flipper(initHardwareDevice(Servo.class, "Left Flipper"), initHardwareDevice(Servo.class, "Right Flipper"));
 
         // All of the drive motors and their respective PID.
         EncoderMotor frontLeftDrive = new EncoderMotor(
@@ -88,7 +92,7 @@ public abstract class HardwareBase extends RobotCore
                 initHardwareDevice(Servo.class, "Front Left Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Left Vex Encoder")),
                 new PIDConstants(0.007, 0, 0, 1.66),
-                32.55);
+                55.95);
 
         SwerveWheel frontRight = new SwerveWheel(
                 "Front Right",
@@ -96,7 +100,7 @@ public abstract class HardwareBase extends RobotCore
                 initHardwareDevice(Servo.class, "Front Right Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Right Vex Encoder")),
                 new PIDConstants(0.006, 0, 0, 1.66),
-                192.3);
+                276.117);
 
         SwerveWheel backLeft = new SwerveWheel(
                 "Back Left",
@@ -104,15 +108,15 @@ public abstract class HardwareBase extends RobotCore
                 initHardwareDevice(Servo.class, "Back Left Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Left Vex Encoder")),
                 new PIDConstants(0.006, 0, 0, 1.66),
-                51);
+                73.19);
 
         SwerveWheel backRight = new SwerveWheel(
                 "Back Right",
                 backRightDrive,
                 initHardwareDevice(Servo.class, "Back Right Vex Motor"),
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Right Vex Encoder")),
-                new PIDConstants(0.005, 0, 0, 1.66),
-                309.50);
+                new PIDConstants(0.006, 0, 0, 1.66),
+                317.77);
 
         // Creates the swerve drive with the correct joystick.
         swerveDrive = new SwerveDrive(gyro, frontLeft, frontRight, backLeft, backRight);

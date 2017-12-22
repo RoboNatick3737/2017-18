@@ -8,7 +8,7 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import hankextensions.RobotCore;
-import hankextensions.input.HankuTankuGamepad;
+import hankextensions.input.HTGamepad;
 import hankextensions.phonesensors.Gyro;
 
 import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
@@ -36,7 +36,7 @@ public class SwerveDrive extends ScheduledTask
     public final ScheduledTaskPackage swerveUpdatePackage;
 
     // The gamepad which controls the bot.
-    private HankuTankuGamepad gamepad;
+    private HTGamepad gamepad;
 
     // The logger for when data needs to be displayed to the drivers.
     private final ProcessConsole swerveConsole;
@@ -88,7 +88,7 @@ public class SwerveDrive extends ScheduledTask
      */
     public void provideGamepad(@NonNull Gamepad gamepad)
     {
-        this.gamepad = new HankuTankuGamepad(gamepad);
+        this.gamepad = new HTGamepad(gamepad);
     }
 
     /**
@@ -122,25 +122,24 @@ public class SwerveDrive extends ScheduledTask
         // Use the left joystick for rotation unless nothing is supplied, in which case check the DPAD.
         if (joystickDesiredRotation.magnitude > .0005)
             setDesiredHeading(joystickDesiredRotation.angle);
-        else
-        {
-            Vector2D dpadDesiredRotation = gamepad.dpad();
-
-            if (dpadDesiredRotation.magnitude > .0005)
-                setDesiredHeading(dpadDesiredRotation.angle);
-        }
+//        else
+//        {
+//            Vector2D dpadDesiredRotation = gamepad.dpad();
+//
+//            if (dpadDesiredRotation.magnitude > .0005)
+//                setDesiredHeading(dpadDesiredRotation.angle);
+//        }
 
         if (joystickDesiredMovement.magnitude > .0005)
             setDesiredMovement(joystickDesiredMovement);
         else
             setDesiredMovement(Vector2D.ZERO);
 
-        if (gamepad.gamepad.a)
+        if (gamepad.gamepad.y)
         {
             try
             {
                 gyro.calibrate();
-                setDesiredHeading(0);
             }
             catch (InterruptedException e)
             {
@@ -148,10 +147,17 @@ public class SwerveDrive extends ScheduledTask
             }
         }
 
-        if (gamepad.gamepad.x)
-            TURN_PID_CONSTANTS.kP += .0001;
-        else if (gamepad.gamepad.b)
-            TURN_PID_CONSTANTS.kP -= .0001;
+        if (gamepad.gamepad.left_trigger > 0.1 || gamepad.gamepad.right_trigger > 0.1)
+        {
+            this.desiredHeading += 5 * (gamepad.gamepad.left_trigger - gamepad.gamepad.right_trigger);
+            this.desiredHeading = Vector2D.clampAngle(this.desiredHeading);
+        }
+
+
+//        if (gamepad.gamepad.x)
+//            TURN_PID_CONSTANTS.kP += .0001;
+//        else if (gamepad.gamepad.b)
+//            TURN_PID_CONSTANTS.kP -= .0001;
     }
 
 

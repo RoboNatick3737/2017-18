@@ -32,9 +32,10 @@ public class EncoderMotor
     private final int ENCODER_TICKS_WHEEL_REVOLUTION;
 
     /**
-     * The wheel circumference which this motor drives.
+     * The wheel circumference which this motor drives (public so that SwerveWheel
+     * can look at this to know how much to correct by)
      */
-    private final double WHEEL_CIRCUMFERENCE;
+    public final double WHEEL_CIRCUMFERENCE;
 
     public EncoderMotor(String motorName, DcMotor motor)
     {
@@ -52,6 +53,8 @@ public class EncoderMotor
         WHEEL_CIRCUMFERENCE = wheelDiameterCM * Math.PI;
 
         processConsole = RobotCore.instance.log.newProcessConsole(motorName + " Motor Process Console");
+
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
     /**

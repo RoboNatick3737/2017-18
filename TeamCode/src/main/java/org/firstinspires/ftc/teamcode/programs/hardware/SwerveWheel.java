@@ -31,6 +31,12 @@ import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
  *
  * Since there are four of these, they are placed into a ScheduledTaskPackage in the
  * SwerveDrive motor to run them.
+ *
+ * Since rotating the vex motor around once causes the wheel to turn 135 degrees, that
+ * also has to be corrected for.
+ *
+ * Deceleration is also a prominent part of this, since we don't want to slow to zero
+ * instantly (hurting the axles).
  */
 public class SwerveWheel extends ScheduledTask
 {
@@ -95,7 +101,7 @@ public class SwerveWheel extends ScheduledTask
     }
 
     // Prevent boxing/unboxing slowdown.
-    private double desiredAngle, currentAngle, turnPower, angleFromDesired, angleToTurn, turnCorrectionFactor;
+    private double desiredAngle, currentAngle, turnPower, angleFromDesired, angleToTurn, turnCorrectionFactor, motorPower;
 
     /**
      * Right here, we're given a vector which we have to match this wheel to as quickly as
@@ -144,17 +150,22 @@ public class SwerveWheel extends ScheduledTask
             // Set swivel acceptable.
             swivelAcceptable = Math.abs(angleToTurn) < ACCEPTABLE_ORIENTATION_THRESHOLD;
 
+
+            // Set the power for the motor based on the swiveling state (135/360 to represent one swivel revolution to full rotation ratio).
+            motorPower = 0; //-1 * turnCorrectionFactor * driveMotor.WHEEL_CIRCUMFERENCE * (135.0/360.0);
+
             // Set drive power (if angle between this and desired angle is greater than 90, reverse motor).
-            if (driveMotor != null && drivingEnabled)
+            if (drivingEnabled)
             {
                 // Scale up/down motor power depending on how far we are from the ideal heading.
-                double motorPower = targetVector.magnitude / (5 * Math.abs(turnCorrectionFactor) + 1);
+                double drivePower = targetVector.magnitude / (5 * Math.abs(turnCorrectionFactor) + 1);
 
                 if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
-                    driveMotor.setVelocity(-motorPower);
-                else
-                    driveMotor.setVelocity(motorPower);
+                    drivePower *= -1;
 
+                motorPower += drivePower;
+
+                driveMotor.setVelocity(motorPower);
                 driveMotor.updatePID();
             }
         }

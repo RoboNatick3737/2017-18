@@ -1,2 +1,3 @@
-include ':FtcRobotController', ':RobotCore', ':FtcCommon', ':Hardware', ':Inspection', ':OpenFTC', ':openCVLibrary330', ':makiahsandroidlib'
+include ':FtcRobotController', ':RobotCore', ':FtcCommon', ':Hardware', ':Inspection', ':OpenFTC', ':makiahsandroidlib'
 include ':TeamCode'
+include ':openCVLibrary331'
