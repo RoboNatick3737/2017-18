@@ -9,6 +9,7 @@ using namespace cv;
 
 extern "C"
 {
+
 void JNICALL Java_ch_hepia_iti_opencvnativeandroidstudio_MainActivity_salt(JNIEnv *env, jobject instance,
                                                                            jlong matAddrGray,
                                                                            jint nbrElem) {
@@ -19,4 +20,5 @@ void JNICALL Java_ch_hepia_iti_opencvnativeandroidstudio_MainActivity_salt(JNIEn
         mGr.at<uchar>(j, i) = 255;
     }
 }
+
 }
