@@ -10,7 +10,8 @@ using namespace cv;
 extern "C"
 {
 
-void JNICALL Java_ch_hepia_iti_opencvnativeandroidstudio_MainActivity_salt(JNIEnv *env, jobject instance,
+// More of an example of how Mat modification works in opencv c++
+void JNICALL Java_visionanalysis_CryptoboxDetector_salt(JNIEnv *env, jobject instance,
                                                                            jlong matAddrGray,
                                                                            jint nbrElem) {
     Mat &mGr = *(Mat *) matAddrGray;
@@ -19,6 +20,13 @@ void JNICALL Java_ch_hepia_iti_opencvnativeandroidstudio_MainActivity_salt(JNIEn
         int j = rand() % mGr.rows;
         mGr.at<uchar>(j, i) = 255;
     }
+}
+
+void JNICALL Java_visionanalysis_CryptoboxDetector_filterForCrypto(JNIEnv *env, jobject instance, jlong matAddr)
+{
+    Mat &hsv = *(Mat *) matAddr;
+
+    // TODO all C++ vision pipeline code
 }
 
 }
