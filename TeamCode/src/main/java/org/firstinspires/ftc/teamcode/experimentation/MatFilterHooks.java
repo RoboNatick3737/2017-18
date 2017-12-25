@@ -133,6 +133,20 @@ public class MatFilterHooks extends RobotCore implements CameraBridgeViewBase.Cv
         raw.setTo(new Scalar(255, 255, 255), whiteMask);
         raw.setTo(new Scalar(100, 255, 255), blueMask);
 
+        // Loop through the columns and eliminate those which aren't cryptobox columns.
+        for (int colIndex = 0; colIndex < raw.cols(); colIndex++)
+        {
+            // Count blue and white pixels from binary masks obtained prior.
+            int bluePixels = Core.countNonZero(blueMask.col(colIndex));
+            int whitePixels = Core.countNonZero(whiteMask.col(colIndex));
+
+            // Neutralize column if criteria not fit.
+            if (!(bluePixels > .5 * raw.rows() && whitePixels > .1 * raw.rows()))
+            {
+                raw.col(colIndex).setTo(new Scalar(0, 0, 0));
+            }
+        }
+
         // Resize the image to the original size.
         Imgproc.resize(raw, raw, originalResolution);
         return raw;
