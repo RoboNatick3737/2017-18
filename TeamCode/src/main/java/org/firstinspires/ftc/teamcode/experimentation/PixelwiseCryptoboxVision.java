@@ -16,8 +16,8 @@ import java.util.LinkedList;
 import hankextensions.RobotCore;
 import hankextensions.vision.opencv.OpenCVCam;
 
-@Autonomous(name="Cryptobox Recognition", group= Constants.EXPERIMENTATION)
-public class CryptoboxRecognition extends RobotCore implements CameraBridgeViewBase.CvCameraViewListener
+@Autonomous(name="Pixelwise Cryptobox Vision", group= Constants.EXPERIMENTATION)
+public class PixelwiseCryptoboxVision extends RobotCore implements CameraBridgeViewBase.CvCameraViewListener
 {
     private OpenCVCam openCVCam;
 
