@@ -56,14 +56,14 @@ public class MatFilterHooks extends RobotCore implements CameraBridgeViewBase.Cv
     public void onCameraViewStarted(int width, int height)
     {
         originalResolution = new Size(width, height);
-        analysisResolution = originalResolution;
+        analysisResolution = new Size(width, height);
 
         // init non-constant mats.
-        luminanceFix = new Mat(analysisResolution, CvType.CV_32F);
-        resultingLower = new Mat(analysisResolution, CvType.CV_32F);
-        resultingUpper = new Mat(analysisResolution, CvType.CV_32F);
-        blueMask = new Mat(analysisResolution, CvType.CV_32F);
-        whiteMask = new Mat(analysisResolution, CvType.CV_32F);
+        luminanceFix = new Mat(analysisResolution, CvType.CV_8UC1);
+        resultingLower = new Mat(analysisResolution, CvType.CV_8UC1);
+        resultingUpper = new Mat(analysisResolution, CvType.CV_8UC1);
+        blueMask = Mat.zeros(analysisResolution, CvType.CV_8UC1); // 1-channel = grayscale image
+        whiteMask = new Mat(analysisResolution, Imgproc.THRESH_BINARY);
 
         // Init channels list
         channels = new LinkedList<>();
@@ -76,6 +76,7 @@ public class MatFilterHooks extends RobotCore implements CameraBridgeViewBase.Cv
         resultingUpper.release();
         luminanceFix.release();
         whiteMask.release();
+        blueMask.release();
 
         channels = null;
     }
@@ -119,8 +120,9 @@ public class MatFilterHooks extends RobotCore implements CameraBridgeViewBase.Cv
         Core.inRange(raw, new Scalar(0, 0, 49), new Scalar(255, 59, 255), whiteMask);
 
         // Display the results in the display mat.
+        raw.setTo(new Scalar(0, 0, 0));
         raw.setTo(new Scalar(255, 255, 255), whiteMask);
-//        raw.setTo(new Scalar(100, 100, 100), blueMask);
+        raw.setTo(new Scalar(100, 100, 100), blueMask);
 
         // Resize the image to the original size.
         Imgproc.resize(raw, raw, originalResolution);

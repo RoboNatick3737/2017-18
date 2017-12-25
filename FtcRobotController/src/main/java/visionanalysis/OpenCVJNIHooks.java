@@ -7,10 +7,16 @@ import org.opencv.core.Mat;
  */
 public class OpenCVJNIHooks
 {
-    public static void inRangeBetweenMats(Mat toFilter, Mat lower, Mat upper, Mat dest)
+    // This HAS to be loaded or the app will crash upon attempting to call a native method.
+    static
     {
-        inRangeBetweenMats(toFilter.getNativeObjAddr(), lower.getNativeObjAddr(), upper.getNativeObjAddr(), dest.getNativeObjAddr());
+        System.loadLibrary("native-opencv");
     }
 
-    private static native void inRangeBetweenMats(long toFilterAddress, long lowerAddress, long upperAddress, long destAddress);
+    public static void inRangeBetweenMats(Mat toFilter, Mat lower, Mat upper, Mat dest)
+    {
+        inRangeBetweenMatsNative(toFilter.getNativeObjAddr(), lower.getNativeObjAddr(), upper.getNativeObjAddr(), dest.getNativeObjAddr());
+    }
+
+    public static native void inRangeBetweenMatsNative(long toFilterAddress, long lowerAddress, long upperAddress, long destAddress);
 }
