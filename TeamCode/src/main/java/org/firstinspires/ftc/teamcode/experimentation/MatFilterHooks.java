@@ -62,7 +62,7 @@ public class MatFilterHooks extends RobotCore implements CameraBridgeViewBase.Cv
         luminanceFix = new Mat(analysisResolution, CvType.CV_8UC1);
         resultingLower = new Mat(analysisResolution, CvType.CV_8UC1);
         resultingUpper = new Mat(analysisResolution, CvType.CV_8UC1);
-        blueMask = Mat.zeros(analysisResolution, CvType.CV_8UC1); // 1-channel = grayscale image
+        blueMask = Mat.zeros(analysisResolution, Imgproc.THRESH_BINARY); // 1-channel = grayscale image
         whiteMask = new Mat(analysisResolution, Imgproc.THRESH_BINARY);
 
         // Init channels list
@@ -108,13 +108,22 @@ public class MatFilterHooks extends RobotCore implements CameraBridgeViewBase.Cv
 
         // Determine the upper and lower mat bounds for blue.
         Core.split(raw, channels);
-        Core.inRange(channels.get(1), new Scalar(0), new Scalar(59), channels.get(1)); // for blue sat < 59
-        Core.bitwise_not(channels.get(1), channels.get(1));
-        channels.get(0).setTo(new Scalar(0), channels.get(1));
-        Core.multiply(channels.get(2), new Scalar(-.1), luminanceFix);
-        Core.add(luminanceFix, new Scalar(75), resultingLower); // blue hue > 75 - .1 * luminance
-        Core.add(luminanceFix, new Scalar(135), resultingUpper);
-        OpenCVJNIHooks.inRangeBetweenMats(channels.get(0), resultingLower, resultingUpper, blueMask);
+        Mat hueChannel = channels.get(0);
+        Mat saturationChannel = channels.get(1);
+        Mat valueChannel = channels.get(2);
+
+        // Adaptive value threshold for blue
+        Core.subtract(valueChannel, new Scalar(55), valueChannel); // luminance - 55
+        Core.multiply(valueChannel, new Scalar(-.1), luminanceFix); // -.1 * (luminance - 55)
+        Core.add(luminanceFix, new Scalar(75), resultingLower); // blue hue > 75 + -.1 * (luminance - 55)
+        Core.add(luminanceFix, new Scalar(135), resultingUpper); // blue hue < 135 + -.1 * (luminance - 55)
+        OpenCVJNIHooks.inRangeBetweenMats(hueChannel, resultingLower, resultingUpper, blueMask); // resulting blue mask
+
+        // Saturation has to be less than 59 for blue.
+        Core.inRange(saturationChannel, new Scalar(59), new Scalar(255), saturationChannel); // for blue sat > 59
+
+        // Get final mask (fits both value and saturation criteria.
+        Core.bitwise_and(saturationChannel, blueMask, blueMask);
 
         // Get the white mask.
         Core.inRange(raw, new Scalar(0, 0, 49), new Scalar(255, 59, 255), whiteMask);
@@ -122,7 +131,7 @@ public class MatFilterHooks extends RobotCore implements CameraBridgeViewBase.Cv
         // Display the results in the display mat.
         raw.setTo(new Scalar(0, 0, 0));
         raw.setTo(new Scalar(255, 255, 255), whiteMask);
-        raw.setTo(new Scalar(100, 100, 100), blueMask);
+        raw.setTo(new Scalar(100, 255, 255), blueMask);
 
         // Resize the image to the original size.
         Imgproc.resize(raw, raw, originalResolution);
