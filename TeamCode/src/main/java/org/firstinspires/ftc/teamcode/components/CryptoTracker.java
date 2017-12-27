@@ -19,53 +19,62 @@ import visionanalysis.OpenCVJNIHooks;
  */
 public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
 {
-    /**
-     * The horizontal translation that would be required before we were to reach each crypto
-     * column.
-     */
-    public double[] columnDistances = new double[4];
-
-    /**
-     * The distance that we could drive forward before hitting the cryptobox.
-     */
-    public double distFromCrypto = 0;
-
-    /**
-     * As the name implies, use this when we're parked close to the cryptobox, but this tracker
-     * can't see each one of the columns.
-     */
-    public void directlyProvideApproximatePhysicalOffset(double forward, double center)
+    private class CryptoColumnLocation
     {
+        private double location = 0;
 
+        public double likelihoodScore(double possible)
+        {
+            return possible - location;
+        }
+
+        public void suggestLocation(double suggestedLocation)
+        {
+            location += suggestedLocation / (Math.abs(location - suggestedLocation) + 1);
+        }
     }
 
-    /**
-     * Called with the relative pixel locations of the midpoints in the frame, which this class
-     * uses to intelligently figure out where they are, as well as filter out any extraneous
-     * noise from the data.
-     *
-     * Note that relative positioning means that .1 = 1/10 from the left of the frame, .5 = dead
-     * center of the frame, 1 = right edge of frame.
-     *
-     * Note also that observedrelativelocations should always be less than 4.
-     */
-    public void provideMidpointData(double... observedRelativeLocations)
+    private class CryptoboxLocation
     {
-        if (observedRelativeLocations.length == 4)
+        private CryptoColumnLocation[] locations;
+
+        public CryptoboxLocation()
         {
-            for (int i = 0; i < 4; i++)
+            locations = new CryptoColumnLocation[4];
+        }
+
+        public void suggestLocations(double... pixelLocations)
+        {
+            for (double location : pixelLocations)
             {
-                // Get average distance (don't change current distance excessively).
-                columnDistances[i] = (columnDistances[i] + observedRelativeLocations[i]) / 2.0;
+                CryptoColumnLocation mostLikelyLocation = locations[0];
+                double likelyScore = mostLikelyLocation.likelihoodScore(location);
+
+                for (CryptoColumnLocation cryptoLocation : locations)
+                {
+                    double newLikelihoodScore = cryptoLocation.likelihoodScore(location);
+
+                    if (newLikelihoodScore < likelyScore)
+                    {
+                        mostLikelyLocation = cryptoLocation;
+                        likelyScore = newLikelihoodScore;
+                    }
+                }
+
+                mostLikelyLocation.suggestLocation();
             }
         }
-        else
-        {
-        }
     }
 
+    /**
+     * Forward dist = dist we can drive forward before hitting the crypto, horizontal dist =
+     * dist to the right we can drive before we can reach the center.
+     */
+    public void provideApproximatePhysicalOffset(double forwardDist, double horizontalOffset)
+    {
 
-    /// Mat processing pipeline ///
+    }
+
 
     // Mat sizes which constitute analysis vs. the size of the frame we were originally passed.
     private Size originalResolution;
@@ -247,29 +256,8 @@ public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
             }
         }
 
-        // Remove small columns if we're detecting more than 4.
-        while (locations.size() > 4)
-        {
-            int smallestIndex = 0;
-            for (int i = 1; i < locations.size(); i++)
-            {
-                if (locations.get(smallestIndex).width > locations.get(i).width)
-                    smallestIndex = i;
-            }
+        // Find outlier columns from those that are equidistant.
 
-            // Display the removed column in red (may or may not exist).
-            if (IN_MAT_DEBUG_MODE)
-            {
-                CryptoColumnPixelLocation toBeRemovedLoc = locations.get(smallestIndex);
-
-                for (int colIndex = 0; colIndex < toBeRemovedLoc.width; colIndex++)
-                {
-                    raw.col(toBeRemovedLoc.origin + colIndex).setTo(new Scalar(255, 0, 0));
-                }
-            }
-
-            locations.remove(smallestIndex);
-        }
 
         // Resize the image to the original size.
         Imgproc.resize(raw, raw, originalResolution);

@@ -33,6 +33,9 @@ public class FinalTeleop extends TeleopBase
             if (htGamepad1.a.currentState == HTButton.ButtonState.JUST_TAPPED)
                 flipper.advanceStage();
 
+            if (htGamepad1.x.currentState == HTButton.ButtonState.JUST_TAPPED)
+                ballKnocker.toggleKnocker();
+
             if (gamepad1.left_bumper)
                 intake.intake();
             else if (gamepad1.right_bumper)
@@ -41,7 +44,7 @@ public class FinalTeleop extends TeleopBase
                 intake.stop();
 
             if (htGamepad1.b.currentState == HTButton.ButtonState.JUST_TAPPED)
-                intake.advanceHarvesterStage();
+                intake.toggleHarvesterStage();
 
             if (gamepad2.dpad_up)
                 lift.up();

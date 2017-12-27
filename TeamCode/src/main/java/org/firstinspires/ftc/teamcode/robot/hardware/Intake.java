@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class Intake
 {
     private final double IN_SPEED = 1, OUT_SPEED = -1;
+    private final double STAGE_UP = 0.1, STAGE_DOWN = 0.75;
 
     private final DcMotor harvester;
     private final Servo harvesterStager;
@@ -46,9 +47,9 @@ public class Intake
     {
         harvesterUp = up;
 
-        harvesterStager.setPosition(up ? 0.1 : 0.75);
+        harvesterStager.setPosition(up ? STAGE_UP : STAGE_DOWN);
     }
-    public void advanceHarvesterStage()
+    public void toggleHarvesterStage()
     {
         setHarvesterTo(!harvesterUp);
     }

@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.util.Range;
  */
 public class Flipper
 {
-    private final double FLIP_INCREMENT = .02, FLIP_MAX = .8, FLIP_MID = .4, FLIP_MIN = .137;
+    private final double FLIP_INCREMENT = .02, FLIP_MAX = .8, FLIP_MID = .25, FLIP_MIN = .137;
     private final double RIGHT_FLIPPER_OFFSET = .08;
 
     private int currentStage = 0;

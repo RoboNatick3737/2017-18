@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.HankuTankuIMU;
 import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
@@ -24,11 +25,10 @@ public abstract class HardwareBase extends RobotCore
     // The drive system (wrapper for all complex swervey methods)
     protected SwerveDrive swerveDrive;
 
-    // Intake and lift
     protected Intake intake;
     protected Lift lift;
+    protected BallKnocker ballKnocker;
 
-    // Relic system
     protected DcMotor relicArm;
 
     // Depositor system
@@ -50,16 +50,19 @@ public abstract class HardwareBase extends RobotCore
         harvesterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         intake = new Intake(harvesterMotor, initHardwareDevice(Servo.class, "Harvester Controller"), initHardwareDevice(Servo.class, "Conveyor"));
 
-        // Lift setup.
+        // Lift init
         DcMotor liftMotor = initHardwareDevice(DcMotor.class, "Lift");
         liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         lift = new Lift(liftMotor);
 
-        // Relic Arm
+        // Relic Arm init
         relicArm = initHardwareDevice(DcMotor.class, "Relic Arm");
 
-        // Flipper.
+        // Flipper init
         flipper = new Flipper(initHardwareDevice(Servo.class, "Left Flipper"), initHardwareDevice(Servo.class, "Right Flipper"));
+
+        // Ball knocker init
+        ballKnocker = new BallKnocker(initHardwareDevice(Servo.class, "Ball Knocker"));
 
         // All of the drive motors and their respective PID.
         EncoderMotor frontLeftDrive = new EncoderMotor(
