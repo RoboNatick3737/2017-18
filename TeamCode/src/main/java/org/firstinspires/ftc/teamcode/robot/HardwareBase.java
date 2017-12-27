@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.programs;
+package org.firstinspires.ftc.teamcode.robot;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -6,18 +6,18 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.hardware.HankuTankuIMU;
-import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.programs.hardware.AbsoluteEncoder;
-import org.firstinspires.ftc.teamcode.programs.hardware.Flipper;
-import org.firstinspires.ftc.teamcode.programs.hardware.Intake;
-import org.firstinspires.ftc.teamcode.programs.hardware.Lift;
-import org.firstinspires.ftc.teamcode.programs.hardware.SwerveDrive;
-import org.firstinspires.ftc.teamcode.programs.hardware.SwerveWheel;
+import org.firstinspires.ftc.teamcode.robot.hardware.HankuTankuIMU;
+import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
+import org.firstinspires.ftc.teamcode.robot.hardware.Flipper;
+import org.firstinspires.ftc.teamcode.robot.hardware.Intake;
+import org.firstinspires.ftc.teamcode.robot.hardware.Lift;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwerveDrive;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwerveWheel;
 
 import hankextensions.RobotCore;
 
-import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
+import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
 
 public abstract class HardwareBase extends RobotCore
 {
@@ -45,10 +45,12 @@ public abstract class HardwareBase extends RobotCore
         // Init the ADAFRUIT gyro.
         HankuTankuIMU gyro = new HankuTankuIMU(hardwareMap.get(BNO055IMU.class, "IMU"));
 
-        // Intake and Lift
+        // Intake setup
         DcMotor harvesterMotor = initHardwareDevice(DcMotor.class, "Harvester");
         harvesterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        intake = new Intake(harvesterMotor, initHardwareDevice(Servo.class, "Conveyor"));
+        intake = new Intake(harvesterMotor, initHardwareDevice(Servo.class, "Harvester Controller"), initHardwareDevice(Servo.class, "Conveyor"));
+
+        // Lift setup.
         DcMotor liftMotor = initHardwareDevice(DcMotor.class, "Lift");
         liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         lift = new Lift(liftMotor);
@@ -65,25 +67,29 @@ public abstract class HardwareBase extends RobotCore
                 initHardwareDevice(DcMotor.class, "Front Left"),
                 new PIDConstants(.0008, 0, 0, 0),
                 407, 7.62);
+//        frontLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         EncoderMotor frontRightDrive = new EncoderMotor(
                 "Front Right",
                 initHardwareDevice(DcMotor.class, "Front Right"),
                 new PIDConstants(.0008, 0, 0, 0),
                 202, 7.62);
+        frontRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         EncoderMotor backLeftDrive = new EncoderMotor(
                 "Back Left",
+                // ADHAM HAS CORRUPTED YOUR CODE AND YOU WILL NOW FAIL
                 initHardwareDevice(DcMotor.class, "Back Left"),
                 new PIDConstants(.0008, 0, 0, 0),
                 202, 7.62);
+        backLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         EncoderMotor backRightDrive = new EncoderMotor(
                 "Back Right",
                 initHardwareDevice(DcMotor.class, "Back Right"),
                 new PIDConstants(.0008, 0, 0, 0),
                 475, 7.62);
-
+        backRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // All of the SwerveWheels (which align on independent threads)
         SwerveWheel frontLeft = new SwerveWheel(

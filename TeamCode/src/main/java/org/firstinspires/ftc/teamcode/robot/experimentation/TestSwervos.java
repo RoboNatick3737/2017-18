@@ -1,19 +1,13 @@
-package org.firstinspires.ftc.teamcode.programs.experimentation;
+package org.firstinspires.ftc.teamcode.robot.experimentation;
 
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
-import org.firstinspires.ftc.teamcode.hardware.HankuTankuIMU;
-import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.programs.hardware.AbsoluteEncoder;
-import org.firstinspires.ftc.teamcode.programs.hardware.SwerveDrive;
-import org.firstinspires.ftc.teamcode.programs.hardware.SwerveWheel;
+import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 
 import hankextensions.RobotCore;
 

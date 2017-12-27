@@ -7,7 +7,7 @@
  *     the encoder into a motor encoder port.  This works, although it's super gross (maybe we'll find a solution at some point).
  */
 
-package org.firstinspires.ftc.teamcode.programs.hardware;
+package org.firstinspires.ftc.teamcode.robot.hardware;
 
 import android.support.annotation.NonNull;
 
@@ -16,13 +16,11 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTask;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.hardware.pid.PIDController;
+import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.components.pid.PIDController;
 
 import hankextensions.RobotCore;
 import hankextensions.structs.Vector2D;
-
-import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
 
 /**
  * Since the vex motor requires some time to turn to the correct position (we aren't

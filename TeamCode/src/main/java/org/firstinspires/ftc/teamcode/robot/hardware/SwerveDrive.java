@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.programs.hardware;
+package org.firstinspires.ftc.teamcode.robot.hardware;
 
 import android.support.annotation.NonNull;
 
@@ -11,8 +11,8 @@ import hankextensions.RobotCore;
 import hankextensions.input.HTGamepad;
 import hankextensions.phonesensors.Gyro;
 
-import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.hardware.pid.PIDController;
+import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.components.pid.PIDController;
 import hankextensions.structs.Vector2D;
 
 public class SwerveDrive extends ScheduledTask

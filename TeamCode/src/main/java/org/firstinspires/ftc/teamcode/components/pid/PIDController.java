@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.hardware.pid;
+package org.firstinspires.ftc.teamcode.components.pid;
 
 import hankextensions.structs.Vector2D;
 

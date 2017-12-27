@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.programs.experimentation;
+package org.firstinspires.ftc.teamcode.robot.experimentation;
 
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.programs.hardware.AbsoluteEncoder;
+import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 
 import hankextensions.RobotCore;
 

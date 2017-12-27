@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.programs.experimentation;
+package org.firstinspires.ftc.teamcode.robot.experimentation;
 
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.hardware.EncoderMotor;
-import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
+import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
 
 import hankextensions.RobotCore;
 

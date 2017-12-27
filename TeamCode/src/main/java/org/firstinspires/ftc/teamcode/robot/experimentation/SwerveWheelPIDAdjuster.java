@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.programs.experimentation;
+package org.firstinspires.ftc.teamcode.robot.experimentation;
 
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
@@ -7,9 +7,9 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.hardware.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.programs.hardware.AbsoluteEncoder;
-import org.firstinspires.ftc.teamcode.programs.hardware.SwerveWheel;
+import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwerveWheel;
 import hankextensions.structs.Vector2D;
 
 import hankextensions.RobotCore;

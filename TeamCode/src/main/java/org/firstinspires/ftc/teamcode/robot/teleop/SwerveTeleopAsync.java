@@ -1,11 +1,10 @@
-package org.firstinspires.ftc.teamcode.programs.teleop;
+package org.firstinspires.ftc.teamcode.robot.teleop;
 
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.programs.HardwareBase;
-import org.firstinspires.ftc.teamcode.programs.hardware.SwerveDrive;
+import org.firstinspires.ftc.teamcode.robot.HardwareBase;
 
 @TeleOp(name="Swerve Teleop — Async", group= Constants.FINAL_BOT_OPMODES)
 public class SwerveTeleopAsync extends HardwareBase

@@ -1,9 +1,9 @@
-package org.firstinspires.ftc.teamcode.programs.experimentation;
+package org.firstinspires.ftc.teamcode.robot.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.programs.HardwareBase;
+import org.firstinspires.ftc.teamcode.robot.HardwareBase;
 import hankextensions.structs.Vector2D;
 
 @Autonomous(name="Drive Testing", group=Constants.FINAL_BOT_EXPERIMENTATION)
