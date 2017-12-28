@@ -15,6 +15,12 @@ import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.components.pid.PIDController;
 import hankextensions.structs.Vector2D;
 
+/**
+ * The SwerveDrive contains 4 SwerveWheel instances to which a number of vectors are specified
+ * in order to determine the direction in which movement will occur.
+ *
+ * TODO slow down wheel turning speeds while moving at high speed.
+ */
 public class SwerveDrive extends ScheduledTask
 {
     //////  Physical drive constants ////////

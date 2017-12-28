@@ -39,15 +39,19 @@ public class OptimizedCryptoboxVision extends RobotCore
         openCVCam = new OpenCVCam();
         cryptoTracker = new CryptoTracker();
         openCVCam.start(cryptoTracker);
+
+        cameraProcessConsole = log.newProcessConsole("Camera Process Console");
     }
 
     @Override
     protected void START() throws InterruptedException
     {
         while (true)
+        {
+            cameraProcessConsole.write(
+                    "Forward offset: " + cryptoTracker.forwardOffset,
+                    "Horizontal offset: " + cryptoTracker.horizontalOffset);
             flow.yield();
+        }
     }
-
-
-    /////// Analysis ///////
 }

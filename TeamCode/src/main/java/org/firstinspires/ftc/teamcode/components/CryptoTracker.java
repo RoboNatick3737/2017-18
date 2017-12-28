@@ -19,52 +19,10 @@ import visionanalysis.OpenCVJNIHooks;
  */
 public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
 {
-    private class CryptoColumnLocation
-    {
-        private double location = 0;
-
-        public double likelihoodScore(double possible)
-        {
-            return possible - location;
-        }
-
-        public void suggestLocation(double suggestedLocation)
-        {
-            location += suggestedLocation / (Math.abs(location - suggestedLocation) + 1);
-        }
-    }
-
-    private class CryptoboxLocation
-    {
-        private CryptoColumnLocation[] locations;
-
-        public CryptoboxLocation()
-        {
-            locations = new CryptoColumnLocation[4];
-        }
-
-        public void suggestLocations(double... pixelLocations)
-        {
-            for (double location : pixelLocations)
-            {
-                CryptoColumnLocation mostLikelyLocation = locations[0];
-                double likelyScore = mostLikelyLocation.likelihoodScore(location);
-
-                for (CryptoColumnLocation cryptoLocation : locations)
-                {
-                    double newLikelihoodScore = cryptoLocation.likelihoodScore(location);
-
-                    if (newLikelihoodScore < likelyScore)
-                    {
-                        mostLikelyLocation = cryptoLocation;
-                        likelyScore = newLikelihoodScore;
-                    }
-                }
-
-                mostLikelyLocation.suggestLocation();
-            }
-        }
-    }
+    /**
+     * The end doubles that this complex system is trying to calculate.
+     */
+    public double horizontalOffset = 0, forwardOffset = 0;
 
     /**
      * Forward dist = dist we can drive forward before hitting the crypto, horizontal dist =
@@ -72,7 +30,21 @@ public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
      */
     public void provideApproximatePhysicalOffset(double forwardDist, double horizontalOffset)
     {
+    }
 
+    /**
+     * Stores the start of the crypto column and the width of the column.
+     */
+    class CryptoColumnPixelLocation
+    {
+        public final int origin; // can't be changed
+        public int width; // can be modified
+
+        public CryptoColumnPixelLocation(int origin, int width)
+        {
+            this.origin = origin;
+            this.width = width;
+        }
     }
 
 
@@ -132,23 +104,51 @@ public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_YCrCb2RGB);
     }
 
-    /**
-     * Stores the start of the crypto column in a single row binary array.
-     */
-    class CryptoColumnPixelLocation
-    {
-        public final int origin; // can't be changed
-        public int width; // can be modified
-
-        public CryptoColumnPixelLocation(int origin, int width)
-        {
-            this.origin = origin;
-            this.width = width;
-        }
-    }
-
     // Disable this if you don't want to display the current mat state to the user (useful for ensuring everything's working properly but slow)
     private final boolean IN_MAT_DEBUG_MODE = true;
+
+    /**
+     * Annoying method to find equidistant locations (likely to therefore represent cryptobox).
+     */
+    private void getEquidistantColumnsFrom(ArrayList<CryptoColumnPixelLocation> locations)
+    {
+        // Additional filtering if we detect more than 5 columns.
+        final double CLOSE_THRESHOLD = .05 * analysisResolution.width;
+
+        // Find the 4 equidistant columns which represent a cryptobox.
+        for (int first = 0; first < locations.size() - 3; first++)
+        {
+            for (int second = first + 1; second < locations.size() - 2; second++)
+            {
+                for (int third = second + 1; third < locations.size() - 1; third++)
+                {
+                    if (!(Math.abs((second - first) - (third - second)) < CLOSE_THRESHOLD))
+                        continue;
+
+                    for (int fourth = third + 1; fourth < locations.size(); fourth++)
+                    {
+                        if (Math.abs((third - second) - (fourth - third)) < CLOSE_THRESHOLD)
+                        {
+                            for (int i = 0; i < locations.size(); i++)
+                            {
+                                if (!(i == first || i == second || i == third || i == fourth))
+                                {
+                                    locations.remove(i);
+                                    i--;
+                                }
+                            }
+
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        // We haven't found the columns apparently so we'll just remove them from the right end.
+        while (locations.size() > 4)
+            locations.remove(locations.size() - 1);
+    }
 
     @Override
     public Mat onCameraFrame(Mat raw)
@@ -215,14 +215,14 @@ public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
         }
 
         // Find distinct regions in binary array
-        ArrayList<CryptoColumnPixelLocation> locations = new ArrayList<>();
+        ArrayList<CryptoColumnPixelLocation> columns = new ArrayList<>();
         int currLength = 0;
         for (int i = 0; i < cryptoColumns.length; i++)
         {
             if (!cryptoColumns[i]) // when it's false, restart the length count but register this series of trues.
             {
                 if (currLength > 0)
-                    locations.add(new CryptoColumnPixelLocation(i - currLength, currLength));
+                    columns.add(new CryptoColumnPixelLocation(i - currLength, currLength));
 
                 currLength = 0;
             }
@@ -232,22 +232,46 @@ public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
 
         // Merge close locations (small column blips)
         final int MERGE_THRESHOLD = (int)(analysisResolution.width / 20.0);
-        for (int locIndex = 0; locIndex < locations.size() - 1; locIndex++)
+        for (int locIndex = 0; locIndex < columns.size() - 1; locIndex++)
         {
-            int locOffset = locations.get(locIndex + 1).origin - (locations.get(locIndex).origin + locations.get(locIndex).width);
+            int locOffset = columns.get(locIndex + 1).origin - (columns.get(locIndex).origin + columns.get(locIndex).width);
 
             if (locOffset < MERGE_THRESHOLD) // if the end of the first is close enough to the start of the second
             {
-                locations.get(locIndex).width += locOffset + locations.get(locIndex + 1).width; // increase size of first col
-                locations.remove(locIndex + 1); // remove next col
+                columns.get(locIndex).width += locOffset + columns.get(locIndex + 1).width; // increase size of first col
+                columns.remove(locIndex + 1); // remove next col
                 locIndex--; // have to reduce count because just considered next col already
             }
         }
 
-        // Display chosen cols in mat if in debug mode in green.
+        // Just exit right here if we haven't detected any columns.
+        if (columns.size() == 0)
+        {
+            // Resize the image to the original size.
+            Imgproc.resize(raw, raw, originalResolution);
+            return raw;
+        }
+
+        // Display chosen cols in mat if in debug mode in red (might be removed).
         if (IN_MAT_DEBUG_MODE)
         {
-            for (CryptoColumnPixelLocation location : locations)
+            for (CryptoColumnPixelLocation location : columns)
+            {
+                for (int colIndex = 0; colIndex < location.width; colIndex++)
+                {
+                    raw.col(location.origin + colIndex).setTo(new Scalar(255, 0, 0));
+                }
+            }
+        }
+
+        // Try to filter out false columns if we detected too many.
+        if (columns.size() > 4)
+            getEquidistantColumnsFrom(columns);
+
+        // Display chosen cols in mat if in debug mode in green (will be overridden if red).
+        if (IN_MAT_DEBUG_MODE)
+        {
+            for (CryptoColumnPixelLocation location : columns)
             {
                 for (int colIndex = 0; colIndex < location.width; colIndex++)
                 {
@@ -256,8 +280,41 @@ public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
             }
         }
 
-        // Find outlier columns from those that are equidistant.
+        // Determine distance from center solely based on each of the 4 columns, relatively easy.
+        if (columns.size() == 4)
+        {
+            // Find average distance from leftmost corner
+            double cryptoDist = 0;
+            for (CryptoColumnPixelLocation column : columns)
+                cryptoDist += column.origin + 0.5 * column.width;
+            cryptoDist /= 4.0;
 
+            // Find distance from center of image (where robot currently is located)
+            cryptoDist -= 0.5 * analysisResolution.width;
+            horizontalOffset = cryptoDist;
+
+            // Figure out vertical offset based on area free to both sides.
+            forwardOffset = columns.get(0).origin + (analysisResolution.width - columns.get(3).origin + columns.get(3).width) * 0.2;
+        }
+
+        // Determine distance from center solely based on 3 columns, relatively hard.
+        else if (columns.size() == 3)
+        {
+            // Figure out vertical offset based on area free to both sides.
+            forwardOffset = columns.get(0).origin + (analysisResolution.width - columns.get(2).origin + columns.get(2).width) * 0.2;
+        }
+
+        // Determine distance from center solely based on 2 columns, even harder.
+        else if (columns.size() == 2)
+        {
+
+        }
+
+        // Determine distance from center based on 1 COLUMN ONLY (GOD MODE difficulty).
+        else if (columns.size() == 1)
+        {
+
+        }
 
         // Resize the image to the original size.
         Imgproc.resize(raw, raw, originalResolution);
