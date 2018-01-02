@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.robot.hardware.SwerveDrive;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveWheel;
 
 import hankextensions.RobotCore;
+import hankextensions.input.HTGamepad;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
 
@@ -35,7 +36,7 @@ public abstract class HardwareBase extends RobotCore
     protected Flipper flipper;
 
     @Override
-    protected void HARDWARE() throws InterruptedException
+    protected final void onRun() throws InterruptedException
     {
         // Init the android gyro (make sure to call start()).
 //        AndroidGyro androidGyro = new AndroidGyro();
@@ -129,5 +130,12 @@ public abstract class HardwareBase extends RobotCore
 
         // Creates the swerve drive with the correct joystick.
         swerveDrive = new SwerveDrive(gyro, frontLeft, frontRight, backLeft, backRight);
+
+        onRunWithHardware();
     }
+
+    /**
+     * An abstract method which robot classes should override.
+     */
+    protected abstract void onRunWithHardware() throws InterruptedException;
 }

@@ -5,9 +5,9 @@ import android.support.annotation.NonNull;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTask;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
-import com.qualcomm.robotcore.hardware.Gamepad;
 
 import hankextensions.RobotCore;
+import hankextensions.input.HTButton;
 import hankextensions.input.HTGamepad;
 import hankextensions.phonesensors.Gyro;
 
@@ -30,7 +30,8 @@ public class SwerveDrive extends ScheduledTask
     private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 12);
 
     //////  Instance specific components ////////
-    private final SwerveWheel frontLeft, frontRight, backLeft, backRight;
+    private boolean joystickControlEnabled = false; // Whether or not the joystick can direct the swerve drive.
+    private final SwerveWheel[] swerveWheels = new SwerveWheel[4];
     public final Gyro gyro; // Public because teleop can manually reset.
     private final PIDController pidController;
 
@@ -40,9 +41,6 @@ public class SwerveDrive extends ScheduledTask
 
     // Required for operation of the driving tasks.
     public final ScheduledTaskPackage swerveUpdatePackage;
-
-    // The gamepad which controls the bot.
-    private HTGamepad gamepad;
 
     // The logger for when data needs to be displayed to the drivers.
     private final ProcessConsole swerveConsole;
@@ -54,18 +52,27 @@ public class SwerveDrive extends ScheduledTask
         this.gyro = gyro;
 
         // The swerve wheels.
-        this.frontLeft = frontLeft;
-        this.frontRight = frontRight;
-        this.backLeft = backLeft;
-        this.backRight = backRight;
+        this.swerveWheels[0] = frontLeft;
+        this.swerveWheels[1] = backLeft;
+        this.swerveWheels[2] = backRight;
+        this.swerveWheels[3] = frontRight;
 
         // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
         swerveUpdatePackage = new ScheduledTaskPackage(RobotCore.instance, "Swerve Turn Alignments",
-                this, this.frontLeft, this.frontRight, this.backLeft, this.backRight);
+                this, frontLeft, frontRight, backLeft, backRight);
 
+        // For turning the drive.
         pidController = new PIDController(TURN_PID_CONSTANTS);
 
         swerveConsole = RobotCore.instance.log.newProcessConsole("Swerve Console");
+    }
+
+    /**
+     * Tells the swerve drive whether joystick control is acceptable.
+     */
+    public void setJoystickControlEnabled(boolean state)
+    {
+        joystickControlEnabled = state;
     }
 
     /**
@@ -86,15 +93,6 @@ public class SwerveDrive extends ScheduledTask
     {
         // Only updates if the control system has been set to synchronous.
         swerveUpdatePackage.synchronousUpdate();
-    }
-
-    /**
-     * Tells the swerve drive how to accomplish teleop.
-     * @param gamepad the gamepad which provides instructions.
-     */
-    public void provideGamepad(@NonNull Gamepad gamepad)
-    {
-        this.gamepad = new HTGamepad(gamepad);
     }
 
     /**
@@ -119,29 +117,23 @@ public class SwerveDrive extends ScheduledTask
     /**
      * Only takes effect if the gamepad has been supplied to this class.
      */
-    private void updateVectorsByGamepadInstructions()
+    private void acceptControllerInput()
     {
         // Rotate by -90 in order to make forward facing zero.
-        Vector2D joystickDesiredRotation = gamepad.rightJoystick();
-        Vector2D joystickDesiredMovement = gamepad.leftJoystick();
+        Vector2D joystickDesiredRotation = HTGamepad.CONTROLLER1.rightJoystick();
+        Vector2D joystickDesiredMovement = HTGamepad.CONTROLLER1.leftJoystick();
 
         // Use the left joystick for rotation unless nothing is supplied, in which case check the DPAD.
         if (joystickDesiredRotation.magnitude > .0005)
             setDesiredHeading(joystickDesiredRotation.angle);
-//        else
-//        {
-//            Vector2D dpadDesiredRotation = gamepad.dpad();
-//
-//            if (dpadDesiredRotation.magnitude > .0005)
-//                setDesiredHeading(dpadDesiredRotation.angle);
-//        }
 
         if (joystickDesiredMovement.magnitude > .0005)
             setDesiredMovement(joystickDesiredMovement);
         else
             setDesiredMovement(Vector2D.ZERO);
 
-        if (gamepad.gamepad.y)
+        // Upon tapping white, calibrate the gyro
+        if (HTGamepad.CONTROLLER1.y.currentState == HTButton.ButtonState.JUST_TAPPED)
         {
             try
             {
@@ -153,17 +145,11 @@ public class SwerveDrive extends ScheduledTask
             }
         }
 
-        if (gamepad.gamepad.left_trigger > 0.1 || gamepad.gamepad.right_trigger > 0.1)
+        if (HTGamepad.CONTROLLER1.gamepad.left_trigger > 0.1 || HTGamepad.CONTROLLER1.gamepad.right_trigger > 0.1)
         {
-            this.desiredHeading += 5 * (gamepad.gamepad.left_trigger - gamepad.gamepad.right_trigger);
+            this.desiredHeading += 5 * (HTGamepad.CONTROLLER1.gamepad.left_trigger - HTGamepad.CONTROLLER1.gamepad.right_trigger);
             this.desiredHeading = Vector2D.clampAngle(this.desiredHeading);
         }
-
-
-//        if (gamepad.gamepad.x)
-//            TURN_PID_CONSTANTS.kP += .0001;
-//        else if (gamepad.gamepad.b)
-//            TURN_PID_CONSTANTS.kP -= .0001;
     }
 
 
@@ -180,8 +166,8 @@ public class SwerveDrive extends ScheduledTask
      */
     private void recalculateSwerveWheelVectors() throws InterruptedException
     {
-        if (gamepad != null)
-            updateVectorsByGamepadInstructions();
+        if (joystickControlEnabled)
+            acceptControllerInput();
 
         // Get current gyro val.
         gyroHeading = gyro.z();
@@ -196,14 +182,28 @@ public class SwerveDrive extends ScheduledTask
         // Don't bother trying to be more accurate than 8 degrees while turning.
         rotationSpeed = -pidController.calculatePIDCorrection(angleOff);
 
-            /*
-             * Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
-             * Note that I'm scaling these up by 100 to convert to cm/s from encoder ticks/s
-             */
-        frontLeft.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[0]).add(fieldCentricTranslation).multiply(100));
-        backLeft.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[1]).add(fieldCentricTranslation).multiply(100));
-        backRight.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[2]).add(fieldCentricTranslation).multiply(100));
-        frontRight.setVectorTarget(Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[3]).add(fieldCentricTranslation).multiply(100));
+        /*
+         * Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
+         * Note that I'm scaling these up by 100 to convert to cm/s from encoder ticks/s
+         */
+        for (int i = 0; i < swerveWheels.length; i++)
+            swerveWheels[i].setVectorTarget(
+                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(fieldCentricTranslation).multiply(100));
+
+        // Check to see whether it's okay to start moving by observing the state of all wheels.
+        boolean drivingCanStart = true;
+        for (SwerveWheel wheel : swerveWheels)
+        {
+            if (!wheel.atAcceptableSwivelOrientation())
+            {
+                drivingCanStart = false;
+                break;
+            }
+        }
+
+        // Tell the swerve wheels whether it's okay to start driving.
+        for (SwerveWheel wheel : swerveWheels)
+            wheel.setDrivingState(drivingCanStart);
 
         // Write some information to the telemetry console.
         swerveConsole.write(
@@ -212,26 +212,9 @@ public class SwerveDrive extends ScheduledTask
                 "Rotation Speed: " + rotationSpeed,
                 "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
                 "PID kP: " + TURN_PID_CONSTANTS.kP,
-                "PID kD: " + TURN_PID_CONSTANTS.kD
+                "PID kD: " + TURN_PID_CONSTANTS.kD,
+                "Driving acceptable: " + drivingCanStart
         );
-
-        // Check to see whether it's okay to start moving by observing the state of all wheels.  .
-        if (
-                frontLeft.atAcceptableSwivelOrientation() &&
-                        frontRight.atAcceptableSwivelOrientation() &&
-                        backLeft.atAcceptableSwivelOrientation() &&
-                        backRight.atAcceptableSwivelOrientation())
-        {
-            frontLeft.setDrivingState(true);
-            frontRight.setDrivingState(true);
-            backLeft.setDrivingState(true);
-            backRight.setDrivingState(true);
-        } else {
-            frontLeft.setDrivingState(false);
-            frontRight.setDrivingState(false);
-            backLeft.setDrivingState(false);
-            backRight.setDrivingState(false);
-        }
     }
 
     /**

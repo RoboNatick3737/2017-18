@@ -12,7 +12,8 @@ import hankextensions.files.FileManager;
 @Autonomous(name="Test File IO", group="Experimentation")
 public class EnsureFileIO extends RobotCore
 {
-    protected void START() throws InterruptedException
+    @Override
+    protected void onRun() throws InterruptedException
     {
         try
         {

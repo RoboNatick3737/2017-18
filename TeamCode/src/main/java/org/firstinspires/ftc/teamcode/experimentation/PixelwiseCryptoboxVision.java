@@ -24,16 +24,14 @@ public class PixelwiseCryptoboxVision extends RobotCore implements CameraBridgeV
     private ProcessConsole cameraProcessConsole;
 
     @Override
-    protected void INITIALIZE() throws InterruptedException
+    protected void onRun() throws InterruptedException
     {
         // Start the good old OpenCV camera.
         openCVCam = new OpenCVCam();
         openCVCam.start(this);
-    }
 
-    @Override
-    protected void START() throws InterruptedException
-    {
+        waitForStart();
+
         while (true)
             flow.yield();
     }

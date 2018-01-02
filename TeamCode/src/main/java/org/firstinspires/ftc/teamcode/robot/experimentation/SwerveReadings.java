@@ -14,8 +14,10 @@ import hankextensions.RobotCore;
 public class SwerveReadings extends RobotCore
 {
     @Override
-    protected void START() throws InterruptedException
+    protected void onRun() throws InterruptedException
     {
+        waitForStart();
+
         AbsoluteEncoder backRight = new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Right Vex Encoder"));
         AbsoluteEncoder frontRight = new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Front Right Vex Encoder"));
         AbsoluteEncoder backLeft = new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Left Vex Encoder"));

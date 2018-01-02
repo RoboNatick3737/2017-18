@@ -23,7 +23,7 @@ void JNICALL Java_visionanalysis_CryptoboxDetector_salt(JNIEnv *env, jobject ins
 }
 
 // Gets the mat between a threshold of two mats instead of two scalars.
-void JNICALL Java_visionanalysis_OpenCVJNIHooks_inRangeBetweenMatsNative(JNIEnv *env, jobject instance, jlong toFilterAddr, jlong lowerAddr, jlong upperAddr, jlong destAddr)
+void JNICALL Java_hankextensions_vision_opencv_analysis_OpenCVJNIHooks_inRangeBetweenMatsNative(JNIEnv *env, jobject instance, jlong toFilterAddr, jlong lowerAddr, jlong upperAddr, jlong destAddr)
 {
     inRange(*(Mat *) toFilterAddr, *(Mat *) lowerAddr, *(Mat *) upperAddr, *(Mat *) destAddr);
 }

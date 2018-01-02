@@ -11,7 +11,7 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import visionanalysis.OpenCVJNIHooks;
+import hankextensions.vision.opencv.analysis.OpenCVJNIHooks;
 
 /**
  * Tracks and guesses the approximate distances from this phone to each individual cryptobox
@@ -30,6 +30,8 @@ public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
      */
     public void provideApproximatePhysicalOffset(double forwardDist, double horizontalOffset)
     {
+        this.forwardOffset = forwardDist;
+        this.horizontalOffset = horizontalOffset;
     }
 
     /**
@@ -150,6 +152,65 @@ public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
             locations.remove(locations.size() - 1);
     }
 
+    /**
+     * Looks at a group of columns to figure out how far they are from the camera.
+     */
+    private double getDistanceFromColumns(ArrayList<CryptoColumnPixelLocation> columns)
+    {
+        // Determine distance from center solely based on each of the 4 columns, relatively easy.
+        if (columns.size() == 4)
+        {
+            // Find average distance from leftmost corner
+            double cryptoDist = 0;
+            for (CryptoColumnPixelLocation column : columns)
+                cryptoDist += column.origin + 0.5 * column.width; // find sum of midpoints
+            cryptoDist /= 4.0;
+
+            // Find distance from center of image (where robot currently is located)
+            cryptoDist -= 0.5 * analysisResolution.width;
+            horizontalOffset = cryptoDist;
+
+            // Figure out vertical offset based on area free to both sides.
+            return (columns.get(0).origin + (analysisResolution.width - (columns.get(3).origin + columns.get(3).width))) * (100 / analysisResolution.width) + 59; // approx 30 inches
+        }
+
+        // Determine distance from center solely based on 3 columns, relatively hard.
+        else if (columns.size() == 3)
+        {
+            // Ensure that the columns are at least a certain size first.
+            double avgSize = 0;
+            for (CryptoColumnPixelLocation column : columns)
+                avgSize += column.width;
+            avgSize /= 3.0;
+
+            if (avgSize > analysisResolution.width * .05)
+                // Figure out vertical offset based on area free to both sides.
+                return (columns.get(0).origin + (analysisResolution.width - (columns.get(2).origin + columns.get(2).width))) * (10 / analysisResolution.width) + 46;
+        }
+
+        // Determine distance from center solely based on 2 columns, even harder.
+        else if (columns.size() == 2)
+        {
+            // Ensure that the columns are at least a certain size first.
+            double avgSize = 0;
+            for (CryptoColumnPixelLocation column : columns)
+                avgSize += column.width;
+            avgSize /= 2.0;
+
+            if (avgSize > analysisResolution.width * .1)
+                return (columns.get(0).origin + (analysisResolution.width - (columns.get(1).origin + columns.get(1).width))) * (5 / analysisResolution.width) + 30;
+        }
+
+        // Determine distance from center based on 1 COLUMN ONLY (GOD MODE difficulty).
+        else if (columns.size() == 1)
+        {
+            if (columns.get(0).width > analysisResolution.width * .3)
+                return (columns.get(0).origin + (analysisResolution.width - (columns.get(0).origin + columns.get(0).width))) * (1 / analysisResolution.width);
+        }
+
+        return 100;
+    }
+
     @Override
     public Mat onCameraFrame(Mat raw)
     {
@@ -185,7 +246,7 @@ public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
         Core.bitwise_and(saturationChannel, blueMask, blueMask);
 
         // Get the white mask.
-        Core.inRange(raw, new Scalar(0, 0, 49), new Scalar(255, 59, 255), whiteMask);
+        Core.inRange(raw, new Scalar(0, 0, 60), new Scalar(255, 65, 255), whiteMask);
 
         // Now convert back to normal mode while displaying mats.
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_HSV2RGB);
@@ -207,8 +268,8 @@ public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
             int whitePixels = Core.countNonZero(whiteMask.col(colIndex));
 
             // Neutralize column if criteria isn't fit.
-            boolean sufficientBluePixels = bluePixels > .5 * raw.rows();
-            boolean sufficientWhitePixels = whitePixels > .1 * raw.rows(); // && whitePixels < some percentage of bluePixels;
+            boolean sufficientBluePixels = bluePixels > .4 * raw.rows();
+            boolean sufficientWhitePixels = whitePixels > .1 * raw.rows() && whitePixels < .5 * bluePixels;
 
             if (sufficientBluePixels && sufficientWhitePixels)
                 cryptoColumns[colIndex] = true;
@@ -280,41 +341,8 @@ public class CryptoTracker implements CameraBridgeViewBase.CvCameraViewListener
             }
         }
 
-        // Determine distance from center solely based on each of the 4 columns, relatively easy.
-        if (columns.size() == 4)
-        {
-            // Find average distance from leftmost corner
-            double cryptoDist = 0;
-            for (CryptoColumnPixelLocation column : columns)
-                cryptoDist += column.origin + 0.5 * column.width;
-            cryptoDist /= 4.0;
-
-            // Find distance from center of image (where robot currently is located)
-            cryptoDist -= 0.5 * analysisResolution.width;
-            horizontalOffset = cryptoDist;
-
-            // Figure out vertical offset based on area free to both sides.
-            forwardOffset = columns.get(0).origin + (analysisResolution.width - columns.get(3).origin + columns.get(3).width) * 0.2;
-        }
-
-        // Determine distance from center solely based on 3 columns, relatively hard.
-        else if (columns.size() == 3)
-        {
-            // Figure out vertical offset based on area free to both sides.
-            forwardOffset = columns.get(0).origin + (analysisResolution.width - columns.get(2).origin + columns.get(2).width) * 0.2;
-        }
-
-        // Determine distance from center solely based on 2 columns, even harder.
-        else if (columns.size() == 2)
-        {
-
-        }
-
-        // Determine distance from center based on 1 COLUMN ONLY (GOD MODE difficulty).
-        else if (columns.size() == 1)
-        {
-
-        }
+        // Determine forward dist
+        forwardOffset = getDistanceFromColumns(columns);
 
         // Resize the image to the original size.
         Imgproc.resize(raw, raw, originalResolution);

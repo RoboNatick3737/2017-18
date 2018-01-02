@@ -21,7 +21,7 @@ public class SwerveWheelPIDAdjuster extends RobotCore
     private ScheduledTaskPackage taskPackage;
 
     @Override
-    protected void INITIALIZE() throws InterruptedException {
+    protected void onRun() throws InterruptedException {
         taskPackage = new ScheduledTaskPackage(this, "Swerve Wheel Adjustments");
 
         // All of the SwerveWheels (which align on independent threads)
@@ -56,11 +56,9 @@ public class SwerveWheelPIDAdjuster extends RobotCore
                 new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Right Vex Encoder")),
                 new PIDConstants(0.01304, 0, 0.000669, 5.678),
                 257.24);
-    }
 
-    @Override
-    protected void START() throws InterruptedException
-    {
+        waitForStart();
+
         figureOutPIDConstantsFor(frontLeft);
 
         figureOutPIDConstantsFor(frontRight);

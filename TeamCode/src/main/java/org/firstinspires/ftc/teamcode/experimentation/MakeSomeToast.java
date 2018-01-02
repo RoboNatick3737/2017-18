@@ -10,7 +10,7 @@ import hankextensions.RobotCore;
 @Autonomous(name="Make Some Toast", group="Experimentation")
 public class MakeSomeToast extends RobotCore
 {
-    protected void START() throws InterruptedException
+    protected void onRun() throws InterruptedException
     {
         // MAKATTACK
         AppUtil.getInstance().showToast(UILocation.BOTH, "It's ya boi... MAKATTACK");

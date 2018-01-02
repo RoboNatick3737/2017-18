@@ -20,7 +20,7 @@ public class TestSwervos extends RobotCore
     private ProcessConsole console;
 
     @Override
-    protected void HARDWARE() throws InterruptedException
+    protected void onRun() throws InterruptedException
     {
         frontLeftDrive = initHardwareDevice(DcMotor.class, "Front Left");
         frontRightDrive = initHardwareDevice(DcMotor.class, "Front Right");
@@ -44,6 +44,17 @@ public class TestSwervos extends RobotCore
         backRightVexPosition = new AbsoluteEncoder(initHardwareDevice(AnalogInput.class, "Back Right Vex Encoder"));
 
         console = log.newProcessConsole("Stats");
+
+        waitForStart();
+
+        log.lines("Prop the robot wheels up, X to progress.");
+
+        pauseForX();
+
+        runOn("Front Left", frontLeftVexMotor, frontLeftVexPosition, frontLeftDrive);
+        runOn("Front Right", frontRightVexMotor, frontRightVexPosition, frontRightDrive);
+        runOn("Back Left", backLeftVexMotor, backLeftVexPosition, backLeftDrive);
+        runOn("Back Right", backRightVexMotor, backRightVexPosition, backRightDrive);
     }
 
     private void pauseForX() throws InterruptedException
@@ -66,18 +77,5 @@ public class TestSwervos extends RobotCore
         flow.msPause(500); // Give user time to take hands off X.
         servo.setPosition(0.5);
         motor.setPower(0);
-    }
-
-    @Override
-    protected void START() throws InterruptedException
-    {
-        log.lines("Prop the robot wheels up, X to progress.");
-
-        pauseForX();
-
-        runOn("Front Left", frontLeftVexMotor, frontLeftVexPosition, frontLeftDrive);
-        runOn("Front Right", frontRightVexMotor, frontRightVexPosition, frontRightDrive);
-        runOn("Back Left", backLeftVexMotor, backLeftVexPosition, backLeftDrive);
-        runOn("Back Right", backRightVexMotor, backRightVexPosition, backRightDrive);
     }
 }

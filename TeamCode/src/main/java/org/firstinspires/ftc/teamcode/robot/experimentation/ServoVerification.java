@@ -11,8 +11,10 @@ import hankextensions.RobotCore;
 public class ServoVerification extends RobotCore
 {
     @Override
-    protected void START() throws InterruptedException
+    protected void onRun() throws InterruptedException
     {
+        waitForStart();
+
         Servo test = initHardwareDevice(Servo.class, "Front Right Vex Motor");
 
         test.setPosition(0);

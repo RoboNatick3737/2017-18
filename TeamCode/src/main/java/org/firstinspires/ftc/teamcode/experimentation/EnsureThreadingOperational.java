@@ -8,7 +8,8 @@ import hankextensions.RobotCore;
 @Autonomous(name="Test Threading", group="Experimentation")
 public class EnsureThreadingOperational extends RobotCore
 {
-    protected void START() throws InterruptedException
+    @Override
+    protected void onRun() throws InterruptedException
     {
         ParallelTask task1 = new ParallelTask(this, "Task 1", log) {
             @Override

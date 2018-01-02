@@ -15,18 +15,16 @@ public class VisionSwap extends RobotCore
     VuforiaCam vuforiaCam;
 
     @Override
-    protected void INITIALIZE() throws InterruptedException
+    protected void onRun() throws InterruptedException
     {
         openCVCam = new OpenCVCam();
         vuforiaCam = new VuforiaCam();
 
         openCVCam.start();
         log.lines("Started OpenCV");
-    }
 
-    @Override
-    protected void START() throws InterruptedException
-    {
+        waitForStart();
+
         openCVCam.stop();
         vuforiaCam.start();
         log.lines("Started Vuforia");

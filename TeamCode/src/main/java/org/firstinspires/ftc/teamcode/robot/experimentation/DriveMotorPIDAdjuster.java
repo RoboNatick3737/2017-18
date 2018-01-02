@@ -17,7 +17,7 @@ public class DriveMotorPIDAdjuster extends RobotCore
     private EncoderMotor frontLeft, backLeft, frontRight, backRight;
 
     @Override
-    protected void INITIALIZE() throws InterruptedException
+    protected void onRun() throws InterruptedException
     {
         // All of the drive motors and their respective PID.
         frontLeft = new EncoderMotor(
@@ -43,11 +43,9 @@ public class DriveMotorPIDAdjuster extends RobotCore
                 initHardwareDevice(DcMotor.class, "Back Right"),
                 new PIDConstants(.0008, 0, 0, 0),
                 475, 7.62);
-    }
 
-    @Override
-    protected void START() throws InterruptedException
-    {
+        waitForStart();
+
         figureOutPIDConstantsFor(frontLeft);
 
         figureOutPIDConstantsFor(frontRight);

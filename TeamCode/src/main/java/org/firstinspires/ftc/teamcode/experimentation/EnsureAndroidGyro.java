@@ -11,16 +11,15 @@ import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 @Autonomous(name = "Test Android Gyro", group = "Experimentation")
 public class EnsureAndroidGyro extends RobotCore
 {
-    Gyro phoneGyro;
+    private Gyro phoneGyro;
 
     @Override
-    protected void INITIALIZE() throws InterruptedException {
+    protected void onRun() throws InterruptedException {
         phoneGyro = new AndroidGyro();
         AndroidGyro.instance.start();
-    }
 
-    protected void START() throws InterruptedException
-    {
+        waitForStart();
+
         ProcessConsole gyroConsole = log.newProcessConsole("Phone Gyro");
 
         while (true)

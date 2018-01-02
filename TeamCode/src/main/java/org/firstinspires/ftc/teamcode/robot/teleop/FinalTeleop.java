@@ -4,6 +4,7 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.robot.TeleopBase;
 
 import hankextensions.input.HTButton;
 
@@ -11,44 +12,49 @@ import hankextensions.input.HTButton;
 public class FinalTeleop extends TeleopBase
 {
     @Override
-    public void INITIALIZE() throws InterruptedException
+    public void onRunTeleop() throws InterruptedException
     {
         flipper.advanceStage(0);
         intake.stop();
-    }
 
-    @Override
-    protected void START() throws InterruptedException
-    {
-        swerveDrive.provideGamepad(gamepad1);
+        waitForStart();
+
+        swerveDrive.setJoystickControlEnabled(true);
         swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         while (true)
         {
-            htGamepad1.update();
-            htGamepad2.update();
+            // Update controllers
+            C1.update();
+            C2.update();
 
+            // Update swerve drive
             swerveDrive.synchronousUpdate();
 
-            if (htGamepad1.a.currentState == HTButton.ButtonState.JUST_TAPPED)
+            // Control flipper
+            if (C1.a.currentState == HTButton.ButtonState.JUST_TAPPED)
                 flipper.advanceStage();
 
-            if (htGamepad1.x.currentState == HTButton.ButtonState.JUST_TAPPED)
+            // Use the ball knocker
+            if (C1.x.currentState == HTButton.ButtonState.JUST_TAPPED)
                 ballKnocker.toggleKnocker();
 
-            if (gamepad1.left_bumper)
+            // Control intake
+            if (C1.gamepad.left_bumper)
                 intake.intake();
-            else if (gamepad1.right_bumper)
+            else if (C1.gamepad.right_bumper)
                 intake.expel();
             else
                 intake.stop();
 
-            if (htGamepad1.b.currentState == HTButton.ButtonState.JUST_TAPPED)
+            // Toggle the harvester stage.
+            if (C1.b.currentState == HTButton.ButtonState.JUST_TAPPED)
                 intake.toggleHarvesterStage();
 
-            if (gamepad2.dpad_up)
+            // Control the lift.
+            if (C2.gamepad.dpad_up)
                 lift.up();
-            else if (gamepad2.dpad_down)
+            else if (C2.gamepad.dpad_down)
                 lift.down();
             else
                 lift.stop();

@@ -8,7 +8,8 @@ import hankextensions.music.Tunes;
 @Autonomous(name="Pumping Beats", group="Experimentation")
 public class EnsureTunesOperational extends RobotCore
 {
-    protected void START() throws InterruptedException
+    @Override
+    protected void onRun() throws InterruptedException
     {
         Tunes.play(Tunes.Option.USSR_Anthem);
 

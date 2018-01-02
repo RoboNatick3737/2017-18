@@ -1,4 +1,4 @@
-package visionanalysis;
+package hankextensions.vision.opencv.analysis;
 
 import org.opencv.core.Mat;
 

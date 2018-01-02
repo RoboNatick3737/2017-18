@@ -8,6 +8,10 @@ import hankextensions.structs.Vector2D;
  */
 public class HTGamepad
 {
+    // Singletons for when we need to init the gamepads.
+    public static HTGamepad CONTROLLER1, CONTROLLER2;
+    public enum ControllerID { CONTROLLER_1, CONTROLLER_2 }
+
     // The gamepad buttons.
     public final HTButton
             a = new HTButton(),
@@ -21,9 +25,14 @@ public class HTGamepad
      * The gamepad reference to which this corresponds.
      */
     public final Gamepad gamepad;
-    public HTGamepad(Gamepad gamepad)
+    public HTGamepad(Gamepad gamepad, ControllerID controllerID)
     {
         this.gamepad = gamepad;
+
+        if (controllerID == ControllerID.CONTROLLER_1)
+            CONTROLLER1 = this;
+        else if (controllerID == ControllerID.CONTROLLER_2)
+            CONTROLLER2 = this;
     }
 
     /**

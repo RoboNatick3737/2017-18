@@ -10,8 +10,10 @@ import hankextensions.structs.Vector2D;
 public class DriveTesting extends HardwareBase
 {
     @Override
-    protected void START() throws InterruptedException
+    protected void onRunWithHardware() throws InterruptedException
     {
+        waitForStart();
+
         swerveDrive.setDesiredMovement(Vector2D.polar(1, 0));
 
         flow.msPause(3000);

@@ -5,6 +5,7 @@ import com.makiah.makiahsandroidlib.threading.TaskParent;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 
+import hankextensions.input.HTGamepad;
 import hankextensions.logging.TelemetryWrapper;
 import hankextensions.phonesensors.AndroidGyro;
 import hankextensions.vision.opencv.OpenCVCam;
@@ -22,6 +23,9 @@ public abstract class RobotCore extends LinearOpMode implements TaskParent
     // Properties of the current RobotCore instance.
     public TelemetryWrapper log;
     public Flow flow;
+
+    // Two pointers to the gamepads for the purpose of concision.
+    protected HTGamepad C1, C2;
 
     /**
      * As a TaskParent, RobotCore must implement this method.
@@ -48,20 +52,12 @@ public abstract class RobotCore extends LinearOpMode implements TaskParent
             flow = new Flow(this);
             log = new TelemetryWrapper(telemetry);
 
-            //REQUIRED in child classes.
-            HARDWARE();
+            // Init the gamepads
+            C1 = new HTGamepad(gamepad1, HTGamepad.ControllerID.CONTROLLER_1);
+            C2 = new HTGamepad(gamepad2, HTGamepad.ControllerID.CONTROLLER_2);
 
-            //May be used in different programs.
-            INITIALIZE();
-
-            //Wait for the start button to be pressed.
-            waitForStart ();
-
-            // Since hitting stop makes waitForStart be bypassed.
-            flow.yield();
-
-            //This is where the child classes mainly differ in their instructions.
-            START();
+            // Run the OpMode.
+            onRun();
         }
         catch (InterruptedException e) {} //If this is caught, then the user requested program stop.
         catch (Exception e) //If this is caught, it wasn't an InterruptedException and wasn't requested, so the user is notified.
@@ -93,7 +89,7 @@ public abstract class RobotCore extends LinearOpMode implements TaskParent
             if (AndroidGyro.instance != null)
                 AndroidGyro.instance.quit();
 
-            STOP();
+            onStop();
         }
     }
 
@@ -114,20 +110,11 @@ public abstract class RobotCore extends LinearOpMode implements TaskParent
     }
 
     /**
-     * In this method, initialize all required hardware (motors, servos, etc.).
-     */
-    protected void HARDWARE() throws InterruptedException {};
-    /**
-     * In this method, do everything that needs to happen AFTER hardware initialization and during Init (like
-     * gyro calibration).
-     */
-    protected void INITIALIZE() throws InterruptedException {}
-    /**
      * Code everything that the robot needs to do upon play being tapped in here.
      */
-    protected abstract void START() throws InterruptedException;
+    protected abstract void onRun() throws InterruptedException;
     /**
      * Any final actions that need to happen.
      */
-    protected void STOP() {}
+    protected void onStop() {}
 }

@@ -104,7 +104,7 @@ public class FollowJoystickOrientation extends RobotCore
     }
 
     int offsetRevolutions = 0;
-    protected final void START() throws InterruptedException {
+    protected final void onRun() throws InterruptedException {
         final int encoderRevolution = 1680;
 
         log.lines("Started");
