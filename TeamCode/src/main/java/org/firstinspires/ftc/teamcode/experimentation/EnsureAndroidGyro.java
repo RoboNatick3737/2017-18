@@ -2,14 +2,14 @@ package org.firstinspires.ftc.teamcode.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 import hankextensions.phonesensors.AndroidGyro;
 import hankextensions.phonesensors.Gyro;
 
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 
 @Autonomous(name = "Test Android Gyro", group = "Experimentation")
-public class EnsureAndroidGyro extends RobotCore
+public class EnsureAndroidGyro extends EnhancedOpMode
 {
     private Gyro phoneGyro;
 

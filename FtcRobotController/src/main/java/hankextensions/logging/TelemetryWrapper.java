@@ -5,7 +5,7 @@ import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 
 /**
  * Uses my lib to visualize task states on the driver station.
@@ -19,7 +19,7 @@ public class TelemetryWrapper extends LoggingBase
      */
     public TelemetryWrapper(Telemetry mainTelemetry) throws InterruptedException
     {
-        super(RobotCore.instance);
+        super(EnhancedOpMode.instance);
 
         // Set instance and static components.
         this.mainTelemetry = mainTelemetry;

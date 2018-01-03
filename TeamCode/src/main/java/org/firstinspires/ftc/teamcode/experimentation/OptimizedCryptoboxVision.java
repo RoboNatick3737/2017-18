@@ -6,11 +6,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.components.CryptoTracker;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
 
 @Autonomous(name="Optimized Cryptobox Vision", group= Constants.EXPERIMENTATION)
-public class OptimizedCryptoboxVision extends RobotCore
+public class OptimizedCryptoboxVision extends EnhancedOpMode
 {
     private OpenCVCam openCVCam;
 

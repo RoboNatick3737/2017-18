@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.robot.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import org.firstinspires.ftc.teamcode.CompetitionOpMode;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.robot.RobotBase;
 import hankextensions.structs.Vector2D;
@@ -29,5 +30,15 @@ public class DriveTesting extends RobotBase
         swerveDrive.setDesiredMovement(Vector2D.polar(1, 270));
 
         flow.msPause(3000);
+    }
+
+    @Override
+    protected Alliance getAlliance() {
+        return null;
+    }
+
+    @Override
+    protected BalancePlateLocation getBalancePlateLocation() {
+        return null;
     }
 }

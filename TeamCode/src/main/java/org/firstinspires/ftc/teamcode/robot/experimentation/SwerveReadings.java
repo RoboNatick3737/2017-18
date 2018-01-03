@@ -8,10 +8,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 
 @Autonomous(name="Swerve Readings", group=Constants.FINAL_BOT_EXPERIMENTATION)
-public class SwerveReadings extends RobotCore
+public class SwerveReadings extends EnhancedOpMode
 {
     @Override
     protected void onRun() throws InterruptedException

@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode.robot.hardware;
 
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 
-import hankextensions.RobotCore;
-import hankextensions.logging.TelemetryWrapper;
+import hankextensions.EnhancedOpMode;
 import hankextensions.structs.Vector2D;
 
 import hankextensions.phonesensors.Gyro;
@@ -30,20 +30,20 @@ public class MRGyro implements Gyro
      */
     public void calibrate(boolean zeroHeading) throws InterruptedException
     {
-        RobotCore.instance.log.lines("Gyroscope calibrating...");
+        LoggingBase.instance.lines("Gyroscope calibrating...");
 
         //Pause to prevent odd errors in which it says it's configured but is actually LYING.
-        RobotCore.instance.flow.msPause (1000);
+        EnhancedOpMode.instance.flow.msPause (1000);
 
         //Wait for gyro to finish calibrating.
         while (sensor.isCalibrating())
-            RobotCore.instance.flow.msPause (50);
+            EnhancedOpMode.instance.flow.msPause (50);
 
         //Zero gyro heading.
         if (zeroHeading)
             zero();
 
-        RobotCore.instance.log.lines("Gyroscope calibration complete!");
+        LoggingBase.instance.lines("Gyroscope calibration complete!");
     }
 
     /**
@@ -57,9 +57,9 @@ public class MRGyro implements Gyro
     //Just resets the gyro.
     public void zero() throws InterruptedException
     {
-        RobotCore.instance.flow.msPause (400);
+        EnhancedOpMode.instance.flow.msPause (400);
         sensor.resetZAxisIntegrator();
-        RobotCore.instance.flow.msPause (400);
+        EnhancedOpMode.instance.flow.msPause (400);
     }
 
     /**

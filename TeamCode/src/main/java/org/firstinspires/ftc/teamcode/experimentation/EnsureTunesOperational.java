@@ -2,11 +2,11 @@ package org.firstinspires.ftc.teamcode.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 import hankextensions.music.Tunes;
 
 @Autonomous(name="Pumping Beats", group="Experimentation")
-public class EnsureTunesOperational extends RobotCore
+public class EnsureTunesOperational extends EnhancedOpMode
 {
     @Override
     protected void onRun() throws InterruptedException

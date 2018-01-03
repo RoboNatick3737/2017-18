@@ -12,10 +12,10 @@ import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveWheel;
 import hankextensions.structs.Vector2D;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 
 @TeleOp(name="Swerve Wheel PID Adjuster", group= Constants.FINAL_BOT_EXPERIMENTATION)
-public class SwerveWheelPIDAdjuster extends RobotCore
+public class SwerveWheelPIDAdjuster extends EnhancedOpMode
 {
     private SwerveWheel frontLeft, backLeft, frontRight, backRight;
     private ScheduledTaskPackage taskPackage;

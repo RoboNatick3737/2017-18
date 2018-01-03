@@ -11,6 +11,7 @@ package org.firstinspires.ftc.teamcode.robot.hardware;
 
 import android.support.annotation.NonNull;
 
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTask;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -19,7 +20,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.components.pid.PIDController;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 import hankextensions.structs.Vector2D;
 
 /**
@@ -84,7 +85,7 @@ public class SwerveWheel extends ScheduledTask
         this.swerveEncoder = swerveEncoder;
         this.physicalEncoderOffset = physicalEncoderOffset;
 
-        wheelConsole = RobotCore.instance.log.newProcessConsole(motorName + " Swivel Console");
+        wheelConsole = LoggingBase.instance.newProcessConsole(motorName + " Swivel Console");
 
         this.pidController = new PIDController(pidConstants);
     }

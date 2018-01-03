@@ -2,11 +2,12 @@ package org.firstinspires.ftc.teamcode.robot.hardware;
 
 import android.support.annotation.NonNull;
 
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTask;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 import hankextensions.input.HTButton;
 import hankextensions.input.HTGamepad;
 import hankextensions.phonesensors.Gyro;
@@ -58,13 +59,13 @@ public class SwerveDrive extends ScheduledTask
         this.swerveWheels[3] = frontRight;
 
         // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
-        swerveUpdatePackage = new ScheduledTaskPackage(RobotCore.instance, "Swerve Turn Alignments",
+        swerveUpdatePackage = new ScheduledTaskPackage(EnhancedOpMode.instance, "Swerve Turn Alignments",
                 this, frontLeft, frontRight, backLeft, backRight);
 
         // For turning the drive.
         pidController = new PIDController(TURN_PID_CONSTANTS);
 
-        swerveConsole = RobotCore.instance.log.newProcessConsole("Swerve Console");
+        swerveConsole = LoggingBase.instance.newProcessConsole("Swerve Console");
     }
 
     /**

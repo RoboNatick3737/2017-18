@@ -7,7 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 
 public class FileManager
 {
@@ -17,10 +17,10 @@ public class FileManager
 
         if (new File(actualPath).exists())
         {
-            RobotCore.instance.log.lines("Can't copy " + internalPath + " since it already exists.");
+            EnhancedOpMode.instance.log.lines("Can't copy " + internalPath + " since it already exists.");
         }
 
-        InputStream in = RobotCore.instance.hardwareMap.appContext.getResources().openRawResource(id);
+        InputStream in = EnhancedOpMode.instance.hardwareMap.appContext.getResources().openRawResource(id);
         FileOutputStream out = new FileOutputStream(Environment.getExternalStorageDirectory() + "/" + internalPath);
         byte[] buff = new byte[1024];
         int read = 0;

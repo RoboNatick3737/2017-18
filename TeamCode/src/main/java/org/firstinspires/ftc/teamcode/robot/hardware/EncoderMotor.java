@@ -1,12 +1,11 @@
 package org.firstinspires.ftc.teamcode.robot.hardware;
 
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.components.pid.PIDController;
-
-import hankextensions.RobotCore;
 
 public class EncoderMotor
 {
@@ -51,7 +50,7 @@ public class EncoderMotor
         ENCODER_TICKS_WHEEL_REVOLUTION = encoderTicksPerWheelRevolution;
         WHEEL_CIRCUMFERENCE = wheelDiameterCM * Math.PI;
 
-        processConsole = RobotCore.instance.log.newProcessConsole(motorName + " Motor Process Console");
+        processConsole = LoggingBase.instance.newProcessConsole(motorName + " Motor Process Console");
 
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }

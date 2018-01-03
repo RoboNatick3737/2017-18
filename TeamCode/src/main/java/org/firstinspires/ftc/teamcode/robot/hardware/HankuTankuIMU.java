@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot.hardware;
 
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 
@@ -7,7 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 import hankextensions.phonesensors.Gyro;
 import hankextensions.structs.Vector2D;
 
@@ -26,7 +27,7 @@ public class HankuTankuIMU implements Gyro
 
     private void initializeIMU()
     {
-        RobotCore.instance.log.lines("Initializing IMU...");
+        LoggingBase.instance.lines("Initializing IMU...");
 
         // Set up the required parameters for the IMU initialization.
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -39,7 +40,7 @@ public class HankuTankuIMU implements Gyro
 
         imu.initialize(parameters);
 
-        RobotCore.instance.log.lines("IMU initialized!");
+        LoggingBase.instance.lines("IMU initialized!");
     }
 
     @Override
@@ -50,7 +51,7 @@ public class HankuTankuIMU implements Gyro
     @Override
     public void zero() throws InterruptedException
     {
-        // resetOffset = Vector2D.clampAngle(imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle);
+         resetOffset = Vector2D.clampAngle(imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle);
     }
 
     @Override

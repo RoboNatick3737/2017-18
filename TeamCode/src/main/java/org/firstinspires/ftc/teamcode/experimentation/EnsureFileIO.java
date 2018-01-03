@@ -6,11 +6,12 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import java.io.File;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
+import hankextensions.EnhancedOpMode;
 import hankextensions.files.FileManager;
 
 @Autonomous(name="Test File IO", group="Experimentation")
-public class EnsureFileIO extends RobotCore
+public class EnsureFileIO extends EnhancedOpMode
 {
     @Override
     protected void onRun() throws InterruptedException

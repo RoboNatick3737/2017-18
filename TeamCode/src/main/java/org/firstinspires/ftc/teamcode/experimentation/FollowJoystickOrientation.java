@@ -5,9 +5,9 @@ import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 
-public class FollowJoystickOrientation extends RobotCore
+public class FollowJoystickOrientation extends EnhancedOpMode
 {
     private DcMotor toTurn;
     private ModernRoboticsI2cColorSensor calibrationSensor;

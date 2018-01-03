@@ -9,10 +9,10 @@ import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
 import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 
 @TeleOp(name="Drive Motor PID Adjuster", group= Constants.FINAL_BOT_EXPERIMENTATION)
-public class DriveMotorPIDAdjuster extends RobotCore
+public class DriveMotorPIDAdjuster extends EnhancedOpMode
 {
     private EncoderMotor frontLeft, backLeft, frontRight, backRight;
 

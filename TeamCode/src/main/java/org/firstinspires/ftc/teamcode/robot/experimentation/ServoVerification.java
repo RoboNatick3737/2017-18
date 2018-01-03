@@ -5,10 +5,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Constants;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 
 @Autonomous(name="Servo Verification", group=Constants.FINAL_BOT_EXPERIMENTATION)
-public class ServoVerification extends RobotCore
+public class ServoVerification extends EnhancedOpMode
 {
     @Override
     protected void onRun() throws InterruptedException

@@ -2,7 +2,9 @@ package hankextensions.music;
 
 import android.media.MediaPlayer;
 
-import hankextensions.RobotCore;
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
+
+import hankextensions.EnhancedOpMode;
 
 /**
  * NiFTMusic enables the easy playing of audio files which are placed in the FtcRobotController/res/raw folder.  This functionality is helpful for both debugging and showing the other teams that you've got swag.
@@ -38,7 +40,7 @@ public class Tunes
                     break;
             }
 
-            mediaPlayer = MediaPlayer.create (RobotCore.instance.hardwareMap.appContext, selectedSong);
+            mediaPlayer = MediaPlayer.create (EnhancedOpMode.instance.hardwareMap.appContext, selectedSong);
             mediaPlayer.start ();
             mediaPlayer.setOnCompletionListener (new MediaPlayer.OnCompletionListener ()
             {
@@ -48,14 +50,14 @@ public class Tunes
                 }
             });
 
-            RobotCore.instance.log.lines("Playing " + choice.toString ());
+            LoggingBase.instance.lines("Playing " + choice.toString ());
 
-            RobotCore.instance.flow.msPause (1000); //Give the MediaPlayer some time to initialize, and register that a song is being played.
+            EnhancedOpMode.instance.flow.msPause (1000); //Give the MediaPlayer some time to initialize, and register that a song is being played.
         } catch (InterruptedException e)
         {/**/} //Exit immediately.
         catch (Exception e)
         {
-            RobotCore.instance.log.lines("Music error: " + e.getMessage ());
+            EnhancedOpMode.instance.log.lines("Music error: " + e.getMessage ());
         }
     }
 

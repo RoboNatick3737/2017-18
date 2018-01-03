@@ -9,10 +9,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 
 @TeleOp(name="Test Swervos", group= Constants.EXPERIMENTATION)
-public class TestSwervos extends RobotCore
+public class TestSwervos extends EnhancedOpMode
 {
     private DcMotor frontLeftDrive, frontRightDrive, backLeftDrive, backRightDrive;
     private Servo frontLeftVexMotor, frontRightVexMotor, backLeftVexMotor, backRightVexMotor;

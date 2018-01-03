@@ -13,11 +13,11 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.LinkedList;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
 
 @Autonomous(name="Pixelwise Cryptobox Vision", group= Constants.EXPERIMENTATION)
-public class PixelwiseCryptoboxVision extends RobotCore implements CameraBridgeViewBase.CvCameraViewListener
+public class PixelwiseCryptoboxVision extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     private OpenCVCam openCVCam;
 

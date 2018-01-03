@@ -6,10 +6,10 @@ import org.firstinspires.ftc.teamcode.Constants;
 
 import hankextensions.vision.opencv.OpenCVCam;
 import hankextensions.vision.vuforia.VuforiaCam;
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 
 @Autonomous(name="Vision Swap", group=Constants.EXPERIMENTATION)
-public class VisionSwap extends RobotCore
+public class VisionSwap extends EnhancedOpMode
 {
     OpenCVCam openCVCam;
     VuforiaCam vuforiaCam;

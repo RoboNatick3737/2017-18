@@ -4,6 +4,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.qualcomm.ftcrobotcontroller.R;
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -17,7 +18,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 
 /**
  * Singleton class instead of a static class because the BaseLoaderCallback doesn't like
@@ -66,7 +67,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
                         RobotLog.vv(LOG_TAG, "OpenCV Manager Connected");
                         //from now onwards, you can use OpenCV API
                         // Mat m = new Mat(5, 10, CvType.CV_8UC1, new Scalar(0));
-                        RobotCore.instance.log.lines("OpenCV loaded from internal package successfully!");
+                        EnhancedOpMode.instance.log.lines("OpenCV loaded from internal package successfully!");
                         loadingComplete = true;
                         break;
                     case LoaderCallbackInterface.INIT_FAILED:
@@ -107,13 +108,13 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     {
         if (currentlyActive)
         {
-            RobotCore.instance.log.lines("Can't start with listener " + listener.getClass().toString() + " because already running");
+            LoggingBase.instance.lines("Can't start with listener " + listener.getClass().toString() + " because already running");
             return;
         }
 
         currentlyActive = true;
 
-        RobotCore.instance.log.lines("Starting with listener " + listener.getClass().toString());
+        LoggingBase.instance.lines("Starting with listener " + listener.getClass().toString());
 
         // Enable the view and start the camera.  This NEEDS to move procedurally, so we run them synchronously on the UI thread.
         FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
@@ -125,14 +126,14 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 
         // Wait for loading to complete.
         while (!loadingComplete)
-            RobotCore.instance.flow.yield();
+            EnhancedOpMode.instance.flow.yield();
 
         if (cameraBridgeViewBase != null) {
             cameraBridgeViewBase.setCvCameraViewListener(listener);
             setCameraViewState(true); // Might have to run on main activity.
         }
         else
-            RobotCore.instance.log.lines("Camera Bridge View Base was null, couldn't enable listener!");
+            LoggingBase.instance.lines("Camera Bridge View Base was null, couldn't enable listener!");
     }
 
     //Stops OpenCV and hides it from the Robot Controller.
@@ -186,7 +187,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     // Called when the FtcRobotControllerActivity changes activity states.
     public void newActivityState(final State state)
     {
-        RobotCore.instance.log.lines("Activity state change to " + state.toString());
+        LoggingBase.instance.lines("Activity state change to " + state.toString());
 
         FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
             @Override
@@ -214,7 +215,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     // HAS to run on UI thread or view thread error.
     private void onCreate()
     {
-        RobotCore.instance.log.lines("onCreate()");
+        LoggingBase.instance.lines("onCreate()");
 
         FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -224,7 +225,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 
     private void onResume()
     {
-        RobotCore.instance.log.lines("onResume()");
+        LoggingBase.instance.lines("onResume()");
         currentState = State.RESUME;
 
         if (!OpenCVLoader.initDebug()) {
@@ -238,7 +239,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 
     private void onPause()
     {
-        RobotCore.instance.log.lines("onPause()");
+        LoggingBase.instance.lines("onPause()");
         currentState = State.PAUSE;
 
         setCameraViewState(false);

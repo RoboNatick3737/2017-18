@@ -3,10 +3,10 @@ package org.firstinspires.ftc.teamcode.experimentation;
 import com.makiah.makiahsandroidlib.threading.ParallelTask;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import hankextensions.RobotCore;
+import hankextensions.EnhancedOpMode;
 
 @Autonomous(name="Test Threading", group="Experimentation")
-public class EnsureThreadingOperational extends RobotCore
+public class EnsureThreadingOperational extends EnhancedOpMode
 {
     @Override
     protected void onRun() throws InterruptedException
