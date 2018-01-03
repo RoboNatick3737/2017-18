@@ -15,10 +15,10 @@ import hankextensions.music.Tunes;
 /**
  * NiFTBase is the class from which all user OpModes should inherit.  With advanced error handling, it takes care of the scenarios in which the user requests an early stop, fails to take an error into account, etc.
  */
-public abstract class RobotCore extends LinearOpMode implements TaskParent
+public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
 {
     // Useful for other files which require custom initialization steps or components from this op mode which they cannot otherwise obtain.
-    public static RobotCore instance;
+    public static EnhancedOpMode instance;
 
     // Properties of the current RobotCore instance.
     public TelemetryWrapper log;

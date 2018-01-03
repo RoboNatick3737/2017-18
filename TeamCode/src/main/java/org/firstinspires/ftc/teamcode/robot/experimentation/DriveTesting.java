@@ -3,11 +3,11 @@ package org.firstinspires.ftc.teamcode.robot.experimentation;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.robot.HardwareBase;
+import org.firstinspires.ftc.teamcode.robot.RobotBase;
 import hankextensions.structs.Vector2D;
 
 @Autonomous(name="Drive Testing", group=Constants.FINAL_BOT_EXPERIMENTATION)
-public class DriveTesting extends HardwareBase
+public class DriveTesting extends RobotBase
 {
     @Override
     protected void onRunWithHardware() throws InterruptedException

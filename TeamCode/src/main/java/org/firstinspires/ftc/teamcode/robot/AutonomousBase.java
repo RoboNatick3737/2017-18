@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.robot;
 import hankextensions.vision.opencv.OpenCVCam;
 import hankextensions.vision.opencv.analysis.JewelDetector;
 
-public abstract class AutonomousBase extends HardwareBase
+public abstract class AutonomousBase extends RobotBase
 {
     private OpenCVCam openCVCam;
     private JewelDetector.JewelOrder determinedJewelOrder;
@@ -26,8 +26,27 @@ public abstract class AutonomousBase extends HardwareBase
         JewelDetector jewelDetector = new JewelDetector();
         openCVCam = new OpenCVCam();
         openCVCam.start(jewelDetector);
-        while (jewelDetector.getCurrentOrder() == JewelDetector.JewelOrder.UNKNOWN && !shouldTransitionIntoActualOpMode())
+        JewelDetector.JewelOrder currentOrder = JewelDetector.JewelOrder.UNKNOWN;
+        while (currentOrder == JewelDetector.JewelOrder.UNKNOWN && !shouldTransitionIntoActualOpMode())
+        {
+            currentOrder = jewelDetector.getCurrentOrder();
             flow.yield();
+        }
+        determinedJewelOrder = currentOrder;
+
+        // Determine which direction we're going to have to rotate when auto starts.
+        double ballKnockHeading = 0;
+        if (getAlliance() == Alliance.RED) // since this extends competition op mode.
+        {
+
+        }
+
+        // Wait for the auto start period.
+        waitForStart();
+
+        // Knock off the jewel as quickly as possible
+        ballKnocker.setKnockerTo(false);
+
 
         // Run the auto itself.
         onRunAutonomous();

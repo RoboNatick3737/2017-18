@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.CompetitionOpMode;
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.HankuTankuIMU;
 import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
@@ -16,12 +17,9 @@ import org.firstinspires.ftc.teamcode.robot.hardware.Lift;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveDrive;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveWheel;
 
-import hankextensions.RobotCore;
-import hankextensions.input.HTGamepad;
-
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
 
-public abstract class HardwareBase extends RobotCore
+public abstract class RobotBase extends CompetitionOpMode
 {
     // The drive system (wrapper for all complex swervey methods)
     protected SwerveDrive swerveDrive;
