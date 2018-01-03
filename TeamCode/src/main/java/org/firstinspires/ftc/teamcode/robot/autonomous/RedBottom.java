@@ -10,17 +10,14 @@ import org.firstinspires.ftc.teamcode.robot.AutonomousBase;
 public class RedBottom extends AutonomousBase
 {
     @Override
-    protected void onRunAutonomous() throws InterruptedException
+    protected Alliance getAlliance()
     {
-    }
-
-    @Override
-    protected Alliance getAlliance() {
         return Alliance.RED;
     }
 
     @Override
-    protected BalancePlateLocation getBalancePlateLocation() {
+    protected BalancePlateLocation getBalancePlateLocation()
+    {
         return BalancePlateLocation.BOTTOM;
     }
 }
