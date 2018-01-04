@@ -4,7 +4,7 @@ import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import hankextensions.vision.opencv.analysis.CryptoboxTracker;
+import org.firstinspires.ftc.teamcode.vision.CryptoboxTracker;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;

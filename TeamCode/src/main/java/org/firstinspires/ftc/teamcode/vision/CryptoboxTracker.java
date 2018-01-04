@@ -1,17 +1,13 @@
-package hankextensions.vision.opencv.analysis;
+package org.firstinspires.ftc.teamcode.vision;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
-
-import hankextensions.vision.opencv.analysis.OpenCVJNIHooks;
 
 /**
  * Tracks and guesses the approximate distances from this phone to each individual cryptobox

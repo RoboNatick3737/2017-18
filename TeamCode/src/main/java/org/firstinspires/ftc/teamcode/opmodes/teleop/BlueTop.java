@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.opmodes.autonomous.AutonomousBase;
 
-@Autonomous(name="Blue Top Auto", group= Constants.FINAL_BOT_OPMODES)
+@Autonomous(name="Blue Top Teleop", group= Constants.FINAL_BOT_OPMODES)
 public class BlueTop extends TeleopBase
 {
     @Override

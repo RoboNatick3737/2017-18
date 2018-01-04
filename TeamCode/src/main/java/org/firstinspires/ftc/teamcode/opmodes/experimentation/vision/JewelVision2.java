@@ -7,7 +7,7 @@ import org.firstinspires.ftc.teamcode.Constants;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
-import hankextensions.vision.opencv.analysis.JewelDetector2;
+import org.firstinspires.ftc.teamcode.vision.JewelDetector2;
 
 @Autonomous(name="Jewel Vision 2", group= Constants.EXPERIMENTATION)
 public class JewelVision2 extends EnhancedOpMode

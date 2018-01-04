@@ -12,10 +12,10 @@ import org.opencv.imgproc.Imgproc;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
-import hankextensions.vision.opencv.analysis.MaskGenerator;
+import org.firstinspires.ftc.teamcode.vision.MaskGenerator;
 
-@Autonomous(name="Red and Blue 2", group= Constants.EXPERIMENTATION)
-public class RednBlue2 extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
+@Autonomous(name="Red and Blue Detection", group= Constants.EXPERIMENTATION)
+public class RedBlueDetection extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     private OpenCVCam openCVCam;
 
@@ -71,7 +71,7 @@ public class RednBlue2 extends EnhancedOpMode implements CameraBridgeViewBase.Cv
         maskGenerator.adaptiveHSV(raw, 55, 75, -.1, 135, -.1, 59, 255, blueMask);
 
         // Get the red mask with adaptive hsv.
-        maskGenerator.adaptiveHSV(raw, 55, 0, 0, 50, .1, 50, 255, redMask);
+        maskGenerator.adaptiveHSV(raw, 55, 0, 0, 20, .1, 59, 255, redMask);
 
         // Set values
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_HSV2RGB);

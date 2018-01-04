@@ -1,20 +1,11 @@
-package hankextensions.vision.opencv.analysis;
+package org.firstinspires.ftc.teamcode.vision;
 
 import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Originally developed by Alex from DogeCV, I'm modifying a bit for my own purposes: https://github.com/GTHSRobotics/DogeCV
@@ -84,7 +75,7 @@ public class JewelDetector2 implements CameraBridgeViewBase.CvCameraViewListener
         maskGenerator.adaptiveHSV(raw, 55, 75, -.1, 135, -.1, 59, 255, blueMask);
 
         // Get the red mask with adaptive hsv.
-        maskGenerator.adaptiveHSV(raw, 55, 0, 0, 50, .1, 50, 255, redMask);
+        maskGenerator.adaptiveHSV(raw, 55, 0, 0, 20, .1, 59, 255, redMask);
 
         // Set values
         displayMat.setTo(new Scalar(0)); // clear existent values

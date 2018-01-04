@@ -1,4 +1,4 @@
-package hankextensions.vision.opencv.analysis;
+package org.firstinspires.ftc.teamcode.vision;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -8,6 +8,8 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.LinkedList;
+
+import hankextensions.vision.opencv.OpenCVJNIHooks;
 
 /**
  * A utility class for my detectors which uses JNI hooks and such to improve the resulting masks.
