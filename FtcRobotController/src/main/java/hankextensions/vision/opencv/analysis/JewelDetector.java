@@ -19,6 +19,7 @@ import java.util.List;
  */
 public class JewelDetector implements CameraBridgeViewBase.CvCameraViewListener
 {
+    // From left to right.
     public enum JewelOrder {
         RED_BLUE,
         BLUE_RED,
@@ -33,46 +34,55 @@ public class JewelDetector implements CameraBridgeViewBase.CvCameraViewListener
         VERY_FAST, FAST, BALANCED, SLOW, VERY_SLOW
     }
 
+    // Constant variables over the algorithm's progression.
+    public static final JewelDetectionMode  detectionMode    = JewelDetectionMode.MAX_AREA;
+    public static final double              downScaleFactor  = 0.4;
+    public static final boolean             rotateMat        = false;
+    public static final JewelDetectionSpeed speed            = JewelDetectionSpeed.BALANCED;
+    public static final double              perfectArea      = 6500;
+    public static final double              areaWeight       = 0.05; // Since we're dealing with 100's of pixels
+    public static final double              minArea          = 700;
+    public static final double              ratioWeight      = 15; // Since most of the time the area diffrence is a decimal place
+    public static final double              maxDiffrence     = 10; // Since most of the time the area diffrence is a decimal place
+    public static final boolean             debugContours    = false;
 
-    public JewelDetectionMode  detectionMode    = JewelDetectionMode.MAX_AREA;
-    public double              downScaleFactor  = 0.4;
-    public boolean             rotateMat        = false;
-    public JewelDetectionSpeed speed            = JewelDetectionSpeed.BALANCED;
-    public double              perfectArea      = 6500;
-    public double              areaWeight       = 0.05; // Since we're dealing with 100's of pixels
-    public double              minArea          = 700;
-    public double              ratioWeight      = 15; // Since most of the time the area diffrence is a decimal place
-    public double              maxDiffrence     = 10; // Since most of the time the area diffrence is a decimal place
-    public boolean             debugContours    = false;
-
+    // The results of the mass.
     private JewelOrder currentOrder = JewelOrder.UNKNOWN;
     private JewelOrder lastOrder    = JewelOrder.UNKNOWN;
 
-
-    private Mat workingMat = new Mat();
-    private Mat blurredMat  = new Mat();
-    private Mat maskRed  = new Mat();
-    private Mat maskBlue  = new Mat();
-    private Mat hiarchy  = new Mat();
-
-
-    private Size newSize = new Size();
+    // Required variables for analysis.
+    private Mat workingMat, blurredMat, maskRed, maskBlue, hierarchy, redConvert, blueConvert;
+    private Size newSize, initSize;
 
 
     @Override
-    public void onCameraViewStarted(int width, int height) {
+    public void onCameraViewStarted(int width, int height)
+    {
+        workingMat = new Mat();
+        blurredMat = new Mat();
+        maskRed = new Mat();
+        maskBlue = new Mat();
+        hierarchy = new Mat();
 
+        newSize = new Size();
+        initSize = new Size(width, height);
     }
 
     @Override
-    public void onCameraViewStopped() {
-
+    public void onCameraViewStopped()
+    {
+        workingMat.release();
+        blurredMat.release();
+        maskRed.release();
+        maskBlue.release();
+        hierarchy.release();
+        redConvert.release();
+        blueConvert.release();
     }
 
     @Override
-    public Mat onCameraFrame(Mat rgba) {
-
-        Size initSize= rgba.size();
+    public Mat onCameraFrame(Mat rgba)
+    {
         newSize  = new Size(initSize.width * downScaleFactor, initSize.height * downScaleFactor);
         rgba.copyTo(workingMat);
 
@@ -86,17 +96,16 @@ public class JewelDetector implements CameraBridgeViewBase.CvCameraViewListener
             tempBefore.release();
         }
 
-        Mat redConvert = workingMat.clone();
-        Mat blueConvert = workingMat.clone();
+        redConvert = workingMat.clone();
+        blueConvert = workingMat.clone();
 
         getRedMask(redConvert);
         getBlueMask(blueConvert);
 
 
-
         List<MatOfPoint> contoursRed = new ArrayList<>();
 
-        Imgproc.findContours(maskRed, contoursRed, hiarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(maskRed, contoursRed, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
         Imgproc.drawContours(workingMat,contoursRed,-1,new Scalar(230,70,70),2);
         Rect chosenRedRect = null;
         double chosenRedScore = Integer.MAX_VALUE;
@@ -140,13 +149,9 @@ public class JewelDetector implements CameraBridgeViewBase.CvCameraViewListener
             double h = rect.height;
             Point centerPoint = new Point(x + ( w/2), y + (h/2));
 
-
-
             double cubeRatio = Math.max(Math.abs(h/w), Math.abs(w/h)); // Get the ratio. We use max in case h and w get swapped??? it happens when u account for rotation
-            double ratioDiffrence = Math.abs(cubeRatio - 1);
-
-
-            double finalDiffrence = (ratioDiffrence * ratioWeight) + (areaDiffrence * areaWeight);
+            double ratioDifference = Math.abs(cubeRatio - 1);
+            double finalDifference = (ratioDifference * ratioWeight) + (areaDiffrence * areaWeight);
 
 
             // Optional to ALWAYS return a result.
@@ -154,12 +159,14 @@ public class JewelDetector implements CameraBridgeViewBase.CvCameraViewListener
             // Update the chosen rect if the diffrence is lower then the curreny chosen
             // Also can add a condition for min diffrence to filter out VERY wrong answers
             // Think of diffrence as score. 0 = perfect
-            if(finalDiffrence < chosenRedScore && finalDiffrence < maxDiffrence && area > minArea){
-                chosenRedScore = finalDiffrence;
+            if(finalDifference < chosenRedScore && finalDifference < maxDiffrence && area > minArea)
+            {
+                chosenRedScore = finalDifference;
                 chosenRedRect = rect;
             }
 
-            if(debugContours && area > 100){
+            if(debugContours && area > 100)
+            {
                 Imgproc.circle(workingMat,centerPoint,3,new Scalar(0,255,255),3);
                 Imgproc.putText(workingMat,"Area: " + area,centerPoint,0,0.5,new Scalar(0,255,255));
             }
@@ -168,7 +175,7 @@ public class JewelDetector implements CameraBridgeViewBase.CvCameraViewListener
 
         List<MatOfPoint> contoursBlue = new ArrayList<>();
 
-        Imgproc.findContours(maskBlue, contoursBlue,hiarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(maskBlue, contoursBlue, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
         Imgproc.drawContours(workingMat,contoursBlue,-1,new Scalar(70,130,230),2);
         Rect chosenBlueRect = null;
         double chosenBlueScore = Integer.MAX_VALUE;
@@ -212,28 +219,29 @@ public class JewelDetector implements CameraBridgeViewBase.CvCameraViewListener
             Point centerPoint = new Point(x + ( w/2), y + (h/2));
 
             double cubeRatio = Math.max(Math.abs(h/w), Math.abs(w/h)); // Get the ratio. We use max in case h and w get swapped??? it happens when u account for rotation
-            double ratioDiffrence = Math.abs(cubeRatio - 1);
+            double ratioDifference = Math.abs(cubeRatio - 1);
 
-            double finalDiffrence = (ratioDiffrence * ratioWeight) + (areaDiffrence * areaWeight);
-
-
+            double finalDifference = (ratioDifference * ratioWeight) + (areaDiffrence * areaWeight);
 
             // Update the chosen rect if the diffrence is lower then the curreny chosen
             // Also can add a condition for min diffrence to filter out VERY wrong answers
             // Think of diffrence as score. 0 = perfect
-            if(finalDiffrence < chosenBlueScore && finalDiffrence < maxDiffrence && area > minArea){
-                chosenBlueScore = finalDiffrence;
+            if(finalDifference < chosenBlueScore && finalDifference < maxDiffrence && area > minArea)
+            {
+                chosenBlueScore = finalDifference;
                 chosenBlueRect = rect;
             }
 
-            if(debugContours && area > 100){
+            if(debugContours && area > 100)
+            {
                 Imgproc.circle(workingMat,centerPoint,3,new Scalar(0,255,255),3);
                 Imgproc.putText(workingMat,"Area: " + area,centerPoint,0,0.5,new Scalar(0,255,255));
             }
 
         }
 
-        if(chosenRedRect != null){
+        if(chosenRedRect != null)
+        {
             Imgproc.rectangle(workingMat,
                     new Point(chosenRedRect.x, chosenRedRect.y),
                     new Point(chosenRedRect.x + chosenRedRect.width, chosenRedRect.y + chosenRedRect.height),
@@ -248,7 +256,8 @@ public class JewelDetector implements CameraBridgeViewBase.CvCameraViewListener
                     2);
         }
 
-        if(chosenBlueRect != null){
+        if(chosenBlueRect != null)
+        {
             Imgproc.rectangle(workingMat,
                     new Point(chosenBlueRect.x, chosenBlueRect.y),
                     new Point(chosenBlueRect.x + chosenBlueRect.width, chosenBlueRect.y + chosenBlueRect.height),
@@ -263,37 +272,36 @@ public class JewelDetector implements CameraBridgeViewBase.CvCameraViewListener
                     2);
         }
 
-        if(chosenBlueRect != null && chosenRedRect != null){
-            if(chosenBlueRect.x < chosenRedRect.x){
+        if(chosenBlueRect != null && chosenRedRect != null)
+        {
+            if(chosenBlueRect.x < chosenRedRect.x)
+            {
                 currentOrder = JewelOrder.BLUE_RED;
                 lastOrder = currentOrder;
-            }else{
+            }
+            else
+            {
                 currentOrder = JewelOrder.RED_BLUE;
                 lastOrder = currentOrder;
             }
-        }else{
+        }
+        else
+        {
             currentOrder = JewelOrder.UNKNOWN;
         }
+
+        Imgproc.resize(workingMat, workingMat, initSize);
 
         Imgproc.putText(workingMat,"Result: " + lastOrder.toString(),new Point(10,newSize.height - 30),0,1, new Scalar(255,255,0),1);
         Imgproc.putText(workingMat,"Current Track: " + currentOrder.toString(),new Point(10,newSize.height - 10),0,0.5, new Scalar(255,255,255),1);
 
-
-
-        Mat[] returnMats = {workingMat,maskRed,maskBlue};
-
-        for(Mat mat: returnMats){
-            Imgproc.resize(mat,mat,initSize);
-        }
-
-        redConvert.release();
-        blueConvert.release();
         Imgproc.putText(workingMat,"DogeCV JewelV1: " + newSize.toString() + " - " + speed.toString() + " - " + detectionMode.toString() ,new Point(5,15),0,0.6,new Scalar(0,255,255),2);
 
-        return returnMats[0];
+        return workingMat;
     }
 
-    private void getRedMask(Mat input){
+    private void getRedMask(Mat input)
+    {
         Imgproc.cvtColor(input, input, Imgproc.COLOR_RGB2Lab);
         Imgproc.GaussianBlur(input,input,new Size(3,3),0);
         List<Mat> channels = new ArrayList<Mat>();
@@ -301,7 +309,8 @@ public class JewelDetector implements CameraBridgeViewBase.CvCameraViewListener
         Imgproc.threshold(channels.get(1), maskRed, 164.0, 255, Imgproc.THRESH_BINARY);
     }
 
-    private void getBlueMask(Mat input){
+    private void getBlueMask(Mat input)
+    {
         Imgproc.cvtColor(input, input, Imgproc.COLOR_RGB2YUV);
         Imgproc.GaussianBlur(input,input,new Size(3,3),0);
         List<Mat> channels = new ArrayList<Mat>();

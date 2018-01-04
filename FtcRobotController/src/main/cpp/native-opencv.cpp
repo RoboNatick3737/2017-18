@@ -28,11 +28,4 @@ void JNICALL Java_hankextensions_vision_opencv_analysis_OpenCVJNIHooks_inRangeBe
     inRange(*(Mat *) toFilterAddr, *(Mat *) lowerAddr, *(Mat *) upperAddr, *(Mat *) destAddr);
 }
 
-void JNICALL Java_visionanalysis_CryptoboxDetector_filterForCrypto(JNIEnv *env, jobject instance, jlong matAddr)
-{
-    Mat &hsv = *(Mat *) matAddr;
-
-    // TODO all C++ vision pipeline code
-}
-
 }

@@ -8,7 +8,6 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTask;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
 import hankextensions.EnhancedOpMode;
-import hankextensions.input.HTButton;
 import hankextensions.input.HTGamepad;
 import hankextensions.phonesensors.Gyro;
 
@@ -25,19 +24,36 @@ import hankextensions.structs.Vector2D;
 public class SwerveDrive extends ScheduledTask
 {
     //////  Physical drive constants ////////
+    private static final double MAX_TELEOP_SPEED = 100;
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
     private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 12);
 
     //////  Instance specific components ////////
-    private boolean joystickControlEnabled = false; // Whether or not the joystick can direct the swerve drive.
+
+    // Whether or not the joystick can direct the swerve drive (false during auto)
+    private boolean joystickControlEnabled = false;
+    // Whether or not this bot will help the driver auto-align to the cryptobox using vision.
+    private boolean automaticCryptoboxAlignment = false;
+    // Whether or not the robot will go in an arc instead of immediately shifting the wheels to a different direction while moving quickly.
+    private boolean avoidAxleDestruction = false;
+    public void setAxleDrivingProtectionTo(boolean state)
+    {
+//        avoidAxleDestruction = state;
+
+        if (!state)
+            lastMovement = null;
+    }
+
+    // The SwerveWheel instances which constitute the swerve drive: frontLeft, backLeft, backRight, frontRight respectively.
     private final SwerveWheel[] swerveWheels = new SwerveWheel[4];
     public final Gyro gyro; // Public because teleop can manually reset.
     private final PIDController pidController;
 
     // Constantly shifting in autonomous and teleop.
     private Vector2D desiredMovement = Vector2D.ZERO;
+    private Vector2D lastMovement = null;
     private double desiredHeading = 0;
 
     // Required for operation of the driving tasks.
@@ -134,7 +150,7 @@ public class SwerveDrive extends ScheduledTask
             setDesiredMovement(Vector2D.ZERO);
 
         // Upon tapping white, calibrate the gyro
-        if (HTGamepad.CONTROLLER1.y.currentState == HTButton.ButtonState.JUST_TAPPED)
+        if (HTGamepad.CONTROLLER1.gamepad.y)
         {
             try
             {
@@ -146,19 +162,13 @@ public class SwerveDrive extends ScheduledTask
             }
         }
 
+        // Fine tuned adjustments.
         if (HTGamepad.CONTROLLER1.gamepad.left_trigger > 0.1 || HTGamepad.CONTROLLER1.gamepad.right_trigger > 0.1)
         {
             this.desiredHeading += 5 * (HTGamepad.CONTROLLER1.gamepad.left_trigger - HTGamepad.CONTROLLER1.gamepad.right_trigger);
             this.desiredHeading = Vector2D.clampAngle(this.desiredHeading);
         }
     }
-
-
-    // Unboxing/boxing slowdown fix.
-    private double gyroHeading = 0;
-    private double rotationSpeed;
-    private Vector2D fieldCentricTranslation;
-    private double angleOff;
 
     /**
      * This is where pretty much all the work for the swerve DRIVE calculations take place
@@ -171,17 +181,42 @@ public class SwerveDrive extends ScheduledTask
             acceptControllerInput();
 
         // Get current gyro val.
-        gyroHeading = gyro.z();
+        double gyroHeading = gyro.z();
 
         // Find the least heading between the gyro and the current heading.
-        angleOff = (Vector2D.clampAngle(desiredHeading - gyroHeading) + 180) % 360 - 180;
+        double angleOff = (Vector2D.clampAngle(desiredHeading - gyroHeading) + 180) % 360 - 180;
         angleOff = angleOff < -180 ? angleOff + 360 : angleOff;
 
         // Figure out the actual translation vector for swerve wheels based on gyro value.
-        fieldCentricTranslation = desiredMovement.rotateBy(-gyroHeading);
+        Vector2D fieldCentricTranslation = desiredMovement.rotateBy(-gyroHeading);
+
+        // Apply dumb driver handicaps :P
+        if (desiredMovement.magnitude > .2 && joystickControlEnabled && avoidAxleDestruction)
+        {
+            if (lastMovement != null)
+            {
+                // Sort of move via a gradient to determine the max heading change.
+                double changeCoefficient = 1 / (25 * fieldCentricTranslation.magnitude + 1);
+                double maxHeadingChange = 90 * changeCoefficient;
+//                double maxMagnitudeChange = MAX_TELEOP_SPEED * .25 * changeCoefficient;
+
+                double desiredChangeInHeading = lastMovement.leastAngleTo(fieldCentricTranslation);
+                if (maxHeadingChange < Math.abs(desiredChangeInHeading)) // if this isn't within the constraint, shift as close as possible.
+                    fieldCentricTranslation = lastMovement.rotateBy(Math.signum(desiredChangeInHeading) * maxHeadingChange);
+
+//                double desiredChangeInMagnitude = fieldCentricTranslation.magnitude - lastMovement.magnitude;
+//                if (maxMagnitudeChange < Math.abs(desiredChangeInMagnitude))
+//                    fieldCentricTranslation = Vector2D.polar(lastMovement.magnitude + Math.signum(desiredChangeInMagnitude) * maxMagnitudeChange, fieldCentricTranslation.angle);
+            }
+
+            lastMovement = fieldCentricTranslation;
+        } else
+        {
+            lastMovement = Vector2D.ZERO;
+        }
 
         // Don't bother trying to be more accurate than 8 degrees while turning.
-        rotationSpeed = -pidController.calculatePIDCorrection(angleOff);
+        double rotationSpeed = -pidController.calculatePIDCorrection(angleOff);
 
         /*
          * Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
@@ -189,7 +224,7 @@ public class SwerveDrive extends ScheduledTask
          */
         for (int i = 0; i < swerveWheels.length; i++)
             swerveWheels[i].setVectorTarget(
-                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(fieldCentricTranslation).multiply(100));
+                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(fieldCentricTranslation).multiply(MAX_TELEOP_SPEED));
 
         // Check to see whether it's okay to start moving by observing the state of all wheels.
         boolean drivingCanStart = true;
@@ -201,8 +236,6 @@ public class SwerveDrive extends ScheduledTask
                 break;
             }
         }
-
-        // Tell the swerve wheels whether it's okay to start driving.
         for (SwerveWheel wheel : swerveWheels)
             wheel.setDrivingState(drivingCanStart);
 
@@ -214,6 +247,7 @@ public class SwerveDrive extends ScheduledTask
                 "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
                 "PID kP: " + TURN_PID_CONSTANTS.kP,
                 "PID kD: " + TURN_PID_CONSTANTS.kD,
+                "Magnitude: " + fieldCentricTranslation.magnitude,
                 "Driving acceptable: " + drivingCanStart
         );
     }

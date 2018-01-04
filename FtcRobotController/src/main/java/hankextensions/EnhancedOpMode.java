@@ -5,6 +5,7 @@ import com.makiah.makiahsandroidlib.threading.TaskParent;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 
+import hankextensions.hardware.HardwareInitializer;
 import hankextensions.input.HTGamepad;
 import hankextensions.logging.TelemetryWrapper;
 import hankextensions.phonesensors.AndroidGyro;
@@ -26,6 +27,8 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
 
     // Two pointers to the gamepads for the purpose of concision.
     protected HTGamepad C1, C2;
+
+    protected HardwareInitializer hardware;
 
     /**
      * As a TaskParent, RobotCore must implement this method.
@@ -55,6 +58,9 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
             // Init the gamepads
             C1 = new HTGamepad(gamepad1, HTGamepad.ControllerID.CONTROLLER_1);
             C2 = new HTGamepad(gamepad2, HTGamepad.ControllerID.CONTROLLER_2);
+
+            // Hardware initializer
+            hardware = new HardwareInitializer(hardwareMap);
 
             // Run the OpMode.
             onRun();
@@ -90,22 +96,6 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
                 AndroidGyro.instance.quit();
 
             onStop();
-        }
-    }
-
-    /**
-     * Use by calling DcMotor dcMotor = NiFTInitializer.initialize(DcMotor.class, "name in config");
-     */
-    public <T extends HardwareDevice> T initHardwareDevice (Class<T> hardwareDevice, String name)
-    {
-        try
-        {
-            //Returns the last subclass (if this were a DcMotor it would pass back a Dc Motor.
-            return hardwareDevice.cast (hardwareMap.get (name));
-        }
-        catch (Exception e) //There might be other exceptions that this throws, not entirely sure about which so I am general here.
-        {
-            throw new NullPointerException ("Couldn't find " + name + " in the configuration file!");
         }
     }
 
