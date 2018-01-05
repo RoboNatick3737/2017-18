@@ -1,11 +1,14 @@
-package org.firstinspires.ftc.teamcode.opmodes.experimentation.vision;
+package org.firstinspires.ftc.teamcode.vision.experimentation;
 
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.structs.LinearFunction;
-import org.firstinspires.ftc.teamcode.vision.MaskGenerator2;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.AdditionalFilteringUtilities;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.commonareafilter.LinearChannelBound;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.LinearFunctionBounds;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.commonareafilter.ThreeChannelProportionalFilter;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
@@ -14,8 +17,6 @@ import org.opencv.imgproc.Imgproc;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
-
-import org.firstinspires.ftc.teamcode.vision.HSVMaskBound;
 
 @Autonomous(name="Red and Blue Detection", group= Constants.EXPERIMENTATION)
 public class RedBlueDetection extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
@@ -42,13 +43,11 @@ public class RedBlueDetection extends EnhancedOpMode implements CameraBridgeView
     }
 
     private Mat redMask, blueMask;
-    private MaskGenerator2 maskGenerator;
 
     @Override
     public void onCameraViewStarted(int width, int height) {
         blueMask = Mat.ones(new Size(width, height), Imgproc.THRESH_BINARY);
         redMask = Mat.ones(new Size(width, height), Imgproc.THRESH_BINARY);
-        maskGenerator = new MaskGenerator2();
     }
 
     @Override
@@ -60,28 +59,37 @@ public class RedBlueDetection extends EnhancedOpMode implements CameraBridgeView
     @Override
     public Mat onCameraFrame(Mat raw)
     {
+        AdditionalFilteringUtilities.fixMatLuminance(raw);
+
         // Remove noise from image.
         Imgproc.blur(raw, raw, new Size(3, 3));
 
         // Analyze frame in HSV
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HSV);
 
-        // Get the blue mask with adaptive hsv.
-//        maskGenerator.adaptiveHSV(raw, 55, 75, -.1, 135, -.1, 59, 255, blueMask);
-        maskGenerator.commonAreaFilter(
-                raw, blueMask,
-                new HSVMaskBound(new LinearFunction(0, 0), new LinearFunction(0, 255)), // for hue
-                new HSVMaskBound(new LinearFunction(0, 59), new LinearFunction(0, 255)), // for saturation
-                new HSVMaskBound(new LinearFunction(-.1, 80), new LinearFunction(-.1, 140))); // for value: as odd as this seems, this actually mandates the hue.
+        // An advanced filter I made to choose colors based on the other properties of their hue.
+        ThreeChannelProportionalFilter.commonAreaFilter(raw, blueMask,
 
-        // Get the red mask with adaptive hsv.
-//        maskGenerator.adaptiveHSV(raw, 55, 0, 0, 20, .1, 59, 255, redMask);
-//
-//        // Set values
+                // for when we're calculating hue
+                new LinearChannelBound(
+                        new LinearFunctionBounds(new LinearFunction(0, 0), new LinearFunction(0, 255)),  // describes saturation
+                        new LinearFunctionBounds(new LinearFunction(0, 0), new LinearFunction(0, 255))), // describes value
+
+                // for when we're calculating saturation
+                new LinearChannelBound(
+                        new LinearFunctionBounds(new LinearFunction(0, 0), new LinearFunction(0, 255)),  // describes hue
+                        new LinearFunctionBounds(new LinearFunction(0, 0), new LinearFunction(0, 255))), // describes value
+
+                // for when we're calculating value
+                new LinearChannelBound(
+                        new LinearFunctionBounds(new LinearFunction(0, 75), new LinearFunction(10, 135)),  // describes hue
+                        new LinearFunctionBounds(new LinearFunction(0, 59), new LinearFunction(0, 255)))  // describes saturation
+
+                );
+
+        // Set values
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_HSV2RGB);
-//        raw.setTo(new Scalar(0, 0, 0)); // clear existent values
         raw.setTo(new Scalar(0, 0, 255), blueMask);
-//        raw.setTo(new Scalar(255, 0, 0), redMask);
 
         // Resize to the original (crashes otherwise)
         return raw;

@@ -5,7 +5,7 @@ import org.firstinspires.ftc.teamcode.robot.Robot;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
-import org.firstinspires.ftc.teamcode.vision.JewelDetector;
+import org.firstinspires.ftc.teamcode.vision.analysis.JewelDetector;
 
 public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
 {

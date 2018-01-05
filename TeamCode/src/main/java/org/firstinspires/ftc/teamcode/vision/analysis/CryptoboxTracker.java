@@ -1,10 +1,12 @@
-package org.firstinspires.ftc.teamcode.vision;
+package org.firstinspires.ftc.teamcode.vision.analysis;
 
 import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.AdditionalFilteringUtilities;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.MaskGenerator;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -217,7 +219,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         Imgproc.resize(raw, raw, analysisResolution);
 
         // Make colors appear sharper.
-        maskGenerator.fixMatLuminance(raw);
+        AdditionalFilteringUtilities.fixMatLuminance(raw);
 
         // Remove noise from image.
         Imgproc.blur(raw, raw, new Size(3, 3));

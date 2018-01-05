@@ -1,13 +1,14 @@
-package org.firstinspires.ftc.teamcode.vision;
+package org.firstinspires.ftc.teamcode.vision.analysis;
 
 import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.AdditionalFilteringUtilities;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.MaskGenerator;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -19,7 +20,7 @@ import hankextensions.vision.opencv.OpenCVCam;
 /**
  * Originally developed by Alex from DogeCV, I'm modifying a bit for my own purposes: https://github.com/GTHSRobotics/DogeCV
  */
-@Autonomous(name="Jewel Detector 2", group= Constants.EXPERIMENTATION)
+@Autonomous(name="My Jewel Detector", group= Constants.EXPERIMENTATION)
 public class JewelDetector2 extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     @Override
@@ -87,7 +88,7 @@ public class JewelDetector2 extends EnhancedOpMode implements CameraBridgeViewBa
         Imgproc.resize(raw, raw, analysisResolution);
 
         // Make colors appear sharper.
-        maskGenerator.fixMatLuminance(raw);
+        AdditionalFilteringUtilities.fixMatLuminance(raw);
 
         // Remove noise from image.
         Imgproc.blur(raw, raw, new Size(3, 3));

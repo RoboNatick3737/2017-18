@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.vision;
+package org.firstinspires.ftc.teamcode.vision.analysis;
 
 import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
@@ -25,7 +25,7 @@ import hankextensions.vision.opencv.OpenCVCam;
 /**
  * Originally developed by Alex from DogeCV, I'm modifying a bit for my own purposes: https://github.com/GTHSRobotics/DogeCV
  */
-@Autonomous(name="Jewel Detector", group= Constants.EXPERIMENTATION)
+@Autonomous(name="Jewel Detector 1", group= Constants.EXPERIMENTATION)
 public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     @Override
