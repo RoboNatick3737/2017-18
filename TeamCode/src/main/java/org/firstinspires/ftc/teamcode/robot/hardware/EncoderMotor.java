@@ -4,8 +4,8 @@ import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.components.pid.PIDController;
+import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.structs.pid.PIDController;
 
 public class EncoderMotor
 {

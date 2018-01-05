@@ -212,14 +212,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             android:layout_gravity="end|top"
             android:textColor="#ff0000" />
 
-        <Button
-            android:id="@+id/button3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end|bottom"
-            android:onClick="grabNewFrame"
-            android:text="Grab" />
-
       </FrameLayout>
 
       <!-- The Vuforia camera -->

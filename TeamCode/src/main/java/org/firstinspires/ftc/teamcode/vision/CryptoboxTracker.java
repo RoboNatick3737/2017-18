@@ -1,5 +1,10 @@
 package org.firstinspires.ftc.teamcode.vision;
 
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+
+import org.firstinspires.ftc.teamcode.Constants;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -9,12 +14,32 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 
+import hankextensions.EnhancedOpMode;
+import hankextensions.vision.opencv.OpenCVCam;
+
 /**
  * Tracks and guesses the approximate distances from this phone to each individual cryptobox
  * column through a bit of math.
  */
-public class CryptoboxTracker implements CameraBridgeViewBase.CvCameraViewListener
+
+@Autonomous(name="Cryptobox Tracker", group= Constants.EXPERIMENTATION)
+public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
+    @Override
+    protected void onRun() throws InterruptedException
+    {
+        OpenCVCam cam = new OpenCVCam();
+        cam.start(this);
+
+        ProcessConsole console = LoggingBase.instance.newProcessConsole("Cryptobox Tracker");
+
+        while (true)
+        {
+            console.write("Front is " + forwardOffset, "Side is " + horizontalOffset);
+            flow.yield();
+        }
+    }
+
     /**
      * Required for frame analysis.
      */
@@ -248,6 +273,9 @@ public class CryptoboxTracker implements CameraBridgeViewBase.CvCameraViewListen
             else
                 currLength++;
         }
+        // Otherwise the last column won't be counted.
+        if (currLength > 0)
+            columns.add(new CryptoColumnPixelLocation(cryptoColumns.length - currLength - 1, currLength));
 
         // Merge close locations (small column blips)
         final int MERGE_THRESHOLD = (int)(analysisResolution.width / 20.0);

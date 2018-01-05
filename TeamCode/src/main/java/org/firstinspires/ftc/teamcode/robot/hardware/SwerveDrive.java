@@ -11,8 +11,8 @@ import hankextensions.EnhancedOpMode;
 import hankextensions.input.HTGamepad;
 import hankextensions.phonesensors.Gyro;
 
-import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.components.pid.PIDController;
+import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.structs.pid.PIDController;
 import hankextensions.structs.Vector2D;
 
 /**

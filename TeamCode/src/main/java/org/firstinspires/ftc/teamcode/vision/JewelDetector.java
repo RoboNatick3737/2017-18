@@ -1,5 +1,10 @@
 package org.firstinspires.ftc.teamcode.vision;
 
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+
+import org.firstinspires.ftc.teamcode.Constants;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -14,11 +19,30 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 import java.util.List;
 
+import hankextensions.EnhancedOpMode;
+import hankextensions.vision.opencv.OpenCVCam;
+
 /**
  * Originally developed by Alex from DogeCV, I'm modifying a bit for my own purposes: https://github.com/GTHSRobotics/DogeCV
  */
-public class JewelDetector implements CameraBridgeViewBase.CvCameraViewListener
+@Autonomous(name="Jewel Detector", group= Constants.EXPERIMENTATION)
+public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
+    @Override
+    protected void onRun() throws InterruptedException
+    {
+        OpenCVCam cam = new OpenCVCam();
+        cam.start(this);
+
+        ProcessConsole console = LoggingBase.instance.newProcessConsole("Jewel Detector");
+
+        while (true)
+        {
+            console.write("Order is " + getCurrentOrder().toString());
+            flow.yield();
+        }
+    }
+
     // From left to right.
     public enum JewelOrder {
         RED_BLUE,

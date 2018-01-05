@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.HankuTankuIMU;
-import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.robot.hardware.Flipper;
 import org.firstinspires.ftc.teamcode.robot.hardware.Intake;

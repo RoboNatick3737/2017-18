@@ -99,12 +99,11 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         });
     }
 
-    //Starts OpenCV and ensures that the camera shows up on the Robot Controller app.
-    public void start() throws InterruptedException
-    {
-        start(this);
-    }
     public void start(CameraBridgeViewBase.CvCameraViewListener listener) throws InterruptedException
+    {
+        start(listener, false);
+    }
+    public void start(CameraBridgeViewBase.CvCameraViewListener listener, boolean useFrontCamera) throws InterruptedException
     {
         if (currentlyActive)
         {
@@ -130,6 +129,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 
         if (cameraBridgeViewBase != null) {
             cameraBridgeViewBase.setCvCameraViewListener(listener);
+            cameraBridgeViewBase.setCameraIndex(useFrontCamera ? 1 : 0);
             setCameraViewState(true); // Might have to run on main activity.
         }
         else

@@ -20,7 +20,7 @@ public class VisionSwap extends EnhancedOpMode
         openCVCam = new OpenCVCam();
         vuforiaCam = new VuforiaCam();
 
-        openCVCam.start();
+        openCVCam.start(openCVCam);
         log.lines("Started OpenCV");
 
         waitForStart();

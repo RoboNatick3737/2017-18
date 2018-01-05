@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
-import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 
 import hankextensions.EnhancedOpMode;
 

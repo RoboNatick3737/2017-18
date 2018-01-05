@@ -17,10 +17,9 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTask;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.components.pid.PIDController;
+import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.structs.pid.PIDController;
 
-import hankextensions.EnhancedOpMode;
 import hankextensions.structs.Vector2D;
 
 /**

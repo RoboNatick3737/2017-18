@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.components.pid.PIDConstants;
+import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveWheel;
 import hankextensions.structs.Vector2D;
