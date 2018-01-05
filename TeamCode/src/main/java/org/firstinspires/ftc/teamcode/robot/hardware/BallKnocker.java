@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class BallKnocker
 {
-    private final double UP = 0.1, DOWN = 0.7;
-    private boolean up = false;
+    private final double UP = 0, DOWN = 0.6;
+    private boolean up = true;
 
     private final Servo ballKnocker;
     public BallKnocker(Servo ballKnocker)

@@ -19,25 +19,62 @@ import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
 
 @Autonomous(name="Red and Blue Detection", group= Constants.EXPERIMENTATION)
-public class RedBlueDetection extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
+public class RandomRedBlue extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     private OpenCVCam openCVCam;
 
     private ProcessConsole cameraProcessConsole;
+
+    // Choose completely random values.
+    double randHueMaxSlope;
+    double randHueMinSlope;
+    double randSatMaxSlope;
+    double randSatMinSlope;
+    double hueMin;
+    double hueMax;
+    double satMin;
+    
+    private void regenerateNums()
+    {
+         randHueMaxSlope = Math.random() * 2 - 1;
+         randHueMinSlope = Math.random() * 2 - 1;
+         randSatMaxSlope = Math.random() * 2 - 1;
+         randSatMinSlope = Math.random() * 2 - 1;
+         hueMin = Math.random() * 255;
+         hueMax = hueMin + Math.random() * (255 - hueMin);
+         satMin = Math.random() * 59;
+    }
 
     @Override
     protected void onRun() throws InterruptedException
     {
         // Start the good old OpenCV camera.
         openCVCam = new OpenCVCam();
+        regenerateNums();
         openCVCam.start(this);
 
         cameraProcessConsole = log.newProcessConsole("Camera Process Console");
 
         waitForStart();
 
+        long lastPressTime = System.currentTimeMillis();
+
         while (true)
         {
+            if (gamepad1.a && System.currentTimeMillis() - lastPressTime > 100) {
+                regenerateNums();
+                lastPressTime = System.currentTimeMillis();
+            }
+
+            cameraProcessConsole.write(
+                    "Random hue max slope = " + randHueMaxSlope,
+                    "Random hue min slope = " + randHueMinSlope,
+                    "Random sat max slope = " + randSatMaxSlope,
+                    "Random sat min slope = " + randSatMinSlope,
+                    "Rand hue min " + hueMin,
+                    "Rand hue max " + hueMax,
+                    "Sat min " + satMin);
+
             flow.yield();
         }
     }
@@ -82,8 +119,8 @@ public class RedBlueDetection extends EnhancedOpMode implements CameraBridgeView
 
                 // for when we're calculating value
                 new LinearChannelBound(
-                        new LinearFunctionBounds(new LinearFunction(0, 75), new LinearFunction(10, 135)),  // describes hue
-                        new LinearFunctionBounds(new LinearFunction(0, 59), new LinearFunction(0, 255)))  // describes saturation
+                        new LinearFunctionBounds(new LinearFunction(randHueMinSlope, hueMin), new LinearFunction(randHueMaxSlope, hueMax)),  // describes hue
+                        new LinearFunctionBounds(new LinearFunction(randSatMinSlope, satMin), new LinearFunction(randSatMaxSlope, 255)))  // describes saturation
 
                 );
 

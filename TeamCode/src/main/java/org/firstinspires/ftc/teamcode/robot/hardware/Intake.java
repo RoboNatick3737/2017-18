@@ -17,6 +17,7 @@ public class Intake
     {
         this.harvester = harvester;
         this.conveyor = conveyor;
+        stop();
     }
 
     public void intake()

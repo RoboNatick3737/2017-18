@@ -117,11 +117,11 @@ public class AndroidGyro implements Gyro
     }
 
     public double y() {
-        return y;
+        return z;
     }
 
     public double z() {
-        return z;
+        return y;
     }
 
     /**

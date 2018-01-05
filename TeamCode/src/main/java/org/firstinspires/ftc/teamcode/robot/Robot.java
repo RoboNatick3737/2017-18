@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.HankuTankuIMU;
+import org.firstinspires.ftc.teamcode.robot.hardware.RelicSystem;
 import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.robot.hardware.Flipper;
@@ -19,6 +20,8 @@ import org.firstinspires.ftc.teamcode.robot.hardware.SwerveWheel;
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
 
 import hankextensions.hardware.HardwareInitializer;
+import hankextensions.phonesensors.AndroidGyro;
+import hankextensions.phonesensors.Gyro;
 
 /**
  * Wrapper class for all robot hardware.
@@ -33,8 +36,8 @@ public class Robot
     public final Flipper flipper;
     public final Lift lift;
     public final BallKnocker ballKnocker;
-    public final DcMotor relicArm;
-    public final HankuTankuIMU gyro;
+    public final RelicSystem relicSystem;
+    public final Gyro gyro;
 
     /**
      * Initializes the whole robot.
@@ -43,12 +46,13 @@ public class Robot
     public Robot(HardwareInitializer hardware) throws InterruptedException
     {
         // Init the android gyro (make sure to call start()).
-//        AndroidGyro androidGyro = new AndroidGyro();
-//        androidGyro.start();
-//        androidGyro.zero();
+        AndroidGyro androidGyro = new AndroidGyro();
+        androidGyro.start();
+        androidGyro.zero();
+        gyro = androidGyro;
 
         // Init the ADAFRUIT gyro.
-        gyro = new HankuTankuIMU(hardware.map.get(BNO055IMU.class, "IMU"));
+//        gyro = new HankuTankuIMU(hardware.map.get(BNO055IMU.class, "IMU"));
 
         // Intake setup
         DcMotor harvesterMotor = hardware.initialize(DcMotor.class, "Harvester");
@@ -61,7 +65,7 @@ public class Robot
         lift = new Lift(liftMotor);
 
         // Relic Arm init
-        relicArm = hardware.initialize(DcMotor.class, "Relic Arm");
+        relicSystem = new RelicSystem(hardware.initialize(DcMotor.class, "Relic Arm"), hardware.initialize(Servo.class, "Relic Rotator"), hardware.initialize(Servo.class, "Relic Grabber"));
 
         // Flipper init
         flipper = new Flipper(hardware.initialize(Servo.class, "Left Flipper"), hardware.initialize(Servo.class, "Right Flipper"));

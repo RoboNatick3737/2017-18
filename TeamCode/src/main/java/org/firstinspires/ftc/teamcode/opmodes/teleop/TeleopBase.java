@@ -23,7 +23,7 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
 
         // Init swerve drive for teleop
         robot.swerveDrive.setJoystickControlEnabled(true);
-        robot.swerveDrive.setAxleDrivingProtectionTo(true); // because our drivers need to chiiilll
+        //robot.swerveDrive.setAxleDrivingProtectionTo(true); // because our drivers need to chiiilll
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         waitForStart();
@@ -60,6 +60,19 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
                 robot.lift.down();
             else
                 robot.lift.stop();
+
+            // Controls the relic arm
+            if (C2.y.currentState == HTButton.ButtonState.JUST_TAPPED)
+                robot.relicSystem.toggleGrabber();
+
+            robot.relicSystem.variableExtension(C2.gamepad.right_trigger, C2.gamepad.left_trigger);
+
+            if (C2.gamepad.dpad_left)
+                robot.relicSystem.rotate(false);
+            else if (C2.gamepad.dpad_right)
+                robot.relicSystem.rotate(true);
+            else
+                robot.relicSystem.stopRotator();
 
             flow.yield();
         }

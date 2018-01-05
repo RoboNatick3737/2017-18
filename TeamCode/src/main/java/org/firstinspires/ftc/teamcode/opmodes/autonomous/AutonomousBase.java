@@ -1,10 +1,14 @@
 package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
+import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
+
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
+
+import org.firstinspires.ftc.teamcode.vision.analysis.CompetitionJewelKnocker;
 import org.firstinspires.ftc.teamcode.vision.analysis.JewelDetector;
 
 public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
@@ -18,7 +22,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
 
     // Instantiated and such during run progression.
     private OpenCVCam openCVCam;
-    private JewelDetector.JewelOrder determinedJewelOrder;
+    private CompetitionJewelKnocker.JewelOrder determinedJewelOrder;
 
     private Robot robot;
 
@@ -33,15 +37,16 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
 
         // We're in auto, after all.
         robot.swerveDrive.setJoystickControlEnabled(false);
+        robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         // TODO init vuforia and determine vumark
 
         // Wait for the jewels to be placed.
-        JewelDetector jewelDetector = new JewelDetector();
+        CompetitionJewelKnocker jewelDetector = new CompetitionJewelKnocker();
         openCVCam = new OpenCVCam();
-        openCVCam.start(jewelDetector);
-        JewelDetector.JewelOrder currentOrder = JewelDetector.JewelOrder.UNKNOWN;
-        while (currentOrder == JewelDetector.JewelOrder.UNKNOWN && !shouldTransitionIntoActualOpMode())
+        openCVCam.start(jewelDetector, true);
+        CompetitionJewelKnocker.JewelOrder currentOrder = CompetitionJewelKnocker.JewelOrder.UNKNOWN;
+        while (currentOrder == CompetitionJewelKnocker.JewelOrder.UNKNOWN && !shouldTransitionIntoActualOpMode())
         {
             currentOrder = jewelDetector.getCurrentOrder();
             flow.yield();
@@ -49,20 +54,23 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         determinedJewelOrder = currentOrder;
         openCVCam.stop();
 
+        log.lines("Decided on " + determinedJewelOrder.toString());
+
         // Wait for the auto start period.
         waitForStart();
 
         // Knock off the jewel as quickly as possible, but skip if we couldn't tell the ball orientation.
-        double ballKnockHeading = 0;
-        if (determinedJewelOrder != JewelDetector.JewelOrder.UNKNOWN)
+        if (determinedJewelOrder != CompetitionJewelKnocker.JewelOrder.UNKNOWN)
         {
+            double ballKnockHeading = 0;
+
             // Put down the knocker
             robot.ballKnocker.setKnockerTo(false);
 
             // Determine which direction we're going to have to rotate when auto starts.
             if (getAlliance() == Alliance.RED) // since this extends competition op mode.
             {
-                if (determinedJewelOrder == JewelDetector.JewelOrder.BLUE_RED)
+                if (determinedJewelOrder == CompetitionJewelKnocker.JewelOrder.BLUE_RED)
                     ballKnockHeading = TURN_HEADING_TO_KNOCK_JEWEL;
                 else
                     ballKnockHeading = -TURN_HEADING_TO_KNOCK_JEWEL;
@@ -70,7 +78,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             }
             else if (getAlliance() == Alliance.BLUE)
             {
-                if (determinedJewelOrder == JewelDetector.JewelOrder.BLUE_RED)
+                if (determinedJewelOrder == CompetitionJewelKnocker.JewelOrder.BLUE_RED)
                     ballKnockHeading = -TURN_HEADING_TO_KNOCK_JEWEL;
                 else
                     ballKnockHeading = TURN_HEADING_TO_KNOCK_JEWEL;
@@ -78,9 +86,13 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
 
             // Turn to that heading
             robot.swerveDrive.setDesiredHeading(ballKnockHeading);
+            log.lines("Set to " + ballKnockHeading);
 
             // Put the knocker back up
-            robot.ballKnocker.setKnockerTo(true);
+            robot.ballKnocker.setKnockerTo(false);
+
+            while (Math.abs(robot.gyro.z() - 30) > 5)
+                robot.swerveDrive.synchronousUpdate();
         }
 
         // Drive off of the balance board.
