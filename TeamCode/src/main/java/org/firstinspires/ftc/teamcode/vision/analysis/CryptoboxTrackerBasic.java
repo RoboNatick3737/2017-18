@@ -36,7 +36,7 @@ public class CryptoboxTrackerBasic extends EnhancedOpMode implements CameraBridg
     protected void onRun() throws InterruptedException
     {
         OpenCVCam cam = new OpenCVCam();
-        cam.start(this);
+        cam.start(this, true);
 
         ProcessConsole console = LoggingBase.instance.newProcessConsole("Cryptobox Tracker");
 

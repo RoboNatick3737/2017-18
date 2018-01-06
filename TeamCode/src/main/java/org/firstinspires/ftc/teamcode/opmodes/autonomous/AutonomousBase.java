@@ -76,9 +76,9 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         log.lines("Jewel order: " + determinedJewelOrder.toString());
 
         // Manually rotate the swerve wheel out of the way
-        robot.swerveDrive.swerveWheels[3].turnMotor.setPosition(1);
+        robot.swerveDrive.swerveWheels[1].turnMotor.setPosition(1);
         flow.msPause(500);
-        robot.swerveDrive.swerveWheels[3].turnMotor.setPosition(0.5);
+        robot.swerveDrive.swerveWheels[1].turnMotor.setPosition(0.5);
         log.lines("Turned");
 
         // Knock off the jewel as quickly as possible, but skip if we couldn't tell the ball orientation.
@@ -120,25 +120,42 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             robot.ballKnocker.setKnockerTo(true);
         }
 
-        // Init the cryptobox viewer
-        CryptoboxTrackerBasic tracker = new CryptoboxTrackerBasic();
-        openCVCam.start(tracker, true);
+//        // Init the cryptobox viewer
+//        CryptoboxTrackerBasic tracker = new CryptoboxTrackerBasic();
+//        openCVCam.start(tracker, true);
+//
+//        // Push the glyph toward the flipper
+//        robot.intake.intake();
+//
+//        // Drive off of the balance board until we see the first deposit region.
+//        robot.swerveDrive.setDesiredMovement(Vector2D.rectangular(0, 0.5));
+//        robot.swerveDrive.setDesiredHeading(0);
+//        CryptoboxTrackerBasic.CryptoColumnPixelLocation[] locations = {};
+//        while(locations.length < 2)
+//        {
+//            locations = tracker.getObservedLocations();
+//            robot.swerveDrive.synchronousUpdate();
+//            flow.yield();
+//        }
+//
+//      // TODO Now creep side to side to the center of the column.
 
-        // Push the glyph toward the flipper
-        robot.intake.intake();
+        // Drive off the balance board
+        Vector2D driveDirection = Vector2D.ZERO;
+        if (getAlliance() == Alliance.RED)
+            driveDirection = Vector2D.rectangular(0, -0.5);
+        else
+            driveDirection = Vector2D.rectangular(0, 0.5);
 
-        // Drive off of the balance board until we see the first deposit region.
-        robot.swerveDrive.setDesiredMovement(Vector2D.rectangular(0, 0.5));
+        robot.swerveDrive.setDesiredMovement(driveDirection);
         robot.swerveDrive.setDesiredHeading(0);
-        CryptoboxTrackerBasic.CryptoColumnPixelLocation[] locations = {};
-        while(locations.length < 2)
+
+        long startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() - startTime < 2500)
         {
-            locations = tracker.getObservedLocations();
             robot.swerveDrive.synchronousUpdate();
             flow.yield();
         }
-
-        // TODO Now creep side to side to the center of the column.
     }
 
     /**

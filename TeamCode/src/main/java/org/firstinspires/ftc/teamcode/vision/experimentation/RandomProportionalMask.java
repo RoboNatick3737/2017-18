@@ -26,13 +26,7 @@ public class RandomProportionalMask extends EnhancedOpMode implements CameraBrid
     private ProcessConsole cameraProcessConsole;
 
     // Choose completely random values.
-    double randHueMaxSlope;
-    double randHueMinSlope;
-    double randSatMaxSlope;
-    double randSatMinSlope;
-    double hueMin;
-    double hueMax;
-    double satMin;
+    private double randHueMaxSlope, randHueMinSlope, randSatMaxSlope, randSatMinSlope, hueMin, hueMax, satMin;
     
     private void regenerateNums()
     {
@@ -108,14 +102,10 @@ public class RandomProportionalMask extends EnhancedOpMode implements CameraBrid
         ThreeChannelProportionalFilter.commonAreaFilter(raw, blueMask,
 
                 // for when we're calculating hue
-                new LinearChannelBound(
-                        new LinearFunctionBounds(new LinearFunction(0, 0), new LinearFunction(0, 255)),  // describes saturation
-                        new LinearFunctionBounds(new LinearFunction(0, 0), new LinearFunction(0, 255))), // describes value
+                null,
 
                 // for when we're calculating saturation
-                new LinearChannelBound(
-                        new LinearFunctionBounds(new LinearFunction(0, 0), new LinearFunction(0, 255)),  // describes hue
-                        new LinearFunctionBounds(new LinearFunction(0, 0), new LinearFunction(0, 255))), // describes value
+                null,
 
                 // for when we're calculating value
                 new LinearChannelBound(

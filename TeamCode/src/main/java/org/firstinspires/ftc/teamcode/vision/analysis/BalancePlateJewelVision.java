@@ -117,19 +117,19 @@ public class BalancePlateJewelVision extends EnhancedOpMode implements CameraBri
         int secondHalfBlue = Core.countNonZero(secondHalfBlueMat);
         secondHalfBlueMat.release();
 
-        Mat firstHalfRedMat = redMask.submat(0, midpoint, 0, blueMask.cols());
+        Mat firstHalfRedMat = redMask.submat(0, midpoint, (int)(blueMask.cols() * .22), (int)(blueMask.cols() * .55));
         int firstHalfRed = Core.countNonZero(firstHalfRedMat);
         firstHalfRedMat.release();
 
-        Mat secondHalfRedMat = redMask.submat(midpoint, redMask.rows(), 0, blueMask.cols());
+        Mat secondHalfRedMat = redMask.submat(midpoint, redMask.rows(), (int)(blueMask.cols() * .6), (int)(blueMask.cols() * .93));
         int secondHalfRed = Core.countNonZero(secondHalfRedMat);
         secondHalfRedMat.release();
 
-        if (firstHalfBlue > firstHalfRed && secondHalfRed > secondHalfBlue)
+        if ((firstHalfBlue > secondHalfBlue) && (secondHalfRed > firstHalfRed))
         {
             currentOrder = JewelOrder.RED_BLUE;
         }
-        else if (firstHalfBlue < firstHalfRed && secondHalfRed < secondHalfBlue)
+        else if ((secondHalfBlue > firstHalfBlue) && (firstHalfRed > secondHalfRed))
         {
             currentOrder = JewelOrder.BLUE_RED;
         }
