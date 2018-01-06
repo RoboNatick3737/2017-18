@@ -30,6 +30,10 @@ public class VuforiaCam
 
     public void start()
     {
+        start(false);
+    }
+    public void start(boolean useFrontCam)
+    {
         currentlyActive = true;
 
         // Show the layouts for the vuforia camera.
@@ -44,7 +48,7 @@ public class VuforiaCam
          * Here we chose the back (HiRes) camera (for greater range), but
          * for a competition robot, the front camera might be more convenient.
          */
-        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+        parameters.cameraDirection = useFrontCam ? VuforiaLocalizer.CameraDirection.FRONT : VuforiaLocalizer.CameraDirection.BACK;
 
         vuforia = new CloseableVuforiaLocalizer(parameters);
 

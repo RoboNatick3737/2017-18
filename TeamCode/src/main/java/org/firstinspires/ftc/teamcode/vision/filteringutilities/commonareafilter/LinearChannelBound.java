@@ -24,13 +24,30 @@ public class LinearChannelBound
 
     private void applyFunctionBounds(Mat toward, Mat against, LinearFunctionBounds linearBounds, Mat output)
     {
-        Mat upper = new Mat(), lower = new Mat();
+        boolean noSlopeForA = Math.abs(linearBounds.lower.a) < .001, noSlopeForB = Math.abs(linearBounds.upper.a) < .001;
+
+        if (noSlopeForA && noSlopeForB)
+        {
+            Core.inRange(toward, new Scalar(linearBounds.lower.b), new Scalar(linearBounds.upper.b), toward);
+            return;
+        }
+
+        Mat upper = against.clone(), lower = against.clone();
 
         // Init mat multiplication and stuff
-        Core.multiply(against, new Scalar(linearBounds.lower.a), lower);
-        Core.add(lower, new Scalar(linearBounds.lower.b), lower);
-        Core.multiply(against, new Scalar(linearBounds.upper.a), upper);
-        Core.add(upper, new Scalar(linearBounds.upper.b), upper);
+        if (!noSlopeForA)
+        {
+            Core.multiply(lower, new Scalar(linearBounds.lower.a), lower);
+            Core.add(lower, new Scalar(linearBounds.lower.b), lower);
+        } else
+            lower.setTo(new Scalar(linearBounds.lower.b));
+
+        if (!noSlopeForA)
+        {
+            Core.multiply(upper, new Scalar(linearBounds.upper.a), upper);
+            Core.add(upper, new Scalar(linearBounds.upper.b), upper);
+        } else
+            upper.setTo(new Scalar(linearBounds.upper.b));
 
         // Do the range
         OpenCVJNIHooks.inRangeBetweenMats(toward, lower, upper, output);

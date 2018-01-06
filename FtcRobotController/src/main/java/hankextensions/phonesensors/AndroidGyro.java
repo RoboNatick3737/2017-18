@@ -8,6 +8,8 @@ import android.hardware.SensorManager;
 
 import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
 
+import hankextensions.structs.Vector2D;
+
 public class AndroidGyro implements Gyro
 {
     public static AndroidGyro instance;
@@ -96,14 +98,6 @@ public class AndroidGyro implements Gyro
         instance = this;
     }
 
-    public static double wrapAngle(double angle) {
-        angle %= 360;
-        if (angle < 0) {
-            angle += 360;
-        }
-        return angle;
-    }
-
     public void calibrate() {
         zero();
     }
@@ -113,15 +107,15 @@ public class AndroidGyro implements Gyro
     }
 
     public double x() {
-        return x;
+        return Vector2D.clampAngle(360 - x);
     }
 
     public double y() {
-        return z;
+        return Vector2D.clampAngle(360 - z);
     }
 
     public double z() {
-        return y;
+        return Vector2D.clampAngle(360 - y);
     }
 
     /**

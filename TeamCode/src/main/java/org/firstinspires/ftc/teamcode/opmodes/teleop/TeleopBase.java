@@ -4,6 +4,7 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwerveDrive;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.input.HTButton;
@@ -35,15 +36,18 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
             C2.update();
 
             // Update swerve drive
+            if (C1.x.currentState == HTButton.ButtonState.JUST_TAPPED)
+            {
+                if (robot.swerveDrive.getControlMethod() == SwerveDrive.ControlMethod.FIELD_CENTRIC)
+                    robot.swerveDrive.setControlMethod(SwerveDrive.ControlMethod.TANK_DRIVE);
+                else
+                    robot.swerveDrive.setControlMethod(SwerveDrive.ControlMethod.FIELD_CENTRIC);
+            }
             robot.swerveDrive.synchronousUpdate();
 
             // Control flipper
             if (C1.a.currentState == HTButton.ButtonState.JUST_TAPPED)
                 robot.flipper.advanceStage();
-
-            // Use the ball knocker
-            if (C1.x.currentState == HTButton.ButtonState.JUST_TAPPED)
-                robot.ballKnocker.toggleKnocker();
 
             // Control intake
             if (C1.gamepad.left_bumper)

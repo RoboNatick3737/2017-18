@@ -10,11 +10,11 @@ public class BlueBottom extends AutonomousBase
 {
     @Override
     public Alliance getAlliance() {
-        return null;
+        return Alliance.BLUE;
     }
 
     @Override
     public BalancePlate getBalancePlate() {
-        return null;
+        return BalancePlate.BOTTOM;
     }
 }

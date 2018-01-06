@@ -2,13 +2,18 @@ package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
+import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
 import hankextensions.EnhancedOpMode;
+import hankextensions.structs.Vector2D;
 import hankextensions.vision.opencv.OpenCVCam;
+import hankextensions.vision.vuforia.VuforiaCam;
 
 import org.firstinspires.ftc.teamcode.vision.analysis.CompetitionJewelKnocker;
+import org.firstinspires.ftc.teamcode.vision.analysis.CryptoboxTracker;
 import org.firstinspires.ftc.teamcode.vision.analysis.JewelDetector;
 
 public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
@@ -39,7 +44,19 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         robot.swerveDrive.setJoystickControlEnabled(false);
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
-        // TODO init vuforia and determine vumark
+        VuforiaCam vuforiaCam = new VuforiaCam();
+        vuforiaCam.start(true);
+        VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
+        vuforiaCam.getTrackables().activate();
+
+        RelicRecoveryVuMark vumark = RelicRecoveryVuMark.UNKNOWN;
+        while (vumark == RelicRecoveryVuMark.UNKNOWN && !shouldTransitionIntoActualOpMode())
+        {
+            vumark = RelicRecoveryVuMark.from(relicTemplate);
+            flow.yield();
+        }
+        log.lines("VuMark: " + vumark.toString());
+        vuforiaCam.stop();
 
         // Wait for the jewels to be placed.
         CompetitionJewelKnocker jewelDetector = new CompetitionJewelKnocker();
@@ -54,10 +71,15 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         determinedJewelOrder = currentOrder;
         openCVCam.stop();
 
-        log.lines("Decided on " + determinedJewelOrder.toString());
+        log.lines("Jewel order: " + determinedJewelOrder.toString());
 
         // Wait for the auto start period.
         waitForStart();
+
+        // Manually rotate the swerve wheel out of the way
+        robot.swerveDrive.swerveWheels[3].turnMotor.setPosition(1);
+        flow.msPause(500);
+        robot.swerveDrive.swerveWheels[3].turnMotor.setPosition(0.5);
 
         // Knock off the jewel as quickly as possible, but skip if we couldn't tell the ball orientation.
         if (determinedJewelOrder != CompetitionJewelKnocker.JewelOrder.UNKNOWN)
@@ -73,13 +95,13 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
                 if (determinedJewelOrder == CompetitionJewelKnocker.JewelOrder.BLUE_RED)
                     ballKnockHeading = TURN_HEADING_TO_KNOCK_JEWEL;
                 else
-                    ballKnockHeading = -TURN_HEADING_TO_KNOCK_JEWEL;
+                    ballKnockHeading = 360 - TURN_HEADING_TO_KNOCK_JEWEL;
 
             }
             else if (getAlliance() == Alliance.BLUE)
             {
                 if (determinedJewelOrder == CompetitionJewelKnocker.JewelOrder.BLUE_RED)
-                    ballKnockHeading = -TURN_HEADING_TO_KNOCK_JEWEL;
+                    ballKnockHeading = 360 - TURN_HEADING_TO_KNOCK_JEWEL;
                 else
                     ballKnockHeading = TURN_HEADING_TO_KNOCK_JEWEL;
             }
@@ -95,8 +117,18 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
                 robot.swerveDrive.synchronousUpdate();
         }
 
+        // Init the cryptobox viewer
+        CryptoboxTracker tracker = new CryptoboxTracker();
+        openCVCam.start(tracker);
+
         // Drive off of the balance board.
-        // todo figure out driving: swerveDrive.setDesiredMovement(Vector2D.rectangular(-1, 0));
+        robot.swerveDrive.setDesiredMovement(Vector2D.rectangular(-100, 0));
+
+        while(true)
+        {
+            robot.swerveDrive.synchronousUpdate();
+            flow.yield();
+        }
     }
 
     /**

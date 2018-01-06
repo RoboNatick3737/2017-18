@@ -47,7 +47,11 @@ public class ThreeChannelProportionalFilter
         // Apply the bounds and release them.
         for (int i = 0; i < 3; i++)
         {
+            if (channelBounds[i] == null)
+                continue;
+
             Mat mask = Mat.zeros(input.size(), Imgproc.THRESH_BINARY);
+
             switch (i)
             {
                 case 0:

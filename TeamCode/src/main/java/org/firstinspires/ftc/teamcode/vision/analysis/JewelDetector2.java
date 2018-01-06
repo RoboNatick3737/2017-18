@@ -20,7 +20,6 @@ import hankextensions.vision.opencv.OpenCVCam;
 /**
  * Originally developed by Alex from DogeCV, I'm modifying a bit for my own purposes: https://github.com/GTHSRobotics/DogeCV
  */
-@Autonomous(name="My Jewel Detector", group= Constants.EXPERIMENTATION)
 public class JewelDetector2 extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     @Override

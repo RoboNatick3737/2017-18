@@ -18,8 +18,8 @@ import org.opencv.imgproc.Imgproc;
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
 
-@Autonomous(name="Red and Blue Detection", group= Constants.EXPERIMENTATION)
-public class RandomRedBlue extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
+@Autonomous(name="Random Proportional Mask Generator", group= Constants.EXPERIMENTATION)
+public class RandomProportionalMask extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     private OpenCVCam openCVCam;
 

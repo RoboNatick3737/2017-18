@@ -32,6 +32,17 @@ public class SwerveDrive extends ScheduledTask
 
     //////  Instance specific components ////////
 
+    public enum ControlMethod { FIELD_CENTRIC, TANK_DRIVE }
+    // Control method
+    private ControlMethod controlMethod = ControlMethod.FIELD_CENTRIC;
+    public void setControlMethod(ControlMethod controlMethod)
+    {
+        this.controlMethod = controlMethod;
+    }
+    public ControlMethod getControlMethod()
+    {
+        return controlMethod;
+    }
     // Whether or not the joystick can direct the swerve drive (false during auto)
     private boolean joystickControlEnabled = false;
     // Whether or not this bot will help the driver auto-align to the cryptobox using vision.
@@ -40,14 +51,14 @@ public class SwerveDrive extends ScheduledTask
     private boolean avoidAxleDestruction = false;
     public void setAxleDrivingProtectionTo(boolean state)
     {
-//        avoidAxleDestruction = state;
+        avoidAxleDestruction = state;
 
         if (!state)
             lastMovement = null;
     }
 
     // The SwerveWheel instances which constitute the swerve drive: frontLeft, backLeft, backRight, frontRight respectively.
-    private final SwerveWheel[] swerveWheels = new SwerveWheel[4];
+    public final SwerveWheel[] swerveWheels = new SwerveWheel[4];
     public final Gyro gyro; // Public because teleop can manually reset.
     private final PIDController pidController;
 
@@ -132,53 +143,47 @@ public class SwerveDrive extends ScheduledTask
     }
 
     /**
-     * Only takes effect if the gamepad has been supplied to this class.
-     */
-    private void acceptControllerInput()
-    {
-        // Rotate by -90 in order to make forward facing zero.
-        Vector2D joystickDesiredRotation = HTGamepad.CONTROLLER1.rightJoystick();
-        Vector2D joystickDesiredMovement = HTGamepad.CONTROLLER1.leftJoystick();
-
-        // Use the left joystick for rotation unless nothing is supplied, in which case check the DPAD.
-        if (joystickDesiredRotation.magnitude > .0005)
-            setDesiredHeading(joystickDesiredRotation.angle);
-
-        if (joystickDesiredMovement.magnitude > .0005)
-            setDesiredMovement(joystickDesiredMovement);
-        else
-            setDesiredMovement(Vector2D.ZERO);
-
-        // Upon tapping white, calibrate the gyro
-        if (HTGamepad.CONTROLLER1.gamepad.y)
-        {
-            try
-            {
-                gyro.calibrate();
-            }
-            catch (InterruptedException e)
-            {
-                return;
-            }
-        }
-
-        // Fine tuned adjustments.
-        if (HTGamepad.CONTROLLER1.gamepad.left_trigger > 0.1 || HTGamepad.CONTROLLER1.gamepad.right_trigger > 0.1)
-        {
-            this.desiredHeading += 5 * (HTGamepad.CONTROLLER1.gamepad.left_trigger - HTGamepad.CONTROLLER1.gamepad.right_trigger);
-            this.desiredHeading = Vector2D.clampAngle(this.desiredHeading);
-        }
-    }
-
-    /**
      * This is where pretty much all the work for the swerve DRIVE calculations take place
      * (calculating the vectors to which the wheels should align), but the wheels have their own
      * update methods to actually change their orientation.
      */
-    private void recalculateSwerveWheelVectors() throws InterruptedException
+    private void updateSwerveDriveFieldCentric() throws InterruptedException
     {
         if (joystickControlEnabled)
-            acceptControllerInput();
+        {
+            // Rotate by -90 in order to make forward facing zero.
+            Vector2D joystickDesiredRotation = HTGamepad.CONTROLLER1.rightJoystick();
+            Vector2D joystickDesiredMovement = HTGamepad.CONTROLLER1.leftJoystick();
+
+            // Use the left joystick for rotation unless nothing is supplied, in which case check the DPAD.
+            if (joystickDesiredRotation.magnitude > .0005)
+                setDesiredHeading(joystickDesiredRotation.angle);
+
+            if (joystickDesiredMovement.magnitude > .0005)
+                setDesiredMovement(joystickDesiredMovement);
+            else
+                setDesiredMovement(Vector2D.ZERO);
+
+            // Upon tapping white, calibrate the gyro
+            if (HTGamepad.CONTROLLER1.gamepad.y)
+            {
+                try
+                {
+                    gyro.calibrate();
+                }
+                catch (InterruptedException e)
+                {
+                    return;
+                }
+            }
+
+            // Fine tuned adjustments.
+            if (HTGamepad.CONTROLLER1.gamepad.left_trigger > 0.1 || HTGamepad.CONTROLLER1.gamepad.right_trigger > 0.1)
+            {
+                this.desiredHeading += 5 * (HTGamepad.CONTROLLER1.gamepad.left_trigger - HTGamepad.CONTROLLER1.gamepad.right_trigger);
+                this.desiredHeading = Vector2D.clampAngle(this.desiredHeading);
+            }
+        }
 
         // Get current gyro val.
         double gyroHeading = gyro.z();
@@ -198,15 +203,15 @@ public class SwerveDrive extends ScheduledTask
                 // Sort of move via a gradient to determine the max heading change.
                 double changeCoefficient = 1 / (25 * fieldCentricTranslation.magnitude + 1);
                 double maxHeadingChange = 90 * changeCoefficient;
-//                double maxMagnitudeChange = MAX_TELEOP_SPEED * .25 * changeCoefficient;
+                double maxMagnitudeChange = MAX_TELEOP_SPEED * .25 * changeCoefficient;
 
                 double desiredChangeInHeading = lastMovement.leastAngleTo(fieldCentricTranslation);
                 if (maxHeadingChange < Math.abs(desiredChangeInHeading)) // if this isn't within the constraint, shift as close as possible.
                     fieldCentricTranslation = lastMovement.rotateBy(Math.signum(desiredChangeInHeading) * maxHeadingChange);
 
-//                double desiredChangeInMagnitude = fieldCentricTranslation.magnitude - lastMovement.magnitude;
-//                if (maxMagnitudeChange < Math.abs(desiredChangeInMagnitude))
-//                    fieldCentricTranslation = Vector2D.polar(lastMovement.magnitude + Math.signum(desiredChangeInMagnitude) * maxMagnitudeChange, fieldCentricTranslation.angle);
+                double desiredChangeInMagnitude = fieldCentricTranslation.magnitude - lastMovement.magnitude;
+                if (maxMagnitudeChange < Math.abs(desiredChangeInMagnitude))
+                    fieldCentricTranslation = Vector2D.polar(lastMovement.magnitude + Math.signum(desiredChangeInMagnitude) * maxMagnitudeChange, fieldCentricTranslation.angle);
             }
 
             lastMovement = fieldCentricTranslation;
@@ -252,13 +257,30 @@ public class SwerveDrive extends ScheduledTask
         );
     }
 
+    private void updateSwerveDriveTankDrive() throws InterruptedException
+    {
+        Vector2D desiredMovement = HTGamepad.CONTROLLER1.leftJoystick();
+        if (desiredMovement.magnitude < .0005)
+            desiredMovement = Vector2D.ZERO;
+
+        double rotationSpeed = HTGamepad.CONTROLLER1.gamepad.right_stick_x;
+
+        for (int i = 0; i < swerveWheels.length; i++)
+            swerveWheels[i].setVectorTarget(
+                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(desiredMovement).multiply(MAX_TELEOP_SPEED));
+    }
+
     /**
      * A scheduled task to ensure swerve consistency.
      */
     @Override
     protected long onContinueTask() throws InterruptedException
     {
-        recalculateSwerveWheelVectors();
+        if (controlMethod == ControlMethod.FIELD_CENTRIC)
+            updateSwerveDriveFieldCentric();
+        else if (controlMethod == ControlMethod.TANK_DRIVE)
+            updateSwerveDriveTankDrive();
+
         return 40;
     }
 }
