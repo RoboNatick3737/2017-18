@@ -4,12 +4,8 @@ import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.structs.LinearFunction;
 import org.firstinspires.ftc.teamcode.vision.filteringutilities.AdditionalFilteringUtilities;
-import org.firstinspires.ftc.teamcode.vision.filteringutilities.LinearFunctionBounds;
 import org.firstinspires.ftc.teamcode.vision.filteringutilities.MaskGenerator;
-import org.firstinspires.ftc.teamcode.vision.filteringutilities.commonareafilter.LinearChannelBound;
-import org.firstinspires.ftc.teamcode.vision.filteringutilities.commonareafilter.ThreeChannelProportionalFilter;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -20,8 +16,8 @@ import org.opencv.imgproc.Imgproc;
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
 
-@Autonomous(name="Balance Plate Jewel Vision", group= Constants.EXPERIMENTATION)
-public class BalancePlateJewelVision extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
+@Autonomous(name="Balance Plate Jewel Vision 2", group= Constants.EXPERIMENTATION)
+public class BalancePlateJewelVision2 extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     private OpenCVCam openCVCam;
 
@@ -89,6 +85,7 @@ public class BalancePlateJewelVision extends EnhancedOpMode implements CameraBri
         for (int i = (int)(original.cols() * .87); i < (int)(original.cols() * .93); i++)
             original.col(i).setTo(new Scalar(0, 0, 0));
 
+        // Make red and blue appear as red and blue.
         Mat jewelSubmat = original.submat((int)(original.rows() * .22), (int)(original.rows() * .9), (int)(original.cols() * .93), original.cols());
 
         // Make colors appear sharper.
@@ -137,8 +134,12 @@ public class BalancePlateJewelVision extends EnhancedOpMode implements CameraBri
             currentOrder = JewelOrder.UNKNOWN;
         }
 
-        jewelSubmat.release();
+//        jewelSubmat.setTo(new Scalar(0, 0, 255), blueMask);
+//        jewelSubmat.setTo(new Scalar(255, 0, 0), redMask);
 
+//        Imgproc.resize(jewelSubmat, original, original.size());
+
+        jewelSubmat.release();
 
         return original;
     }

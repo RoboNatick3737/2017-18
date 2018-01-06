@@ -1,0 +1,119 @@
+package org.firstinspires.ftc.teamcode.vision.experimentation;
+
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+
+import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.structs.LinearFunction;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.AdditionalFilteringUtilities;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.LinearFunctionBounds;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.commonareafilter.LinearChannelBound;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.commonareafilter.ThreeChannelProportionalFilter;
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+
+import hankextensions.EnhancedOpMode;
+import hankextensions.vision.opencv.OpenCVCam;
+
+@Autonomous(name="RPMG — Blue", group= Constants.EXPERIMENTATION)
+public class RandomProportionalMaskBlue extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
+{
+    private OpenCVCam openCVCam;
+
+    private ProcessConsole cameraProcessConsole;
+
+    // Choose completely random values.
+    private double randHueMaxSlope, randHueMinSlope, randSatMaxSlope, randSatMinSlope, satMin;
+    
+    private void regenerateNums()
+    {
+         randHueMaxSlope = Math.random() * 2 - 1;
+         randHueMinSlope = Math.random() * 2 - 1;
+         randSatMaxSlope = Math.random() * 2 - 1;
+         randSatMinSlope = Math.random() * 2 - 1;
+         satMin = Math.random() * 59;
+    }
+
+    @Override
+    protected void onRun() throws InterruptedException
+    {
+        // Start the good old OpenCV camera.
+        openCVCam = new OpenCVCam();
+        regenerateNums();
+        openCVCam.start(this);
+
+        cameraProcessConsole = log.newProcessConsole("Camera Process Console");
+
+        waitForStart();
+
+        long lastPressTime = System.currentTimeMillis();
+
+        while (true)
+        {
+            if (gamepad1.a && System.currentTimeMillis() - lastPressTime > 100) {
+                regenerateNums();
+                lastPressTime = System.currentTimeMillis();
+            }
+
+            cameraProcessConsole.write(
+                    "Random hue max slope = " + randHueMaxSlope,
+                    "Random hue min slope = " + randHueMinSlope,
+                    "Random sat max slope = " + randSatMaxSlope,
+                    "Random sat min slope = " + randSatMinSlope,
+                    "Sat min " + satMin);
+
+            flow.yield();
+        }
+    }
+
+    private Mat redMask, blueMask;
+
+    @Override
+    public void onCameraViewStarted(int width, int height) {
+        blueMask = Mat.ones(new Size(width, height), Imgproc.THRESH_BINARY);
+        redMask = Mat.ones(new Size(width, height), Imgproc.THRESH_BINARY);
+    }
+
+    @Override
+    public void onCameraViewStopped() {
+        redMask.release();
+        blueMask.release();
+    }
+
+    @Override
+    public Mat onCameraFrame(Mat raw)
+    {
+//        AdditionalFilteringUtilities.fixMatLuminance(raw);
+
+        // Remove noise from image.
+        Imgproc.blur(raw, raw, new Size(3, 3));
+
+        // Analyze frame in HSV
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HLS);
+
+        // An advanced filter I made to choose colors based on the other properties of their hue.
+        ThreeChannelProportionalFilter.commonAreaFilter(raw, blueMask,
+
+                // for when we're calculating hue
+                null,
+
+                // for when we're calculating saturation
+                new LinearChannelBound(
+                        new LinearFunctionBounds(new LinearFunction(randHueMinSlope, 75), new LinearFunction(randHueMaxSlope, 135)),  // describes hue
+                        new LinearFunctionBounds(new LinearFunction(randSatMinSlope, satMin), new LinearFunction(randSatMaxSlope, 255))),  // describes saturation
+
+                // for when we're calculating value
+                null
+        );
+
+        // Set values
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_HLS2RGB);
+        raw.setTo(new Scalar(0, 0, 255), blueMask);
+
+        // Resize to the original (crashes otherwise)
+        return raw;
+    }
+}

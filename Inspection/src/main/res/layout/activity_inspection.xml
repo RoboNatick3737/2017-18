@@ -418,7 +418,8 @@
             android:gravity="left"
             android:text="OpenFTC is a modified version of the SDK. For more information, see the About screen."
             android:textStyle="bold"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:visibility="invisible"/>
 
 
         <LinearLayout
@@ -434,13 +435,15 @@
                 android:layout_height="wrap_content"
                 android:text="OpenFTC Version:"
                 android:layout_weight="1"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:visibility="invisible" />
 
             <TextView
                 android:id="@+id/txtOpenFTCVersion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:visibility="invisible"/>
 
         </LinearLayout>
 

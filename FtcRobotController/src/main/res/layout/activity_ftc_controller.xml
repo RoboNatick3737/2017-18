@@ -84,7 +84,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           android:textAppearance="?android:attr/textAppearanceMedium"
           android:padding="8dp"
           android:textStyle="bold"
-          tools:text="OpenFTC v1.0" />
+          tools:text="OpenFTC v1.0"
+          android:visibility="invisible" />
 
       <ImageButton
           android:id="@+id/menu_buttons"

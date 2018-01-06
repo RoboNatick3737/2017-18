@@ -143,12 +143,13 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         // Drive off the balance board
         Vector2D driveDirection = Vector2D.ZERO;
         if (getAlliance() == Alliance.RED)
-            driveDirection = Vector2D.rectangular(0, -0.5);
+            driveDirection = Vector2D.rectangular(-0.1, -0.5);
         else
-            driveDirection = Vector2D.rectangular(0, 0.5);
+            driveDirection = Vector2D.rectangular(-0.1, 0.5);
 
         robot.swerveDrive.setDesiredMovement(driveDirection);
         robot.swerveDrive.setDesiredHeading(0);
+        robot.intake.intake(); // push glyph toward end
 
         long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - startTime < 2500)

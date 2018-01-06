@@ -51,9 +51,9 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
 
             // Control intake
             if (C1.gamepad.left_bumper)
-                robot.intake.intake();
-            else if (C1.gamepad.right_bumper)
                 robot.intake.expel();
+            else if (C1.gamepad.right_bumper)
+                robot.intake.intake();
             else
                 robot.intake.stop();
 

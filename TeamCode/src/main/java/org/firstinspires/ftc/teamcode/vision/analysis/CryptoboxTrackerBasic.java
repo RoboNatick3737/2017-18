@@ -210,8 +210,8 @@ public class CryptoboxTrackerBasic extends EnhancedOpMode implements CameraBridg
 
                 // for when we're calculating value
                 new LinearChannelBound(
-                        new LinearFunctionBounds(new LinearFunction(-.02, 7.227), new LinearFunction(.77, 134.7)),  // describes hue
-                        new LinearFunctionBounds(new LinearFunction(-.0449, 20.62), new LinearFunction(.585, 255)))  // describes saturation
+                        new LinearFunctionBounds(new LinearFunction(-.1, 15.227), new LinearFunction(.77, 134.7)),  // describes hue
+                        new LinearFunctionBounds(new LinearFunction(0, 20.62), new LinearFunction(.585, 255)))  // describes saturation
 
         );
         ThreeChannelProportionalFilter.commonAreaFilter(raw, whiteMask,
@@ -225,12 +225,12 @@ public class CryptoboxTrackerBasic extends EnhancedOpMode implements CameraBridg
                 // for when we're calculating value
                 new LinearChannelBound(
                         new LinearFunctionBounds(new LinearFunction(.166, 82.26), new LinearFunction(.696, 247.37)),  // describes hue
-                        new LinearFunctionBounds(new LinearFunction(.754, 8.67), new LinearFunction(.573, 255)))  // describes saturation
+                        new LinearFunctionBounds(new LinearFunction(.754, 8.67), new LinearFunction(0, 255)))  // describes saturation
 
         );
 
 //        // Get the blue mask with adaptive hsv.
-//        maskGenerator.adaptiveHSV(raw, 55, -.1, 135, -.1, 59, 59, 255, blueMask);
+//        maskGenerator.adaptiveHSV(raw, 55, 30, -.1, 135, -.1, 59, 255, blueMask);
 //
 //        // Get the white mask using just inRange.
 //        Core.inRange(raw, new Scalar(0, 0, 60), new Scalar(255, 65, 255), whiteMask);
