@@ -26,9 +26,11 @@ import hankextensions.vision.opencv.OpenCVCam;
 /**
  * Tracks and guesses the approximate distances from this phone to each individual cryptobox
  * column through a bit of math.
+ *
+ * Uses rows for analysis instead of columns because phone is vertical
  */
-@Autonomous(name="Cryptobox Tracker", group= Constants.EXPERIMENTATION)
-public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
+@Autonomous(name="Cryptobox Tracker Basic", group= Constants.EXPERIMENTATION)
+public class CryptoboxTrackerBasic extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     @Override
     protected void onRun() throws InterruptedException
@@ -39,19 +41,24 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         ProcessConsole console = LoggingBase.instance.newProcessConsole("Cryptobox Tracker");
 
         while (true)
-        {
-            console.write("Front is " + getCurrentForwardOffset(), "Side is " + getCurrentHorizontalOffset());
             flow.yield();
-        }
     }
 
-    private CryptoboxPositionTracker tracker;
+    /**
+     * The main thing that's being returned which OpModes can interpret as they like (called basic tracker
+     * for a reason :P)
+     */
+    private CryptoColumnPixelLocation[] observedLocations;
+    public CryptoColumnPixelLocation[] getObservedLocations()
+    {
+        return observedLocations;
+    }
     private MaskGenerator maskGenerator;
 
     /**
      * Stores the start of the crypto column and the width of the column.
      */
-    class CryptoColumnPixelLocation
+    public class CryptoColumnPixelLocation
     {
         public final int origin; // can't be changed
         public int width; // can be modified
@@ -67,96 +74,14 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             return this.origin + this.width / 2.0;
         }
     }
-    /**
-     * Tracks a column position with an id
-     */
-    public class CryptoboxPositionTracker
-    {
-        private CryptoColumnPixelLocation[] trackedLocations;
-
-        public CryptoboxPositionTracker(CryptoColumnPixelLocation[] locations)
-        {
-            trackedLocations = locations;
-        }
-
-        public void applyFilteredData(CryptoColumnPixelLocation[] observedLocations)
-        {
-            for (int observedLocationsIndex = 0; observedLocationsIndex < observedLocations.length; observedLocationsIndex++)
-            {
-                for (int trackedLocationsIndex = 0; trackedLocationsIndex < trackedLocations.length; trackedLocationsIndex++)
-                {
-                    CryptoColumnPixelLocation trackedPosition = trackedLocations[trackedLocationsIndex];
-                    CryptoColumnPixelLocation observedPosition = observedLocations[observedLocationsIndex];
-
-                    if (Math.abs(trackedPosition.midpoint() - observedPosition.midpoint()) < analysisResolution.width * .03)
-                    {
-                        trackedLocations[trackedLocationsIndex] = observedLocations[observedLocationsIndex];
-                        double offset = observedPosition.midpoint() - trackedPosition.midpoint();
-
-                        // Apply offset to all.
-                        for (int i = 0; i < trackedLocations.length; i++)
-                        {
-                            if (i != trackedLocationsIndex) // apply to all except current.
-                                trackedLocations[i] = new CryptoColumnPixelLocation((int)(trackedLocations[i].origin + offset), trackedLocations[i].width);
-                        }
-
-                        break;
-                    }
-                }
-            }
-        }
-
-        public double getHorizontalOffset()
-        {
-            return (trackedLocations[1].midpoint() + trackedLocations[2].midpoint()) / 2.0 - analysisResolution.width / 2.0;
-        }
-
-        public double getForwardOffset()
-        {
-            double avgWidth = 0;
-            for (CryptoColumnPixelLocation tracker : trackedLocations)
-                avgWidth += tracker.width;
-            avgWidth /= trackedLocations.length;
-
-            return .05 * avgWidth;
-        }
-    }
-
-    /**
-     * The end doubles that this complex system is trying to calculate.
-     */
-    public double getCurrentHorizontalOffset()
-    {
-        if (tracker == null)
-            return 0;
-
-        return tracker.getHorizontalOffset();
-    }
-
-    public double getCurrentForwardOffset()
-    {
-
-        if (tracker == null)
-            return 100;
-
-        return tracker.getForwardOffset();
-    }
-
-    /**
-     * Forward dist = dist we can drive forward before hitting the crypto, horizontal dist =
-     * dist to the right we can drive before we can reach the center.
-     */
-    public void provideApproximatePhysicalOffset(double forwardDist, double horizontalOffset)
-    {
-        CryptoColumnPixelLocation[] locations = new CryptoColumnPixelLocation[4];
-        // todo calculate stuff
-        tracker = new CryptoboxPositionTracker(locations);
-    }
-
 
     // Mat sizes which constitute analysis vs. the size of the frame we were originally passed.
     private Size originalResolution;
-    private Size analysisResolution;
+    public Size analysisResolution;
+    public Size getAnalysisResolution()
+    {
+        return analysisResolution;
+    }
 
     // Pre-initialized mats.
     private Mat blueMask, whiteMask;
@@ -226,6 +151,39 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             locations.remove(locations.size() - 1);
     }
 
+    private boolean rowAcceptable(Mat blueRow, Mat whiteRow)
+    {
+        int swaps = 0, length = 0;
+        boolean wasBlueLast = true;
+        for (int j = 0; j < blueRow.cols(); j++)
+        {
+            boolean blue = blueRow.get(0, j)[0] != 0;
+            boolean white = whiteRow.get(0, j)[0] != 0;
+
+            if (blue && white)
+                continue;
+
+            if ((blue && !wasBlueLast) || (white && wasBlueLast))
+            {
+                if (length > .2 * blueRow.rows()) // blue/white sequence is suspiciously long
+                {
+                    return false;
+                }
+                swaps++;
+                length = 0;
+            }
+            else
+                length++;
+
+            wasBlueLast = blue;
+        }
+
+        if (swaps < 6)
+            return false;
+
+        return true;
+    }
+
     @Override
     public Mat onCameraFrame(Mat raw)
     {
@@ -289,19 +247,19 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         }
 
         // Loop through the columns and eliminate those which aren't cryptobox columns.
-        boolean[] cryptoColumns = new boolean[raw.cols()]; // Represents a single-row binary mask.
-        for (int colIndex = 0; colIndex < raw.cols(); colIndex++)
+        boolean[] cryptoColumns = new boolean[raw.rows()]; // Represents a single-row binary mask.
+        for (int rowIndex = 0; rowIndex < raw.rows(); rowIndex++)
         {
             // Count blue and white pixels from binary masks obtained prior.
-            int bluePixels = Core.countNonZero(blueMask.col(colIndex));
-            int whitePixels = Core.countNonZero(whiteMask.col(colIndex));
+            int bluePixels = Core.countNonZero(blueMask.row(rowIndex));
+            int whitePixels = Core.countNonZero(whiteMask.row(rowIndex));
 
             // Neutralize column if criteria isn't fit.
-            boolean sufficientBluePixels = bluePixels > .4 * raw.rows();
-            boolean sufficientWhitePixels = whitePixels > .1 * raw.rows() && whitePixels < .5 * bluePixels;
+            boolean sufficientBluePixels = bluePixels > .6 * raw.cols();
+            boolean sufficientWhitePixels = whitePixels > .05 * raw.cols() && whitePixels < .5 * bluePixels;
 
             if (sufficientBluePixels && sufficientWhitePixels)
-                cryptoColumns[colIndex] = true;
+                cryptoColumns[rowIndex] = true;
         }
 
         // Find distinct regions in binary array
@@ -346,48 +304,58 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         }
 
         // Display chosen cols in mat if in debug mode in red (might be removed).
-        if (IN_MAT_DEBUG_MODE)
-        {
-            for (CryptoColumnPixelLocation location : columns)
-            {
-                for (int colIndex = 0; colIndex < location.width; colIndex++)
-                {
-                    raw.col(location.origin + colIndex).setTo(new Scalar(255, 0, 0));
-                }
-            }
-        }
+//        if (IN_MAT_DEBUG_MODE)
+//        {
+//            for (CryptoColumnPixelLocation location : columns)
+//            {
+//                for (int rowIndex = 0; rowIndex < location.width; rowIndex++)
+//                {
+//                    raw.row(location.origin + rowIndex).setTo(new Scalar(255, 0, 0));
+//                }
+//            }
+//        }
 
         // Try to filter out false columns if we detected too many.
-        if (columns.size() > 4)
-            getEquidistantColumnsFrom(columns);
+//        if (columns.size() > 4)
+//            getEquidistantColumnsFrom(columns);
 
         // Display chosen cols in mat if in debug mode in green (will be overridden if red).
         if (IN_MAT_DEBUG_MODE)
         {
             for (CryptoColumnPixelLocation location : columns)
             {
-                for (int colIndex = 0; colIndex < location.width; colIndex++)
+                for (int rowIndex = 0; rowIndex < location.width; rowIndex++)
                 {
-                    raw.col(location.origin + colIndex).setTo(new Scalar(0, 255, 0));
+                    raw.row(location.origin + rowIndex).setTo(new Scalar(0, 255, 0));
                 }
             }
         }
 
-        // Switch to array
-        CryptoColumnPixelLocation[] locations = new CryptoColumnPixelLocation[columns.size()];
-        for (int i = 0; i < columns.size(); i++)
-            locations[i] = columns.get(i);
-
-        switch (locations.length) // <= 4
+        // Check to see whether columns could be the column.
+        if (columns.size() >= 4)
         {
-            case 4:
-                tracker = new CryptoboxPositionTracker(locations);
-                break;
+            for (int i = 0; i < columns.size(); i++)
+            {
+                int rowIndex = (int)(columns.get(i).midpoint());
 
-            default:
-                if (tracker != null)
-                    tracker.applyFilteredData(locations);
+                Mat blueRow = blueMask.row(rowIndex);
+                Mat whiteRow = whiteMask.row(rowIndex);
+
+                if (!rowAcceptable(blueRow, whiteRow))
+                {
+                    columns.remove(i);
+                    i--;
+                }
+
+                blueRow.release();
+                whiteRow.release();
+            }
         }
+
+        // Switch to array
+        observedLocations = new CryptoColumnPixelLocation[columns.size()];
+        for (int i = 0; i < columns.size(); i++)
+            observedLocations[i] = columns.get(i);
 
         // Resize the image to the original size.
         Imgproc.resize(raw, raw, originalResolution);

@@ -20,8 +20,8 @@ import org.opencv.imgproc.Imgproc;
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
 
-@Autonomous(name="Competition Jewel Knocker", group= Constants.EXPERIMENTATION)
-public class CompetitionJewelKnocker extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
+@Autonomous(name="Balance Plate Jewel Vision", group= Constants.EXPERIMENTATION)
+public class BalancePlateJewelVision extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     private OpenCVCam openCVCam;
 

@@ -28,7 +28,7 @@ public class SwerveDrive extends ScheduledTask
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
-    private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 12);
+    private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 5);
 
     //////  Instance specific components ////////
 
@@ -195,6 +195,10 @@ public class SwerveDrive extends ScheduledTask
         // Figure out the actual translation vector for swerve wheels based on gyro value.
         Vector2D fieldCentricTranslation = desiredMovement.rotateBy(-gyroHeading);
 
+        // Don't bother trying to be more accurate than 8 degrees while turning.
+        double rotationSpeed = -pidController.calculatePIDCorrection(angleOff);
+
+
         // Apply dumb driver handicaps :P
         if (desiredMovement.magnitude > .2 && joystickControlEnabled && avoidAxleDestruction)
         {
@@ -220,13 +224,7 @@ public class SwerveDrive extends ScheduledTask
             lastMovement = Vector2D.ZERO;
         }
 
-        // Don't bother trying to be more accurate than 8 degrees while turning.
-        double rotationSpeed = -pidController.calculatePIDCorrection(angleOff);
-
-        /*
-         * Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
-         * Note that I'm scaling these up by 100 to convert to cm/s from encoder ticks/s
-         */
+        // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
         for (int i = 0; i < swerveWheels.length; i++)
             swerveWheels[i].setVectorTarget(
                     Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(fieldCentricTranslation).multiply(MAX_TELEOP_SPEED));
@@ -244,6 +242,7 @@ public class SwerveDrive extends ScheduledTask
         for (SwerveWheel wheel : swerveWheels)
             wheel.setDrivingState(drivingCanStart);
 
+
         // Write some information to the telemetry console.
         swerveConsole.write(
                 "Current Heading: " + gyroHeading,
@@ -257,6 +256,9 @@ public class SwerveDrive extends ScheduledTask
         );
     }
 
+    /**
+     * No longer field centric
+     */
     private void updateSwerveDriveTankDrive() throws InterruptedException
     {
         Vector2D desiredMovement = HTGamepad.CONTROLLER1.leftJoystick();
