@@ -12,8 +12,6 @@ public class toadd {
      * Core.absdiff between mats then countnonzero to find areas of discrepancy.  Check 5 frames,
      * if effect detrimental then revert, make new change.  super simple, full app mybd
      *
-     * system daemon that uses robotmonitor to ensure connection
-     *
      * menu on screen for auto
      */
 }

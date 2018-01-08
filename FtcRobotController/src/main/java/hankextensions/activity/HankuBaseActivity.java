@@ -3,6 +3,8 @@ package hankextensions.activity;
 import android.app.Activity;
 import android.os.Bundle;
 
+import com.makiah.makiahsandroidlib.threading.TaskParent;
+
 import hankextensions.phonesensors.AndroidGyro;
 import hankextensions.vision.opencv.OpenCVCam;
 import hankextensions.vision.vuforia.VuforiaCam;
@@ -11,7 +13,7 @@ import hankextensions.vision.vuforia.VuforiaCam;
  * Neat little brainchild I had: why not have all vision code in the base class of FtcRobotControllerActivity
  * and just override it?
  */
-public abstract class HankuBaseActivity extends Activity
+public abstract class HankuBaseActivity extends Activity implements TaskParent
 {
     public static HankuBaseActivity instance;
 
@@ -58,5 +60,11 @@ public abstract class HankuBaseActivity extends Activity
 
         if (OpenCVCam.instance != null)
             OpenCVCam.instance.newActivityState(OpenCVCam.State.DESTROY);
+    }
+
+    @Override
+    public boolean isTaskActive()
+    {
+        return true;
     }
 }

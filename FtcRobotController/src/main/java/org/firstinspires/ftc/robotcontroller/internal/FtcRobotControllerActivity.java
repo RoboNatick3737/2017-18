@@ -103,6 +103,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import hankextensions.activity.HankuBaseActivity;
+import hankextensions.activity.HankuTankuRobotMonitor;
 
 @SuppressWarnings("WeakerAccess")
 public class FtcRobotControllerActivity extends HankuBaseActivity
@@ -325,7 +326,7 @@ public class FtcRobotControllerActivity extends HankuBaseActivity
 
   protected UpdateUI.Callback createUICallback(UpdateUI updateUI) {
     UpdateUI.Callback result = updateUI.new Callback();
-    result.setStateMonitor(new SoundPlayingRobotMonitor());
+    result.setStateMonitor(new HankuTankuRobotMonitor(this)); // MODIFIED: new SoundPlayingRobotMonitor());
     return result;
   }
 
