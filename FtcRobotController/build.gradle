@@ -26,7 +26,7 @@ android {
 
     sourceSets {
         main {
-            jniLibs.srcDirs = ['src/main/jniLibs']
+            jniLibs.srcDirs = ['src/main/AndroidCV-JNILibs']
         }
     }
 

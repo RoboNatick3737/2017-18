@@ -4,7 +4,7 @@ dependencies {
     compile project(':Inspection')
     compile project(':Hardware')
     compile project(':FtcCommon')
-    compile project(':openCVLibrary331')
+    compile project(':AndroidCV-SDK')
     compile (name:'WirelessP2p-release', ext:'aar')
     compile project(':OpenFTC')
 }

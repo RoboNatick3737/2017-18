@@ -1,3 +1,9 @@
 [submodule "makiahsandroidlib"]
 	path = makiahsandroidlib
 	url = https://github.com/Makiah/makiahsandroidlib
+[submodule "AndroidCV-SDK"]
+	path = AndroidCV-SDK
+	url = https://github.com/Makiah/AndroidCV-SDK
+[submodule "FtcRobotController/src/main/AndroidCV-JNILibs"]
+	path = FtcRobotController/src/main/AndroidCV-JNILibs
+	url = https://github.com/makiah/AndroidCV-JNILibs

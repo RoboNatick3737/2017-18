@@ -44,18 +44,18 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         // Determie the VuMark for the glyph placement.
-        VuforiaCam vuforiaCam = new VuforiaCam();
-        vuforiaCam.start(true);
-        VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
-        vuforiaCam.getTrackables().activate();
-        RelicRecoveryVuMark vumark = RelicRecoveryVuMark.UNKNOWN;
-        while (vumark == RelicRecoveryVuMark.UNKNOWN && !shouldTransitionIntoActualOpMode())
-        {
-            vumark = RelicRecoveryVuMark.from(relicTemplate);
-            flow.yield();
-        }
-        vuforiaCam.stop();
-        log.lines("VuMark: " + vumark.toString());
+//        VuforiaCam vuforiaCam = new VuforiaCam();
+//        vuforiaCam.start(true);
+//        VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
+//        vuforiaCam.getTrackables().activate();
+//        RelicRecoveryVuMark vumark = RelicRecoveryVuMark.UNKNOWN;
+//        while (vumark == RelicRecoveryVuMark.UNKNOWN && !shouldTransitionIntoActualOpMode())
+//        {
+//            vumark = RelicRecoveryVuMark.from(relicTemplate);
+//            flow.yield();
+//        }
+//        vuforiaCam.stop();
+//        log.lines("VuMark: " + vumark.toString());
 
         // Wait for the auto start period.
         waitForStart();
@@ -74,12 +74,6 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         determinedJewelOrder = currentOrder;
         openCVCam.stop();
         log.lines("Jewel order: " + determinedJewelOrder.toString());
-
-        // Manually rotate the swerve wheel out of the way
-        robot.swerveDrive.swerveWheels[1].turnMotor.setPosition(1);
-        flow.msPause(500);
-        robot.swerveDrive.swerveWheels[1].turnMotor.setPosition(0.5);
-        log.lines("Turned");
 
         // Knock off the jewel as quickly as possible, but skip if we couldn't tell the ball orientation.
         if (determinedJewelOrder != BalancePlateJewelVision.JewelOrder.UNKNOWN)
@@ -140,23 +134,23 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
 //
 //      // TODO Now creep side to side to the center of the column.
 
-        // Drive off the balance board
-        Vector2D driveDirection = Vector2D.ZERO;
-        if (getAlliance() == Alliance.RED)
-            driveDirection = Vector2D.rectangular(-0.1, -0.5);
-        else
-            driveDirection = Vector2D.rectangular(-0.1, 0.5);
-
-        robot.swerveDrive.setDesiredMovement(driveDirection);
-        robot.swerveDrive.setDesiredHeading(0);
-        robot.intake.intake(); // push glyph toward end
-
-        long startTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - startTime < 2500)
-        {
-            robot.swerveDrive.synchronousUpdate();
-            flow.yield();
-        }
+//        // Drive off the balance board
+//        Vector2D driveDirection = Vector2D.ZERO;
+//        if (getAlliance() == Alliance.RED)
+//            driveDirection = Vector2D.rectangular(-0.1, -0.5);
+//        else
+//            driveDirection = Vector2D.rectangular(-0.1, 0.5);
+//
+//        robot.swerveDrive.setDesiredMovement(driveDirection);
+//        robot.swerveDrive.setDesiredHeading(0);
+//        robot.intake.intake(); // push glyph toward end
+//
+//        long startTime = System.currentTimeMillis();
+//        while (System.currentTimeMillis() - startTime < 2500)
+//        {
+//            robot.swerveDrive.synchronousUpdate();
+//            flow.yield();
+//        }
     }
 
     /**
