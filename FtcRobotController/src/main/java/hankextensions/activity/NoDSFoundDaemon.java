@@ -5,10 +5,17 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.makiah.makiahsandroidlib.threading.ParallelTask;
+import com.qualcomm.robotcore.robocol.Command;
 
 import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
+import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
+import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
 /**
  * Searches for an existent link between the RC and the DS and if no connection is established,
@@ -29,8 +36,13 @@ public class NoDSFoundDaemon extends ParallelTask
         this.run();
     }
 
-    public void restartRCApp()
+    private boolean stopPendingRestart = false;
+    public void stopPendingRestart()
     {
+        stopPendingRestart = true;
+    }
+
+    public void restartRCApp() {
         try {
             // set up the Intent to restart the app
             Intent intent = new Intent(toRestart, FtcRobotControllerActivity.class);
@@ -52,9 +64,10 @@ public class NoDSFoundDaemon extends ParallelTask
     @Override
     protected void onDoTask() throws InterruptedException
     {
-        while (System.currentTimeMillis() - START < WAIT_FOR_CONNECTION_DELAY)
+        while (System.currentTimeMillis() - START < WAIT_FOR_CONNECTION_DELAY && !stopPendingRestart)
             flow.yield();
 
-        restartRCApp();
+        if (!stopPendingRestart)
+            restartRCApp();
     }
 }

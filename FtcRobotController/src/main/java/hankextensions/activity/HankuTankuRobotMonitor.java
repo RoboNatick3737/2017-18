@@ -34,10 +34,8 @@ public class HankuTankuRobotMonitor extends SoundPlayingRobotMonitor
 
                 case CONNECTED:
                     if (noDSFoundDaemon != null)
-                    {
-                        noDSFoundDaemon.stop();
-                        noDSFoundDaemon = null;
-                    }
+                        noDSFoundDaemon.stopPendingRestart();
+                    noDSFoundDaemon = null;
 
                     playSound(soundConnect);
                     break;
