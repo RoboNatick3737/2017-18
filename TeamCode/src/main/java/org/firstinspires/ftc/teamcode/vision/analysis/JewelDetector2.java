@@ -93,16 +93,13 @@ public class JewelDetector2 extends EnhancedOpMode implements CameraBridgeViewBa
         Imgproc.blur(raw, raw, new Size(3, 3));
 
         // Analyze frame in HSV
-        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HSV);
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2YCrCb);
 
-        // Get the blue mask with adaptive hsv.
-        maskGenerator.adaptiveHSV(raw, 55, 75, -.1, 135, -.1, 59, 255, blueMask);
-
-        // Get the red mask with adaptive hsv.
-        maskGenerator.adaptiveHSV(raw, 55, 0, 0, 20, .1, 59, 255, redMask);
+        // Get blue and red mask.
+        
 
         // convert back to rgb
-        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_HSV2RGB);
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_YCrCb2RGB);
 
         // Set values
         raw.setTo(new Scalar(0, 0, 255), blueMask);
