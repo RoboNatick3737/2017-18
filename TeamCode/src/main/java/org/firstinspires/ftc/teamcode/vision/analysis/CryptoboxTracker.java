@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.vision.filteringutilities.GenericFiltering
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
@@ -15,7 +16,6 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 
 import hankextensions.EnhancedOpMode;
-import hankextensions.structs.Vector2D;
 import hankextensions.vision.opencv.OpenCVCam;
 
 /**
@@ -35,7 +35,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
 
         while (true)
         {
-            console.write("In front of column " + inFrontOf, "Need to shift " + distFromClosest);
+            console.write("Distances are " + placementDistances[0] + " and " + placementDistances[1] + " and " + placementDistances[2]);
             flow.yield();
         }
     }
@@ -51,15 +51,11 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
 
     /**
      * For when we don't have the context required to determine the crypto opening we're most
-     * nearly in front of.  1 <= inFrontOf <= 4.  Can be set by autonomous when we're fairly
+     * nearly in front of.  1 <= closestGlyphPlacementSpace <= 4.  Can be set by autonomous when we're fairly
      * certain of current location.
      */
-    public int inFrontOf = -1;
-
-    /**
-     * The distance from the center of the crypto column we're most closely in front of.
-     */
-    public int distFromClosest = 0;
+    public final int[] placementDistances = new int[3];
+    private int lastNumColumnsDetected = 0;
 
     /**
      * Stores the start of the crypto column and the width of the column.
@@ -160,9 +156,6 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
 
         // Set low resolution for analysis (to speed this up)
         Imgproc.resize(raw, raw, analysisResolution);
-
-//        // Make colors appear sharper.
-//        AdditionalFilteringUtilities.fixMatLuminance(raw);
 
         // Remove noise from image.
         Imgproc.blur(raw, raw, new Size(3, 3));
@@ -288,64 +281,122 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
 //            }
 //        }
 //
-//        // Try to filter out false columns if we detected too many.
-//        if (columns.size() > 4)
-//            getEquidistantColumnsFrom(columns);
+        // Try to filter out false columns if we detected too many.
+        if (columns.size() > 4)
+            getEquidistantColumnsFrom(columns);
 
         // Display chosen cols in mat if in debug mode in green (will be overridden if red).
         if (IN_MAT_DEBUG_MODE)
         {
             for (CryptoColumnPixelLocation location : columns)
             {
-                for (int colIndex = 0; colIndex < location.width; colIndex++)
-                {
-                    raw.row(location.origin + colIndex).setTo(new Scalar(0, 255, 0));
-                }
+                Imgproc.rectangle(raw, new Point(0, location.origin), new Point(raw.cols(), location.origin + location.width), new Scalar(0, 255, 0), 3);
             }
         }
 
-        // Use the fact that we've recorded inFrontOf for previous trials if less than 4 detected.
-        int centerScreen = raw.rows() / 2;
-        int closestIndex = -1, closestDist = -1;
+//        if (true)
+//        {
+//            Imgproc.resize(raw, raw, originalResolution);
+//            return raw;
+//        }
+
+//        // Use the fact that we've recorded closestGlyphPlacementSpace for previous trials if less than 4 detected.
+        int centerScreen = (int)(raw.rows() / 2.0);
         switch (columns.size()) // <= 4
         {
-            case 4:
+            case 4: // Set all offsets.
                 for (int i = 0; i < 3; i++)
-                {
-                    int currDist = (int)((columns.get(i).midpoint() + columns.get(i + 1).midpoint()) / 2.0 - centerScreen);
-                    if (currDist < closestDist)
-                    {
-                        closestDist = currDist;
-                        closestIndex = i;
-                    }
-                }
+                    placementDistances[i] = (int)((columns.get(i).midpoint() + columns.get(i + 1).midpoint()) / 2.0 - centerScreen);
 
-                inFrontOf = closestIndex + 1;
-                distFromClosest = closestDist;
                 break;
 
             case 3:
-                for (int i = inFrontOf - 1; i < inFrontOf + 1; i++)
+                if (lastNumColumnsDetected == 4)
                 {
-                    int currDist = (int)((columns.get(i).midpoint() + columns.get(i + 1).midpoint()) / 2.0 - centerScreen);
-                    if (currDist < closestDist)
+                    // Determine which to set to the maximum.
+                    int furthestPlacementDist = 0, furthestPlacementIndex = 0;
+                    for (int i = 0; i < 3; i++)
                     {
-                        closestDist = currDist;
-                        closestIndex = i;
+                        if (Math.abs(placementDistances[i]) > Math.abs(furthestPlacementDist))
+                        {
+                            furthestPlacementIndex = i;
+                            furthestPlacementDist = placementDistances[i];
+                        }
                     }
+
+                    placementDistances[furthestPlacementIndex] = Integer.MAX_VALUE * (int)(Math.signum(furthestPlacementDist));
+                }
+                else if (lastNumColumnsDetected == 2)
+                {
+                    int closestDist = Integer.MAX_VALUE;
+                    for (int i = 0; i < 3; i++)
+                    {
+                        if (Math.abs(placementDistances[i]) < Math.abs(closestDist))
+                        {
+                            closestDist = placementDistances[i];
+                        }
+                    }
+
+                    // Decide which one just reappeared.
+                    if ((int)(Math.signum(closestDist)) == -1)
+                        placementDistances[0] = 40;
+                    else if ((int)(Math.signum(closestDist)) == 1)
+                        placementDistances[2] = -40;
                 }
 
-                inFrontOf = closestIndex + 1;
-                distFromClosest = closestDist;
+                if (Math.abs(placementDistances[0]) == Integer.MAX_VALUE) // If we can't see the first column.
+                {
+                    placementDistances[1] = (int)((columns.get(0).midpoint() + columns.get(1).midpoint()) / 2.0 - centerScreen);
+                    placementDistances[2] = (int)((columns.get(1).midpoint() + columns.get(2).midpoint()) / 2.0 - centerScreen);
+                }
+                else if (Math.abs(placementDistances[2]) == Integer.MAX_VALUE) // If we can't see the last column.
+                {
+                    placementDistances[0] = (int)((columns.get(0).midpoint() + columns.get(1).midpoint()) / 2.0 - centerScreen);
+                    placementDistances[1] = (int)((columns.get(1).midpoint() + columns.get(2).midpoint()) / 2.0 - centerScreen);
+                }
+
                 break;
 
             case 2:
-                distFromClosest = (int)(columns.get(inFrontOf).midpoint() + columns.get(inFrontOf + 1).midpoint() / 2.0 - centerScreen);
-                break;
+                if (lastNumColumnsDetected == 3)
+                {
+                    int closestIndex = Integer.MAX_VALUE, closestDist = Integer.MAX_VALUE;
+                    for (int i = 0; i < 3; i++)
+                    {
+                        if (Math.abs(placementDistances[i]) < Math.abs(closestDist))
+                        {
+                            closestIndex = i;
+                            closestDist = placementDistances[i];
+                        }
+                    }
 
-            default: // We never see 1 crypto column
+                    // Set all except closest index to max.
+                    for (int i = 0; i < 3; i++)
+                    {
+                        if (i != closestIndex)
+                        {
+                            placementDistances[i] = (int)(Math.signum(placementDistances[i])) * Integer.MAX_VALUE;
+                        }
+                    }
+                }
+
+                if (Math.abs(placementDistances[0]) == Integer.MAX_VALUE && Math.abs(placementDistances[1]) == Integer.MAX_VALUE)
+                {
+                    placementDistances[2] = (int)((columns.get(0).midpoint() + columns.get(1).midpoint()) / 2.0 - centerScreen);
+                }
+                else if (Math.abs(placementDistances[0]) == Integer.MAX_VALUE && Math.abs(placementDistances[2]) == Integer.MAX_VALUE)
+                {
+                    placementDistances[1] = (int)((columns.get(0).midpoint() + columns.get(1).midpoint()) / 2.0 - centerScreen);
+                }
+                else if (Math.abs(placementDistances[1]) == Integer.MAX_VALUE && Math.abs(placementDistances[2]) == Integer.MAX_VALUE)
+                {
+                    placementDistances[0] = (int)((columns.get(0).midpoint() + columns.get(1).midpoint()) / 2.0 - centerScreen);
+                }
+
                 break;
         }
+
+        lastNumColumnsDetected = columns.size();
 
         // Resize the image to the original size.
         Imgproc.resize(raw, raw, originalResolution);

@@ -18,7 +18,7 @@ import hankextensions.vision.opencv.OpenCVCam;
 @Autonomous(name="Generic Filtering", group= Constants.EXPERIMENTATION)
 public class GenericFiltering extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
-    private static double BLUE_MIN = 220, RED_MIN = 200, WHITE_MIN = 160;
+    private static double BLUE_MIN = 180, RED_MIN = 200, WHITE_MIN = 160;
 
     public static void blueFilter(Mat raw, Mat blueMask)
     {

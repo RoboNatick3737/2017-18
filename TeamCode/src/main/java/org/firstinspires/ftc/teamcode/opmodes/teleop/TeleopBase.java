@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.teleop;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
@@ -15,12 +16,35 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
 {
     private Robot robot;
 
+    private ProcessConsole camConsole;
+    private OpenCVCam cam;
+    private CryptoboxTracker tracker;
+
+    private boolean cryptoboxTestingEnabled = false;
+    public void enableTestingCryptobox() throws InterruptedException
+    {
+        cam.start(tracker, true);
+    }
+    public void disableTestingCryptobox()
+    {
+        cam.stop();
+    }
+    public void toggleCryptoTesting() throws InterruptedException
+    {
+        cryptoboxTestingEnabled = !cryptoboxTestingEnabled;
+
+        if (cryptoboxTestingEnabled)
+            enableTestingCryptobox();
+        else
+            disableTestingCryptobox();
+    }
+
     @Override
     protected final void onRun() throws InterruptedException
     {
-//        CryptoboxTracker tracker = new CryptoboxTracker();
-//        OpenCVCam cam = new OpenCVCam();
-//        cam.start(tracker, true);
+        cam = new OpenCVCam();
+        camConsole = log.newProcessConsole("Cam Console");
+        tracker = new CryptoboxTracker();
 
         robot = new Robot(hardware);
 
@@ -86,6 +110,15 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
                 robot.relicSystem.rotate(true);
             else
                 robot.relicSystem.stopRotator();
+
+            // Temporary for cam testing
+            if (C2.y.currentState == HTButton.ButtonState.JUST_TAPPED)
+                toggleCryptoTesting();
+
+            if (cryptoboxTestingEnabled)
+            {
+                camConsole.write("Distances are " + tracker.placementDistances[0] + ", " + tracker.placementDistances[1] + " and " + tracker.placementDistances[2]);
+            }
 
             flow.yield();
         }

@@ -7,7 +7,7 @@ import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.opmodes.autonomous.AutonomousBase;
 
 @TeleOp(name="Red Bottom Teleop", group= Constants.FINAL_BOT_OPMODES)
-public class RedBottom extends AutonomousBase
+public class RedBottom extends TeleopBase
 {
     @Override
     public Alliance getAlliance()
