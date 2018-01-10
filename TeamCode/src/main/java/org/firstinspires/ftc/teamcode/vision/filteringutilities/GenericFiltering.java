@@ -31,6 +31,7 @@ public class GenericFiltering extends EnhancedOpMode implements CameraBridgeView
         Mat blue = channels.get(2);
         Imgproc.equalizeHist(blue, blue); // Contrast
         Imgproc.threshold(blue, blueMask, BLUE_MIN, 255, Imgproc.THRESH_BINARY);
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_YCrCb2RGB);
     }
 
     public static void redFilter(Mat raw, Mat redMask)
@@ -44,6 +45,7 @@ public class GenericFiltering extends EnhancedOpMode implements CameraBridgeView
         Mat red = channels.get(1);
         Imgproc.equalizeHist(red, red); // Contrast
         Imgproc.threshold(red, redMask, RED_MIN, 255, Imgproc.THRESH_BINARY);
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_YCrCb2RGB);
     }
 
     public static void whiteFilter(Mat raw, Mat whiteMask)
@@ -57,6 +59,7 @@ public class GenericFiltering extends EnhancedOpMode implements CameraBridgeView
         Mat white = channels.get(0);
         Imgproc.equalizeHist(white, white); // Contrast
         Imgproc.threshold(white, whiteMask, WHITE_MIN, 255, Imgproc.THRESH_BINARY);
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_YCrCb2RGB);
     }
 
     private enum PrimaryColor {RED, BLUE, WHITE}

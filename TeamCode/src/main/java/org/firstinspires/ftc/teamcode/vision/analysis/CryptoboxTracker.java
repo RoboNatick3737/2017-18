@@ -200,9 +200,19 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             // Decide whether they're mixed appropriately.
             int swaps = 0;
             boolean lastWasWhite = false;
+            boolean reachedColumnStart = false;
             for (int j = 0; j < raw.cols(); j++)
             {
+                // Decide whether each individual pixel is blue and/or white.
                 boolean isBlue = blueMask.get(i, j)[0] != 0, isWhite = whiteMask.get(i, j)[0] != 0;
+
+                // Skip over white pixels.
+                if (!reachedColumnStart)
+                {
+                    reachedColumnStart = isBlue;
+                    if (!reachedColumnStart)
+                        continue;
+                }
 
                 if (!isBlue && !isWhite)
                     continue;
@@ -266,21 +276,21 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             return raw;
         }
 
-        // Display chosen cols in mat if in debug mode in red (might be removed).
-        if (IN_MAT_DEBUG_MODE)
-        {
-            for (CryptoColumnPixelLocation location : columns)
-            {
-                for (int colIndex = 0; colIndex < location.width; colIndex++)
-                {
-                    raw.row(location.origin + colIndex).setTo(new Scalar(255, 0, 0));
-                }
-            }
-        }
-
-        // Try to filter out false columns if we detected too many.
-        if (columns.size() > 4)
-            getEquidistantColumnsFrom(columns);
+//        // Display chosen cols in mat if in debug mode in red (might be removed).
+//        if (IN_MAT_DEBUG_MODE)
+//        {
+//            for (CryptoColumnPixelLocation location : columns)
+//            {
+//                for (int colIndex = 0; colIndex < location.width; colIndex++)
+//                {
+//                    raw.row(location.origin + colIndex).setTo(new Scalar(255, 0, 0));
+//                }
+//            }
+//        }
+//
+//        // Try to filter out false columns if we detected too many.
+//        if (columns.size() > 4)
+//            getEquidistantColumnsFrom(columns);
 
         // Display chosen cols in mat if in debug mode in green (will be overridden if red).
         if (IN_MAT_DEBUG_MODE)

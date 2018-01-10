@@ -4,7 +4,6 @@ import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.vision.filteringutilities.GenericFiltering;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -13,6 +12,8 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+
+import java.util.LinkedList;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
@@ -57,13 +58,13 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
     /**
      * References to the jewel submats.
      */
-    private class JewelMat
+    private class JewelAnalyzer
     {
         public final Rect rect;
         public final Mat blue, red;
         public int bluePixels, redPixels;
 
-        public JewelMat(Rect rect)
+        public JewelAnalyzer(Rect rect)
         {
             this.rect = rect;
 
@@ -73,11 +74,28 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
 
         public void analyze(Mat mat)
         {
-            GenericFiltering.blueFilter(mat, blue);
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2YCrCb);
+            LinkedList<Mat> channels = new LinkedList<>();
+            Core.split(mat, channels);
+            Imgproc.threshold(channels.get(2), blue, 160, 255, Imgproc.THRESH_BINARY);
+            Imgproc.threshold(channels.get(1), red, 160, 255, Imgproc.THRESH_BINARY);
             bluePixels = Core.countNonZero(blue);
-
-            GenericFiltering.redFilter(mat, red);
             redPixels = Core.countNonZero(red);
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_YCrCb2RGB);
+
+            mat.release();
+            for (Mat channel : channels)
+                channel.release();
+        }
+
+        public boolean isBlue()
+        {
+            return bluePixels > .4 * rect.area() && !isRed();
+        }
+
+        public boolean isRed()
+        {
+            return redPixels > .4 * rect.area() && !isBlue();
         }
 
         public void release()
@@ -86,14 +104,14 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
             red.release();
         }
     }
-    private JewelMat first, second;
+    private JewelAnalyzer first, second;
 
     @Override
     public void onCameraViewStarted(int width, int height)
     {
         // Define search Rects for jewels.
-        first = new JewelMat(new Rect(new Point(0, height * .26), new Point(width * .07, height * .54)));
-        second = new JewelMat(new Rect(new Point(0, height * .58), new Point(width * .07, height * .86)));
+        first = new JewelAnalyzer(new Rect(new Point(0, height * .26), new Point(width * .07, height * .48)));
+        second = new JewelAnalyzer(new Rect(new Point(0, height * .62), new Point(width * .07, height * .84)));
     }
 
     @Override
@@ -117,10 +135,10 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
         second.analyze(original.submat(second.rect));
 
         // Decide which is which.
-        if ((first.bluePixels > second.bluePixels) && (second.redPixels > first.redPixels))
-            currentOrder = JewelOrder.RED_BLUE;
-        else if ((second.bluePixels > first.bluePixels) && (first.redPixels > second.redPixels))
+        if (first.isRed() && second.isBlue())
             currentOrder = JewelOrder.BLUE_RED;
+        else if (second.isRed() && first.isBlue())
+            currentOrder = JewelOrder.RED_BLUE;
         else
             currentOrder = JewelOrder.UNKNOWN;
 
@@ -144,8 +162,8 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
         }
 
         // Draw the rectangles.
-        Imgproc.rectangle(original, first.rect.tl(), first.rect.br(), firstColor);
-        Imgproc.rectangle(original, second.rect.tl(), second.rect.br(), secondColor);
+        Imgproc.rectangle(original, first.rect.tl(), first.rect.br(), firstColor, 3);
+        Imgproc.rectangle(original, second.rect.tl(), second.rect.br(), secondColor, 3);
 
         // Return the resulting mat.
         return original;
