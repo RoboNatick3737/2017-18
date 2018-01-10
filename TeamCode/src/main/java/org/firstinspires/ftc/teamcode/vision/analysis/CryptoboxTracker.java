@@ -1,16 +1,10 @@
 package org.firstinspires.ftc.teamcode.vision.analysis;
 
-import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.structs.LinearFunction;
-import org.firstinspires.ftc.teamcode.vision.filteringutilities.AdditionalFilteringUtilities;
 import org.firstinspires.ftc.teamcode.vision.filteringutilities.GenericFiltering;
-import org.firstinspires.ftc.teamcode.vision.filteringutilities.LinearFunctionBounds;
-import org.firstinspires.ftc.teamcode.vision.filteringutilities.commonareafilter.LinearChannelBound;
-import org.firstinspires.ftc.teamcode.vision.filteringutilities.commonareafilter.ThreeChannelProportionalFilter;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -21,6 +15,7 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 
 import hankextensions.EnhancedOpMode;
+import hankextensions.structs.Vector2D;
 import hankextensions.vision.opencv.OpenCVCam;
 
 /**
@@ -40,10 +35,31 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
 
         while (true)
         {
-            console.write("Front is " + getCurrentForwardOffset(), "Side is " + getCurrentHorizontalOffset());
+            console.write("In front of column " + inFrontOf, "Need to shift " + distFromClosest);
             flow.yield();
         }
     }
+
+    /**
+     * Distance to drive forward before hitting cryptobox.
+     */
+    private double forwardPixelOffset = 0;
+    public double getForwardPixelOffset()
+    {
+        return forwardPixelOffset;
+    }
+
+    /**
+     * For when we don't have the context required to determine the crypto opening we're most
+     * nearly in front of.  1 <= inFrontOf <= 4.  Can be set by autonomous when we're fairly
+     * certain of current location.
+     */
+    public int inFrontOf = -1;
+
+    /**
+     * The distance from the center of the crypto column we're most closely in front of.
+     */
+    public int distFromClosest = 0;
 
     /**
      * Stores the start of the crypto column and the width of the column.
@@ -64,93 +80,6 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             return this.origin + this.width / 2.0;
         }
     }
-    /**
-     * Records the position of moving crypto columns.
-     */
-    public class CryptoboxPositionTracker
-    {
-        private CryptoColumnPixelLocation[] trackedLocations;
-
-        public CryptoboxPositionTracker(CryptoColumnPixelLocation[] locations)
-        {
-            trackedLocations = locations;
-        }
-
-        public void applyFilteredData(CryptoColumnPixelLocation[] observedLocations)
-        {
-            for (int observedLocationsIndex = 0; observedLocationsIndex < observedLocations.length; observedLocationsIndex++)
-            {
-                for (int trackedLocationsIndex = 0; trackedLocationsIndex < trackedLocations.length; trackedLocationsIndex++)
-                {
-                    CryptoColumnPixelLocation trackedPosition = trackedLocations[trackedLocationsIndex];
-                    CryptoColumnPixelLocation observedPosition = observedLocations[observedLocationsIndex];
-
-                    if (Math.abs(trackedPosition.midpoint() - observedPosition.midpoint()) < analysisResolution.width * .03)
-                    {
-                        trackedLocations[trackedLocationsIndex] = observedLocations[observedLocationsIndex];
-                        double offset = observedPosition.midpoint() - trackedPosition.midpoint();
-
-                        // Apply offset to all.
-                        for (int i = 0; i < trackedLocations.length; i++)
-                        {
-                            if (i != trackedLocationsIndex) // apply to all except current.
-                                trackedLocations[i] = new CryptoColumnPixelLocation((int)(trackedLocations[i].origin + offset), trackedLocations[i].width);
-                        }
-
-                        break;
-                    }
-                }
-            }
-        }
-
-        public double getHorizontalOffset()
-        {
-            return (trackedLocations[1].midpoint() + trackedLocations[2].midpoint()) / 2.0 - analysisResolution.width / 2.0;
-        }
-
-        public double getForwardOffset()
-        {
-            double avgWidth = 0;
-            for (CryptoColumnPixelLocation tracker : trackedLocations)
-                avgWidth += tracker.width;
-            avgWidth /= trackedLocations.length;
-
-            return .05 * avgWidth;
-        }
-    }
-    private CryptoboxPositionTracker tracker;
-
-    /**
-     * The end doubles that this complex system is trying to calculate.
-     */
-    public double getCurrentHorizontalOffset()
-    {
-        if (tracker == null)
-            return 0;
-
-        return tracker.getHorizontalOffset();
-    }
-
-    public double getCurrentForwardOffset()
-    {
-
-        if (tracker == null)
-            return 100;
-
-        return tracker.getForwardOffset();
-    }
-
-    /**
-     * Forward dist = dist we can drive forward before hitting the crypto, horizontal dist =
-     * dist to the right we can drive before we can reach the center.
-     */
-    public void provideApproximatePhysicalOffset(double forwardDist, double horizontalOffset)
-    {
-        CryptoColumnPixelLocation[] locations = new CryptoColumnPixelLocation[4];
-        // TODO calculations.
-        tracker = new CryptoboxPositionTracker(locations);
-    }
-
 
     // Mat sizes which constitute analysis vs. the size of the frame we were originally passed.
     private Size originalResolution;
@@ -365,23 +294,47 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             }
         }
 
-        // Switch to array
-        CryptoColumnPixelLocation[] locations = new CryptoColumnPixelLocation[columns.size()];
-        for (int i = 0; i < columns.size(); i++)
-            locations[i] = columns.get(i);
-
-        switch (locations.length) // <= 4
+        // Use the fact that we've recorded inFrontOf for previous trials if less than 4 detected.
+        int centerScreen = raw.rows() / 2;
+        int closestIndex = -1, closestDist = -1;
+        switch (columns.size()) // <= 4
         {
             case 4:
-                tracker = new CryptoboxPositionTracker(locations);
+                for (int i = 0; i < 3; i++)
+                {
+                    int currDist = (int)((columns.get(i).midpoint() + columns.get(i + 1).midpoint()) / 2.0 - centerScreen);
+                    if (currDist < closestDist)
+                    {
+                        closestDist = currDist;
+                        closestIndex = i;
+                    }
+                }
+
+                inFrontOf = closestIndex + 1;
+                distFromClosest = closestDist;
                 break;
 
-            case 0:
+            case 3:
+                for (int i = inFrontOf - 1; i < inFrontOf + 1; i++)
+                {
+                    int currDist = (int)((columns.get(i).midpoint() + columns.get(i + 1).midpoint()) / 2.0 - centerScreen);
+                    if (currDist < closestDist)
+                    {
+                        closestDist = currDist;
+                        closestIndex = i;
+                    }
+                }
+
+                inFrontOf = closestIndex + 1;
+                distFromClosest = closestDist;
                 break;
 
-            default:
-                if (tracker != null)
-                    tracker.applyFilteredData(locations);
+            case 2:
+                distFromClosest = (int)(columns.get(inFrontOf).midpoint() + columns.get(inFrontOf + 1).midpoint() / 2.0 - centerScreen);
+                break;
+
+            default: // We never see 1 crypto column
+                break;
         }
 
         // Resize the image to the original size.
