@@ -7,8 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.structs.LinearFunction;
 import org.firstinspires.ftc.teamcode.vision.filteringutilities.AdditionalFilteringUtilities;
+import org.firstinspires.ftc.teamcode.vision.filteringutilities.GenericFiltering;
 import org.firstinspires.ftc.teamcode.vision.filteringutilities.LinearFunctionBounds;
-import org.firstinspires.ftc.teamcode.vision.filteringutilities.MaskGenerator;
 import org.firstinspires.ftc.teamcode.vision.filteringutilities.commonareafilter.LinearChannelBound;
 import org.firstinspires.ftc.teamcode.vision.filteringutilities.commonareafilter.ThreeChannelProportionalFilter;
 import org.opencv.android.CameraBridgeViewBase;
@@ -27,16 +27,16 @@ import hankextensions.vision.opencv.OpenCVCam;
  * Tracks and guesses the approximate distances from this phone to each individual cryptobox
  * column through a bit of math.
  */
-@Autonomous(name="Cryptobox Tracker", group= Constants.EXPERIMENTATION)
+@Autonomous(name="Cryptobox Tracker", group=Constants.EXPERIMENTATION)
 public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     @Override
     protected void onRun() throws InterruptedException
     {
         OpenCVCam cam = new OpenCVCam();
-        cam.start(this);
+        cam.start(this, true);
 
-        ProcessConsole console = LoggingBase.instance.newProcessConsole("Cryptobox Tracker");
+        ProcessConsole console = log.newProcessConsole("Cryptobox Tracker");
 
         while (true)
         {
@@ -44,9 +44,6 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             flow.yield();
         }
     }
-
-    private CryptoboxPositionTracker tracker;
-    private MaskGenerator maskGenerator;
 
     /**
      * Stores the start of the crypto column and the width of the column.
@@ -68,7 +65,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         }
     }
     /**
-     * Tracks a column position with an id
+     * Records the position of moving crypto columns.
      */
     public class CryptoboxPositionTracker
     {
@@ -121,6 +118,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             return .05 * avgWidth;
         }
     }
+    private CryptoboxPositionTracker tracker;
 
     /**
      * The end doubles that this complex system is trying to calculate.
@@ -149,7 +147,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     public void provideApproximatePhysicalOffset(double forwardDist, double horizontalOffset)
     {
         CryptoColumnPixelLocation[] locations = new CryptoColumnPixelLocation[4];
-        // todo calculate stuff
+        // TODO calculations.
         tracker = new CryptoboxPositionTracker(locations);
     }
 
@@ -159,17 +157,17 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     private Size analysisResolution;
 
     // Pre-initialized mats.
-    private Mat blueMask, whiteMask;
+    private Mat blueMask, whiteMask, cryptoboxMask;
 
     @Override
     public void onCameraViewStarted(int width, int height)
     {
         originalResolution = new Size(width, height);
         analysisResolution = new Size(width, height);
-        maskGenerator = new MaskGenerator(analysisResolution);
 
         blueMask = Mat.zeros(analysisResolution, Imgproc.THRESH_BINARY); // 1-channel = grayscale image
         whiteMask = new Mat(analysisResolution, Imgproc.THRESH_BINARY);
+        cryptoboxMask = new Mat(analysisResolution, Imgproc.THRESH_BINARY);
     }
 
     @Override
@@ -177,7 +175,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     {
         whiteMask.release();
         blueMask.release();
-        maskGenerator.releaseMats();
+        cryptoboxMask.release();
     }
 
     // Disable this if you don't want to display the current mat state to the user (useful for ensuring everything's working properly but slow)
@@ -229,56 +227,25 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     @Override
     public Mat onCameraFrame(Mat raw)
     {
+        Core.flip(raw, raw, 1);
+
         // Set low resolution for analysis (to speed this up)
         Imgproc.resize(raw, raw, analysisResolution);
 
-        // Make colors appear sharper.
-        AdditionalFilteringUtilities.fixMatLuminance(raw);
+//        // Make colors appear sharper.
+//        AdditionalFilteringUtilities.fixMatLuminance(raw);
 
         // Remove noise from image.
         Imgproc.blur(raw, raw, new Size(3, 3));
 
-        // Analyze frame in HSV
-        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2HSV);
+        // Get the blue mask with adaptive hsv.
+        GenericFiltering.blueFilter(raw, blueMask);
 
-        // Generate blue and white
-        ThreeChannelProportionalFilter.commonAreaFilter(raw, blueMask,
+        // Get the white mask using just inRange.
+        GenericFiltering.whiteFilter(raw, whiteMask);
 
-                // for when we're calculating hue
-                null,
-
-                // for when we're calculating saturation
-                null,
-
-                // for when we're calculating value
-                new LinearChannelBound(
-                        new LinearFunctionBounds(new LinearFunction(-.02, 7.227), new LinearFunction(.77, 134.7)),  // describes hue
-                        new LinearFunctionBounds(new LinearFunction(-.0449, 20.62), new LinearFunction(.585, 255)))  // describes saturation
-
-        );
-        ThreeChannelProportionalFilter.commonAreaFilter(raw, whiteMask,
-
-                // for when we're calculating hue
-                null,
-
-                // for when we're calculating saturation
-                null,
-
-                // for when we're calculating value
-                new LinearChannelBound(
-                        new LinearFunctionBounds(new LinearFunction(.166, 82.26), new LinearFunction(.696, 247.37)),  // describes hue
-                        new LinearFunctionBounds(new LinearFunction(.754, 8.67), new LinearFunction(.573, 255)))  // describes saturation
-
-        );
-
-//        // Get the blue mask with adaptive hsv.
-//        maskGenerator.adaptiveHSV(raw, 55, -.1, 135, -.1, 59, 59, 255, blueMask);
-//
-//        // Get the white mask using just inRange.
-//        Core.inRange(raw, new Scalar(0, 0, 60), new Scalar(255, 65, 255), whiteMask);
-
-        // Now convert back to normal mode while displaying mats.
-        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_HSV2RGB);
+        // Get cryptobox
+        Core.bitwise_or(blueMask, whiteMask, cryptoboxMask);
 
         // Display the results in the display mat.
         if (IN_MAT_DEBUG_MODE)
@@ -289,19 +256,44 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         }
 
         // Loop through the columns and eliminate those which aren't cryptobox columns.
-        boolean[] cryptoColumns = new boolean[raw.cols()]; // Represents a single-row binary mask.
-        for (int colIndex = 0; colIndex < raw.cols(); colIndex++)
+        boolean[] cryptoColumns = new boolean[raw.rows()]; // Represents a single-row binary mask.
+        for (int i = 0; i < raw.rows(); i++)
         {
             // Count blue and white pixels from binary masks obtained prior.
-            int bluePixels = Core.countNonZero(blueMask.col(colIndex));
-            int whitePixels = Core.countNonZero(whiteMask.col(colIndex));
+            int bluePixels = Core.countNonZero(blueMask.row(i));
+            int whitePixels = Core.countNonZero(whiteMask.row(i));
+            int cryptoboxPixels = Core.countNonZero(cryptoboxMask.row(i));
 
-            // Neutralize column if criteria isn't fit.
-            boolean sufficientBluePixels = bluePixels > .4 * raw.rows();
-            boolean sufficientWhitePixels = whitePixels > .1 * raw.rows() && whitePixels < .5 * bluePixels;
+            // Decide if numbers are correct
+            if (!(cryptoboxPixels > .8 * raw.rows() && bluePixels > .5 * raw.rows() && whitePixels > .1 * raw.rows() && bluePixels > 2.5 * whitePixels))
+                continue;
 
-            if (sufficientBluePixels && sufficientWhitePixels)
-                cryptoColumns[colIndex] = true;
+            // Decide whether they're mixed appropriately.
+            int swaps = 0;
+            boolean lastWasWhite = false;
+            for (int j = 0; j < raw.cols(); j++)
+            {
+                boolean isBlue = blueMask.get(i, j)[0] != 0, isWhite = whiteMask.get(i, j)[0] != 0;
+
+                if (!isBlue && !isWhite)
+                    continue;
+
+                if (isBlue == isWhite)
+                    continue;
+
+                if ((isBlue && !lastWasWhite) || (isWhite && !lastWasWhite))
+                {
+                    swaps++;
+
+                    if (swaps > 3)
+                    {
+                        cryptoColumns[i] = true;
+                        break;
+                    }
+                }
+
+                lastWasWhite = isWhite;
+            }
         }
 
         // Find distinct regions in binary array
@@ -352,7 +344,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             {
                 for (int colIndex = 0; colIndex < location.width; colIndex++)
                 {
-                    raw.col(location.origin + colIndex).setTo(new Scalar(255, 0, 0));
+                    raw.row(location.origin + colIndex).setTo(new Scalar(255, 0, 0));
                 }
             }
         }
@@ -368,7 +360,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             {
                 for (int colIndex = 0; colIndex < location.width; colIndex++)
                 {
-                    raw.col(location.origin + colIndex).setTo(new Scalar(0, 255, 0));
+                    raw.row(location.origin + colIndex).setTo(new Scalar(0, 255, 0));
                 }
             }
         }
@@ -382,6 +374,9 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         {
             case 4:
                 tracker = new CryptoboxPositionTracker(locations);
+                break;
+
+            case 0:
                 break;
 
             default:

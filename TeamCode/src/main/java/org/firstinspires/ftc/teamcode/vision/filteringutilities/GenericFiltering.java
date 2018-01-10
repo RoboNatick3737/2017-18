@@ -18,7 +18,7 @@ import hankextensions.vision.opencv.OpenCVCam;
 @Autonomous(name="Generic Filtering", group= Constants.EXPERIMENTATION)
 public class GenericFiltering extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
-    private static double BLUE_MIN = 200, RED_MIN = 200, WHITE_MIN = 200;
+    private static double BLUE_MIN = 220, RED_MIN = 200, WHITE_MIN = 160;
 
     public static void blueFilter(Mat raw, Mat blueMask)
     {
@@ -35,28 +35,28 @@ public class GenericFiltering extends EnhancedOpMode implements CameraBridgeView
 
     public static void redFilter(Mat raw, Mat redMask)
     {
-        // Convert to a great color space for detecting blue (Cb).
+        // Convert to a great color space for detecting red (Cr).
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2YCrCb);
         LinkedList<Mat> channels = new LinkedList<>();
         Core.split(raw, channels);
 
-        // Get blue mask
-        Mat blue = channels.get(1);
-        Imgproc.equalizeHist(blue, blue); // Contrast
-        Imgproc.threshold(blue, redMask, RED_MIN, 255, Imgproc.THRESH_BINARY);
+        // Get red mask
+        Mat red = channels.get(1);
+        Imgproc.equalizeHist(red, red); // Contrast
+        Imgproc.threshold(red, redMask, RED_MIN, 255, Imgproc.THRESH_BINARY);
     }
 
     public static void whiteFilter(Mat raw, Mat whiteMask)
     {
-        // Convert to a great color space for detecting blue (Cb).
+        // Convert to a great color space for detecting white (Y).
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGB2YCrCb);
         LinkedList<Mat> channels = new LinkedList<>();
         Core.split(raw, channels);
 
         // Get blue mask
-        Mat blue = channels.get(0);
-        Imgproc.equalizeHist(blue, blue); // Contrast
-        Imgproc.threshold(blue, whiteMask, WHITE_MIN, 255, Imgproc.THRESH_BINARY);
+        Mat white = channels.get(0);
+        Imgproc.equalizeHist(white, white); // Contrast
+        Imgproc.threshold(white, whiteMask, WHITE_MIN, 255, Imgproc.THRESH_BINARY);
     }
 
     private enum PrimaryColor {RED, BLUE, WHITE}

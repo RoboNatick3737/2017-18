@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.HankuTankuIMU;
+import org.firstinspires.ftc.teamcode.robot.hardware.LightingSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.RelicSystem;
 import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
@@ -38,6 +39,7 @@ public class Robot
     public final BallKnocker ballKnocker;
     public final RelicSystem relicSystem;
     public final Gyro gyro;
+    public final LightingSystem lights;
 
     /**
      * Initializes the whole robot.
@@ -72,6 +74,9 @@ public class Robot
 
         // Ball knocker init
         ballKnocker = new BallKnocker(hardware.initialize(Servo.class, "Ball Knocker"));
+
+        // Lights
+        lights = new LightingSystem(hardware.initialize(DcMotor.class, "Lights"));
 
 
         // All of the drive motors and their respective PID.

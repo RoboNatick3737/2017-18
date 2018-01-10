@@ -12,8 +12,7 @@ import hankextensions.structs.Vector2D;
 import hankextensions.vision.opencv.OpenCVCam;
 import hankextensions.vision.vuforia.VuforiaCam;
 
-import org.firstinspires.ftc.teamcode.vision.analysis.BalancePlateJewelVision;
-import org.firstinspires.ftc.teamcode.vision.analysis.CryptoboxTrackerBasic;
+import org.firstinspires.ftc.teamcode.vision.analysis.JewelDetector;
 
 public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
 {
@@ -26,7 +25,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
 
     // Instantiated and such during run progression.
     private OpenCVCam openCVCam;
-    private BalancePlateJewelVision.JewelOrder determinedJewelOrder;
+    private JewelDetector.JewelOrder determinedJewelOrder;
 
     private Robot robot;
 
@@ -36,6 +35,8 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
     @Override
     protected final void onRun() throws InterruptedException
     {
+        long start; // for timed stuff.
+
         // Initialize the robot.
         robot = new Robot(hardware);
 
@@ -43,30 +44,18 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         robot.swerveDrive.setJoystickControlEnabled(false);
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
-        // Determie the VuMark for the glyph placement.
-//        VuforiaCam vuforiaCam = new VuforiaCam();
-//        vuforiaCam.start(true);
-//        VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
-//        vuforiaCam.getTrackables().activate();
-//        RelicRecoveryVuMark vumark = RelicRecoveryVuMark.UNKNOWN;
-//        while (vumark == RelicRecoveryVuMark.UNKNOWN && !shouldTransitionIntoActualOpMode())
-//        {
-//            vumark = RelicRecoveryVuMark.from(relicTemplate);
-//            flow.yield();
-//        }
-//        vuforiaCam.stop();
-//        log.lines("VuMark: " + vumark.toString());
+        // Init the jewel detector (saves time)
+        JewelDetector jewelDetector = new JewelDetector();
+        openCVCam = new OpenCVCam();
+        openCVCam.start(jewelDetector, true);
 
         // Wait for the auto start period.
         waitForStart();
 
-        // Determine the jewel position
-        BalancePlateJewelVision jewelDetector = new BalancePlateJewelVision();
-        openCVCam = new OpenCVCam();
-        openCVCam.start(jewelDetector, true);
-        BalancePlateJewelVision.JewelOrder currentOrder = BalancePlateJewelVision.JewelOrder.UNKNOWN;
-        long startJewelSearch = System.currentTimeMillis();
-        while (currentOrder == BalancePlateJewelVision.JewelOrder.UNKNOWN && System.currentTimeMillis() - startJewelSearch < 5000)
+        // Get the jewel position.
+        JewelDetector.JewelOrder currentOrder = JewelDetector.JewelOrder.UNKNOWN;
+        start = System.currentTimeMillis();
+        while (currentOrder == JewelDetector.JewelOrder.UNKNOWN && System.currentTimeMillis() - start < 5000)
         {
             currentOrder = jewelDetector.getCurrentOrder();
             flow.yield();
@@ -76,7 +65,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         log.lines("Jewel order: " + determinedJewelOrder.toString());
 
         // Knock off the jewel as quickly as possible, but skip if we couldn't tell the ball orientation.
-        if (determinedJewelOrder != BalancePlateJewelVision.JewelOrder.UNKNOWN)
+        if (determinedJewelOrder != JewelDetector.JewelOrder.UNKNOWN)
         {
             double ballKnockHeading = 0;
 
@@ -86,7 +75,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             // Determine which direction we're going to have to rotate when auto starts.
             if (getAlliance() == Alliance.RED) // since this extends competition op mode.
             {
-                if (determinedJewelOrder == BalancePlateJewelVision.JewelOrder.BLUE_RED)
+                if (determinedJewelOrder == JewelDetector.JewelOrder.BLUE_RED)
                     ballKnockHeading = TURN_HEADING_TO_KNOCK_JEWEL;
                 else
                     ballKnockHeading = 360 - TURN_HEADING_TO_KNOCK_JEWEL;
@@ -94,7 +83,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             }
             else if (getAlliance() == Alliance.BLUE)
             {
-                if (determinedJewelOrder == BalancePlateJewelVision.JewelOrder.BLUE_RED)
+                if (determinedJewelOrder == JewelDetector.JewelOrder.BLUE_RED)
                     ballKnockHeading = 360 - TURN_HEADING_TO_KNOCK_JEWEL;
                 else
                     ballKnockHeading = TURN_HEADING_TO_KNOCK_JEWEL;
@@ -114,57 +103,33 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             robot.ballKnocker.setKnockerTo(true);
         }
 
-//        // Init the cryptobox viewer
-//        CryptoboxTrackerBasic tracker = new CryptoboxTrackerBasic();
-//        openCVCam.start(tracker, true);
-//
-//        // Push the glyph toward the flipper
-//        robot.intake.intake();
-//
-//        // Drive off of the balance board until we see the first deposit region.
-//        robot.swerveDrive.setDesiredMovement(Vector2D.rectangular(0, 0.5));
-//        robot.swerveDrive.setDesiredHeading(0);
-//        CryptoboxTrackerBasic.CryptoColumnPixelLocation[] locations = {};
-//        while(locations.length < 2)
-//        {
-//            locations = tracker.getObservedLocations();
-//            robot.swerveDrive.synchronousUpdate();
-//            flow.yield();
-//        }
-//
-//      // TODO Now creep side to side to the center of the column.
+        // Drive off of the balance board.
+        Vector2D desiredMovement = null;
+        if (getAlliance() == Alliance.RED)
+            desiredMovement = Vector2D.polar(0.5, 270);
+        else
+            desiredMovement = Vector2D.polar(0.5, 90);
+        robot.swerveDrive.setDesiredMovement(desiredMovement);
+        start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < 5000)
+        {
+            robot.swerveDrive.synchronousUpdate();
+            flow.yield();
+        }
 
-//        // Drive off the balance board
-//        Vector2D driveDirection = Vector2D.ZERO;
-//        if (getAlliance() == Alliance.RED)
-//            driveDirection = Vector2D.rectangular(-0.1, -0.5);
-//        else
-//            driveDirection = Vector2D.rectangular(-0.1, 0.5);
-//
-//        robot.swerveDrive.setDesiredMovement(driveDirection);
-//        robot.swerveDrive.setDesiredHeading(0);
-//        robot.intake.intake(); // push glyph toward end
-//
-//        long startTime = System.currentTimeMillis();
-//        while (System.currentTimeMillis() - startTime < 2500)
-//        {
-//            robot.swerveDrive.synchronousUpdate();
-//            flow.yield();
-//        }
-    }
-
-    /**
-     * Tells us when we need to just ignore both jewels or the vumark (it's taking too long)
-     */
-    private long opModeStartTime = -1;
-    private boolean shouldTransitionIntoActualOpMode()
-    {
-        if (!isStarted())
-            return false;
-
-        if (opModeStartTime == -1)
-            opModeStartTime = System.currentTimeMillis();
-
-        return System.currentTimeMillis() - opModeStartTime > IGNORE_VISION_TARGETS_IF_NOT_VISIBLE;
+        // Determine the VuMark for the glyph placement.
+        VuforiaCam vuforiaCam = new VuforiaCam();
+        vuforiaCam.start(true);
+        VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
+        vuforiaCam.getTrackables().activate();
+        RelicRecoveryVuMark vumark = RelicRecoveryVuMark.UNKNOWN;
+        start = System.currentTimeMillis();
+        while (vumark == RelicRecoveryVuMark.UNKNOWN && System.currentTimeMillis() - start < 3000)
+        {
+            vumark = RelicRecoveryVuMark.from(relicTemplate);
+            flow.yield();
+        }
+        vuforiaCam.stop();
+        log.lines("VuMark: " + vumark.toString());
     }
 }

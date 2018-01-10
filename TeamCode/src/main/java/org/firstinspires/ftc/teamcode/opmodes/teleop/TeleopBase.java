@@ -5,9 +5,11 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveDrive;
+import org.firstinspires.ftc.teamcode.vision.analysis.CryptoboxTracker;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.input.HTButton;
+import hankextensions.vision.opencv.OpenCVCam;
 
 public abstract class TeleopBase extends EnhancedOpMode implements CompetitionProgram
 {
@@ -16,6 +18,10 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
     @Override
     protected final void onRun() throws InterruptedException
     {
+//        CryptoboxTracker tracker = new CryptoboxTracker();
+//        OpenCVCam cam = new OpenCVCam();
+//        cam.start(tracker, true);
+
         robot = new Robot(hardware);
 
         // Init robot hardware.
@@ -48,6 +54,9 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
             // Control flipper
             if (C1.a.currentState == HTButton.ButtonState.JUST_TAPPED)
                 robot.flipper.advanceStage();
+
+            if (C1.y.currentState == HTButton.ButtonState.JUST_TAPPED)
+                robot.lights.toggleLights();
 
             // Control intake
             if (C1.gamepad.left_bumper)
