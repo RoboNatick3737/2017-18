@@ -56,6 +56,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     public final int[] placementDistances = new int[3];
     private int lastNumColumnsDetected = 0;
     private int framesSinceColumnsDetected = 0;
+    private double filterFactor = 0;
 
     /**
      * Stores the start of the crypto column and the width of the column.
@@ -82,7 +83,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     private Size analysisResolution;
 
     // Pre-initialized mats.
-    private Mat primaryMask, whiteMask, cryptoboxMask;
+    private Mat primaryMask, whiteMask;
 
     @Override
     public void onCameraViewStarted(int width, int height)
@@ -92,7 +93,6 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
 
         primaryMask = Mat.zeros(analysisResolution, Imgproc.THRESH_BINARY); // 1-channel = grayscale image
         whiteMask = new Mat(analysisResolution, Imgproc.THRESH_BINARY);
-        cryptoboxMask = new Mat(analysisResolution, Imgproc.THRESH_BINARY);
     }
 
     @Override
@@ -100,7 +100,6 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     {
         whiteMask.release();
         primaryMask.release();
-        cryptoboxMask.release();
     }
 
     // Disable this if you don't want to display the current mat state to the user (useful for ensuring everything's working properly but slow)
@@ -130,9 +129,8 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         Mat white = channels.get(0);
         Imgproc.equalizeHist(white, white);
         Imgproc.threshold(white, whiteMask, 160, 255, Imgproc.THRESH_BINARY);
+        Core.bitwise_xor(primaryMask, whiteMask, whiteMask);
         Imgproc.cvtColor(main, main, Imgproc.COLOR_YCrCb2RGB);
-
-        Core.bitwise_or(primaryMask, whiteMask, cryptoboxMask);
     }
 
     enum CryptoColor {PRIMARY, WHITE, NONE}
@@ -151,120 +149,162 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     /**
      * Takes a simplified column of crypto colors and decides whether it belongs to a cryptobox.
      */
-    private boolean isCryptoColumn(int rowOfMat)
+    private boolean[] quickFilterColumns(Mat mat)
     {
-        /////  SIMPLE FILTER (between a cryptobox column and background objects) //////
-
         // Get height of frame (all measurements relative to this).
-        int height = cryptoboxMask.cols();
+        int height = mat.cols();
 
-        // Get the num of mask pixels in each region.
-        int cryptoPixels = Core.countNonZero(cryptoboxMask.row(rowOfMat)),
-                primaryPixels = Core.countNonZero(primaryMask.row(rowOfMat)),
-                whitePixels = Core.countNonZero(whiteMask.row(rowOfMat));
+        boolean[] quickFilter = new boolean[mat.rows()];
 
-        // Allow additional leniency in cryptobox height depending on how long it's been since we saw the cryptobox.
-        double filterFactor = (4 - lastNumColumnsDetected) - framesSinceColumnsDetected * .5;
-        if (filterFactor < 0)
-            filterFactor = 0;
-
-        // Don't analyze if this obviously isn't a column.
-        if (!(cryptoPixels > (.4 + filterFactor * .03) * height &&
-                primaryPixels > (.3 + filterFactor * .02)  * height &&
-                whitePixels > (.02 + filterFactor * .01) * height))
-            return false;
-
-
-        ///// COMPLEX FILTER (between a cryptobox column and a similarly colored pant leg) ///////
-
-        // Generate a simplified list of colors to define the column.
-        CryptoColor[] simplifiedColumn = new CryptoColor[height];
-        for (int j = 0; j < height; j++)
-            simplifiedColumn[j] = (whiteMask.get(rowOfMat, j)[0] != 0) ? CryptoColor.WHITE : ((primaryMask.get(rowOfMat, j)[0] != 0) ? CryptoColor.PRIMARY : CryptoColor.NONE);
-
-        // Determine the distinct regions in the column and their lengths.
-        ArrayList<ColorRegion> regions = new ArrayList<>();
-        int streak = 0;
-        CryptoColor last = simplifiedColumn[0];
-        for (int i = 0; i < height; i++)
+        for (int rowOfMat = 0; rowOfMat < mat.rows(); rowOfMat++)
         {
-            if (simplifiedColumn[i] != last)
-            {
-                regions.add(new ColorRegion(simplifiedColumn[i - 1], streak));
-                streak = 0;
-            }
+            // Get the num of mask pixels in each region.
+            int primaryPixels = Core.countNonZero(primaryMask.row(rowOfMat)),
+                    whitePixels = Core.countNonZero(whiteMask.row(rowOfMat)),
+                    cryptoPixels = primaryPixels + whitePixels;
 
-            streak++;
-            last = simplifiedColumn[i];
-        }
-        if (streak > 0)
-            regions.add(new ColorRegion(last, streak));
-
-        // Eliminate super small regions.
-        for (int i = 0; i < regions.size(); i++)
-        {
-            if (regions.get(i).length < (0.01 + filterFactor * .005) * height) // Has to be at least 3% length.
-            {
-                regions.remove(i);
-                i--;
-            }
+            // Don't analyze if this obviously isn't a column.
+            quickFilter[rowOfMat] = !(cryptoPixels > (.4 + filterFactor * .03) * height && primaryPixels > (.3 + filterFactor * .02) * height && whitePixels > (.02 + filterFactor * .01) * height);
         }
 
-        // Merge common regions.
-        for (int i = 0; i < regions.size() - 1; i++)
+        return quickFilter;
+    }
+
+    /**
+     * Decides which columns don't belong from the chosen columns.
+     */
+    private void deepFilterColumns(Mat mat, boolean[] rows)
+    {
+        int height = mat.cols();
+
+        // Filled with an array for each row, the first index for which
+        int[][] colorRegionRepresentations = new int[rows.length][];
+
+        double averageViewedBlueStripes = 0, averageViewedWhiteStripes = 0;
+        int totalValidTrials = 0;
+
+        // Decide the average viewed blue and white stripes.
+        for (int row = 0; row < rows.length; row++)
         {
-            if (regions.get(i).color == regions.get(i + 1).color)
+            if (!rows[row])
+                continue;
+
+            // Generate a simplified list of colors to define the column.
+            CryptoColor[] simplifiedColumn = new CryptoColor[height];
+            for (int j = 0; j < height; j++)
+                simplifiedColumn[j] = (whiteMask.get(row, j)[0] != 0) ? CryptoColor.WHITE : ((primaryMask.get(row, j)[0] != 0) ? CryptoColor.PRIMARY : CryptoColor.NONE);
+
+            // Determine the distinct regions in the column and their lengths.
+            ArrayList<ColorRegion> regions = new ArrayList<>();
+            int streak = 0;
+            CryptoColor last = simplifiedColumn[0];
+            for (int i = 0; i < height; i++)
             {
-                regions.get(i).length += regions.get(i + 1).length;
-                regions.remove(i + 1);
-                i--;
+                if (simplifiedColumn[i] != last)
+                {
+                    regions.add(new ColorRegion(simplifiedColumn[i - 1], streak));
+                    streak = 0;
+                }
+
+                streak++;
+                last = simplifiedColumn[i];
+            }
+            if (streak > 0)
+                regions.add(new ColorRegion(last, streak));
+
+            // Eliminate super small regions and merge regions that may be the same by their removal.
+            for (int i = 0; i < regions.size(); i++)
+            {
+                if (regions.get(i).length < 0.02 * height) // Has to be at least 3% length.
+                {
+                    regions.remove(i);
+                    i--;
+
+                    // Merge if possible.
+                    if (i >= 0 && i < regions.size() - 1)
+                    {
+                        if (regions.get(i).color == regions.get(i + 1).color)
+                        {
+                            regions.get(i).length += regions.get(i + 1).length;
+                            regions.remove(i);
+                        }
+                    }
+                }
+            }
+
+            // Decide whether this is a crypto column.
+            ArrayList<ColorRegion[]> cryptoboxCandidates = new ArrayList<>();
+            ArrayList<ColorRegion> currentCandidate = new ArrayList<>();
+            for (ColorRegion region : regions)
+            {
+                if (region.color == CryptoColor.NONE)
+                {
+                    if (currentCandidate.size() > 0)
+                    {
+                        ColorRegion[] candidate = new ColorRegion[currentCandidate.size()];
+                        candidate = currentCandidate.toArray(candidate);
+                        cryptoboxCandidates.add(candidate);
+                        currentCandidate.clear();
+                    }
+                }
+                else
+                {
+                    currentCandidate.add(region);
+                }
+            }
+
+            // Determine whether a candidate is valid.
+            int viewedBlueRegions = 0, viewedWhiteRegions = 0;
+            double blueRegionMin = 0; //(.1 + filterFactor * .025) * simplifiedColumn.length;
+            double blueRegionMax = simplifiedColumn.length; //(.7 + filterFactor * .05) * simplifiedColumn.length;
+            double whiteRegionMin = 0; //(.02 + filterFactor * .005) * simplifiedColumn.length;
+            double whiteRegionMax = simplifiedColumn.length; //(.3 + filterFactor * .01) * simplifiedColumn.length;
+            ColorRegion[] chosenCandidate = null;
+            for (ColorRegion[] candidate : cryptoboxCandidates)
+            {
+                if (candidate.length >= 2)
+                    continue;  // two stripes at least.
+
+                for (ColorRegion region : candidate)
+                {
+                    if (region.color == CryptoColor.WHITE && (region.length > whiteRegionMin || region.length < whiteRegionMax))
+                    {
+                        viewedWhiteRegions++;
+                    }
+                    else if (region.color == CryptoColor.PRIMARY && (region.length > blueRegionMin || region.length < blueRegionMax))
+                    {
+                        viewedBlueRegions++;
+                    }
+
+                    if (viewedBlueRegions + viewedWhiteRegions >= 2)
+                    {
+                        chosenCandidate = candidate;
+                        break;
+                    }
+                }
+
+                if (chosenCandidate != null)
+                {
+                    totalValidTrials++;
+
+                    averageViewedBlueStripes = (averageViewedBlueStripes + viewedBlueRegions) / totalValidTrials;
+                    averageViewedWhiteStripes = (averageViewedWhiteStripes + viewedWhiteRegions) / totalValidTrials;
+
+                    int[] representation = {viewedBlueRegions, viewedWhiteRegions};
+                    colorRegionRepresentations[row] = representation;
+
+                    break;
+                }
+                else
+                    chosenCandidate = null;
             }
         }
 
-        // Remove NONE bounds from ends.
-        if (regions.get(regions.size() - 1).color == CryptoColor.NONE)
-            regions.remove(regions.size() - 1);
-        if (regions.get(0).color == CryptoColor.NONE)
-            regions.remove(0);
-
-        // Decide whether these regions indicate a cryptobox.
-        int maxBlueStripeSequence = 0, maxWhiteStripeSequence = 0;
-        int whiteStripesVisible = 0, blueStripesVisible = 0;
-        CryptoColor lastRegionColor = CryptoColor.NONE;
-        for (ColorRegion region : regions)
-        {
-            if (region.color == CryptoColor.NONE && region.length > .1 * simplifiedColumn.length)
-            {
-                if (blueStripesVisible > maxBlueStripeSequence)
-                    maxBlueStripeSequence = blueStripesVisible;
-                if (whiteStripesVisible > maxWhiteStripeSequence)
-                    maxWhiteStripeSequence = whiteStripesVisible;
-
-                whiteStripesVisible = 0;
-                blueStripesVisible = 0;
-            }
-            else if (region.color == CryptoColor.PRIMARY && lastRegionColor != CryptoColor.PRIMARY
-                    && region.length > (.1 + filterFactor * .025) * simplifiedColumn.length)
-            {
-                blueStripesVisible++;
-            }
-            else if (region.color == CryptoColor.WHITE && lastRegionColor != CryptoColor.WHITE
-                    && region.length > (.02 + filterFactor * .005) * simplifiedColumn.length)
-            {
-                whiteStripesVisible++;
-            }
-
-            lastRegionColor = region.color;
-        }
-        if (blueStripesVisible > 0 || whiteStripesVisible > 0)
-        {
-            if (blueStripesVisible > maxBlueStripeSequence)
-                maxBlueStripeSequence = blueStripesVisible;
-            if (whiteStripesVisible > maxWhiteStripeSequence)
-                maxWhiteStripeSequence = whiteStripesVisible;
-        }
-
-        return maxBlueStripeSequence >= maxWhiteStripeSequence && maxBlueStripeSequence >= 2 && maxWhiteStripeSequence >= 1;
+        // Filter out columns based on averages.
+        for (int i = 0; i < colorRegionRepresentations.length; i++)
+            // If this column deviates from the norm excessively then remove it.
+            if (!(Math.abs(averageViewedBlueStripes - colorRegionRepresentations[i][0]) < 1 || Math.abs(averageViewedWhiteStripes - colorRegionRepresentations[i][1]) < 1))
+                rows[i] = false;
     }
 
     /**
@@ -380,10 +420,10 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     /**
      * Tries to determine placement locations based on the detected columns.
      */
-    private void decidePlacementLocationsBasedOn(ArrayList<CryptoColumnPixelLocation> columns)
+    private void updatePlacementsBasedOn(ArrayList<CryptoColumnPixelLocation> columns)
     {
         // Use the fact that we've recorded closestGlyphPlacementSpace for previous trials if less than 4 detected.
-        int centerScreen = (int)(cryptoboxMask.rows() / 2.0);
+        int centerScreen = (int)(primaryMask.rows() / 2.0);
         switch (columns.size()) // <= 4
         {
             /**
@@ -582,9 +622,10 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         }
 
         // Loop through the columns and eliminate those which aren't cryptobox columns.
-        boolean[] cryptoColumns = new boolean[raw.rows()]; // Represents a single-row binary mask.
-        for (int i = 0; i < raw.rows(); i++)
-            cryptoColumns[i] = isCryptoColumn(i);
+        boolean[] cryptoColumns = quickFilterColumns(raw);
+
+        // Further analyze the decided columns to find which ones definitely don't belong.
+        deepFilterColumns(raw, cryptoColumns);
 
         // Discover the distinct regions of the array from the resulting boolean array.
         ArrayList<CryptoColumnPixelLocation> columns = discoverLocationsFrom(cryptoColumns);
@@ -593,6 +634,9 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         if (columns.size() == 0)
         {
             framesSinceColumnsDetected++;
+            filterFactor -= .5;
+            if (filterFactor < 0)
+                filterFactor = 0;
 
             // Resize the image to the original size.
             Imgproc.resize(raw, raw, originalResolution);
@@ -600,8 +644,8 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         }
 
         // Try to filter out false columns if we detected too many.
-        if (columns.size() > 4)
-            filterEquidistantColumnsFrom(columns);
+//        if (columns.size() > 4)
+//            filterEquidistantColumnsFrom(columns);
 
         // Display chosen cols in mat if in debug mode in green (will be overridden if red).
         if (IN_MAT_DEBUG_MODE)
@@ -609,10 +653,11 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
                 Imgproc.rectangle(raw, new Point(0, location.origin), new Point(raw.cols(), location.origin + location.width), new Scalar(0, 255, 0), 3);
 
         // Decides what the placement locations should be based on the detected columns.
-        decidePlacementLocationsBasedOn(columns);
+        updatePlacementsBasedOn(columns);
 
         // Used for future runs.
         lastNumColumnsDetected = columns.size();
+        filterFactor = 4 - lastNumColumnsDetected;
         framesSinceColumnsDetected = 0;
 
         // Resize the image to the original size.
