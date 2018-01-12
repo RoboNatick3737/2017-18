@@ -18,5 +18,12 @@ public class OpenCVJNIHooks
         inRangeBetweenMatsNative(toFilter.getNativeObjAddr(), lower.getNativeObjAddr(), upper.getNativeObjAddr(), dest.getNativeObjAddr());
     }
 
-    public static native void inRangeBetweenMatsNative(long toFilterAddress, long lowerAddress, long upperAddress, long destAddress);
+    private static native void inRangeBetweenMatsNative(long toFilterAddress, long lowerAddress, long upperAddress, long destAddress);
+
+    public static void cmykConvert(Mat toConvert)
+    {
+        cmykConvert(toConvert.getNativeObjAddr());
+    }
+
+    private static native void cmykConvert(long toConvertAddress);
 }

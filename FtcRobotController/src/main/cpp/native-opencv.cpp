@@ -28,4 +28,28 @@ void JNICALL Java_hankextensions_vision_opencv_OpenCVJNIHooks_inRangeBetweenMats
     inRange(*(Mat *) toFilterAddr, *(Mat *) lowerAddr, *(Mat *) upperAddr, *(Mat *) destAddr);
 }
 
+void JNICALL Java_hankextensions_vision_opencv_OpenCVJNIHooks_cmykConvert(JNIEnv *env, jobject instance, jlong original)
+{
+    Mat &img = *(Mat *) original;
+
+    // rgb to cmyk
+    for (int i = 0; i < img.rows; i++)
+    {
+        for (int j = 0; j < img.cols; j++)
+        {
+            Vec3b &color = img.at<Vec3b>(i, j);
+            double r = color[0];
+            double g = color[1];
+            double b = color[2];
+            double k = min(min(1 - r, 1 - g), 1 - b);
+
+            color[0] = (1 - r - k) / (1 - k) * 255.;
+            color[1] = (1 - g - k) / (1 - k) * 255.;
+            color[2] = (1 - b - k) / (1 - k) * 255.;
+
+            img.at<Vec3b>(i, j) = color;
+        }
+    }
+}
+
 }
