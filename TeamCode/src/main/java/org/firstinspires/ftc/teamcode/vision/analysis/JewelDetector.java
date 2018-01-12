@@ -77,7 +77,9 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
             Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2YCrCb);
             LinkedList<Mat> channels = new LinkedList<>();
             Core.split(mat, channels);
+            Imgproc.equalizeHist(channels.get(2), channels.get(2));
             Imgproc.threshold(channels.get(2), blue, 160, 255, Imgproc.THRESH_BINARY);
+            Imgproc.equalizeHist(channels.get(2), channels.get(2));
             Imgproc.threshold(channels.get(1), red, 160, 255, Imgproc.THRESH_BINARY);
             bluePixels = Core.countNonZero(blue);
             redPixels = Core.countNonZero(red);
