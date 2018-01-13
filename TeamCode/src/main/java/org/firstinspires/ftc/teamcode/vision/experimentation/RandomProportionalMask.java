@@ -18,7 +18,7 @@ import org.opencv.imgproc.Imgproc;
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
 
-@Autonomous(name="Random Proportional Mask Generator", group= Constants.EXPERIMENTATION)
+@Autonomous(name="Random Proportional Mask Generator", group= Constants.VISION_TESTING)
 public class RandomProportionalMask extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     private OpenCVCam openCVCam;

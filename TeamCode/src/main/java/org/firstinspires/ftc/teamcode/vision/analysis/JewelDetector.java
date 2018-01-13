@@ -18,7 +18,7 @@ import java.util.LinkedList;
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
 
-@Autonomous(name="Jewel Vision", group= Constants.EXPERIMENTATION)
+@Autonomous(name="Jewel Vision", group= Constants.FINAL_BOT_OPMODES)
 public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     private OpenCVCam openCVCam;

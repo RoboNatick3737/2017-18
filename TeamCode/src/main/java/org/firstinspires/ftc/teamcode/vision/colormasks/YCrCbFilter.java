@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.vision.filteringutilities;
+package org.firstinspires.ftc.teamcode.vision.colormasks;
 
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -15,8 +15,8 @@ import java.util.LinkedList;
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
 
-@Autonomous(name="Generic Filtering", group= Constants.EXPERIMENTATION)
-public class GenericFiltering extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
+@Autonomous(name="YCrCb Red/Blue/White", group= Constants.VISION_TESTING)
+public class YCrCbFilter extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     private static double BLUE_MIN = 180, RED_MIN = 200, WHITE_MIN = 160;
 

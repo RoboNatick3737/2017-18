@@ -8,7 +8,7 @@ import hankextensions.vision.opencv.OpenCVCam;
 import hankextensions.vision.vuforia.VuforiaCam;
 import hankextensions.EnhancedOpMode;
 
-@Autonomous(name="Vision Swap", group=Constants.EXPERIMENTATION)
+@Autonomous(name="Vision Swap", group=Constants.VISION_TESTING)
 public class VisionSwap extends EnhancedOpMode
 {
     private OpenCVCam openCVCam;

@@ -16,19 +16,16 @@ import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
 import hankextensions.vision.opencv.OpenCVJNIHooks;
 
-@Autonomous(name="CS Convert CPP", group= Constants.EXPERIMENTATION)
-public class CMYKConvertCPP extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
+@Autonomous(name="CMYK Blue — C++", group= Constants.VISION_TESTING)
+public class CMYKBlueCpp extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
-
     @Override
     public void onCameraViewStarted(int width, int height)
-    {
-    }
+    {}
 
     @Override
     public void onCameraViewStopped()
-    {
-    }
+    {}
 
     @Override
     public Mat onCameraFrame(Mat inputFrame)

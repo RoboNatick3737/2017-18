@@ -18,12 +18,13 @@ import java.util.LinkedList;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
+import hankextensions.vision.opencv.OpenCVJNIHooks;
 
 /**
  * Tracks and guesses the approximate distances from this phone to each individual cryptobox
  * column through a bit of math.
  */
-@Autonomous(name="Cryptobox Tracker", group=Constants.EXPERIMENTATION)
+@Autonomous(name="Cryptobox Tracker", group=Constants.VISION_TESTING)
 public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
 {
     @Override
@@ -48,6 +49,10 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         this.alliance = alliance;
     }
 
+    // The way that we'll be filtering colors.
+    private enum ColorFilteringMode {YCrCb, CMYK}
+    private ColorFilteringMode colorFilteringMode = ColorFilteringMode.CMYK;
+
     /**
      * For when we don't have the context required to determine the crypto opening we're most
      * nearly in front of.  1 <= closestGlyphPlacementSpace <= 4.  Can be set by autonomous when we're fairly
@@ -56,7 +61,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     public final int[] placementDistances = new int[3];
     private int lastNumColumnsDetected = 0;
     private int framesSinceColumnsDetected = 0;
-    private double filterFactor = 0;
+    private double estimatedForwardDistance = 0;
 
     /**
      * Stores the start of the crypto column and the width of the column.
@@ -111,38 +116,49 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
      */
     private void updateColorMasks(Mat main)
     {
-        Imgproc.cvtColor(main, main, Imgproc.COLOR_RGB2YCrCb);
-        LinkedList<Mat> channels = new LinkedList<>();
-        Core.split(main, channels);
-        if (alliance == CompetitionProgram.Alliance.BLUE)
+        if (colorFilteringMode == ColorFilteringMode.YCrCb)
         {
-            Mat blue = channels.get(2);
-            Imgproc.equalizeHist(blue, blue);
-            Imgproc.threshold(blue, primaryMask, 210, 255, Imgproc.THRESH_BINARY);
+            Imgproc.cvtColor(main, main, Imgproc.COLOR_RGB2YCrCb);
+            LinkedList<Mat> channels = new LinkedList<>();
+            Core.split(main, channels);
+            if (alliance == CompetitionProgram.Alliance.BLUE) {
+                Mat blue = channels.get(2);
+//                Imgproc.equalizeHist(blue, blue);
+                Imgproc.threshold(blue, primaryMask, 210, 255, Imgproc.THRESH_BINARY);
+            } else if (alliance == CompetitionProgram.Alliance.RED) {
+                Mat red = channels.get(1);
+//                Imgproc.equalizeHist(red, red);
+                Imgproc.threshold(red, primaryMask, 180, 255, Imgproc.THRESH_BINARY);
+            }
+            Mat white = channels.get(0);
+//            Imgproc.equalizeHist(white, white);
+            Imgproc.threshold(white, whiteMask, 160, 255, Imgproc.THRESH_BINARY);
+            Core.bitwise_xor(primaryMask, whiteMask, whiteMask);
+            Imgproc.cvtColor(main, main, Imgproc.COLOR_YCrCb2RGB);
         }
-        else if (alliance == CompetitionProgram.Alliance.RED)
+        else if (colorFilteringMode == ColorFilteringMode.CMYK)
         {
-            Mat red = channels.get(1);
-            Imgproc.equalizeHist(red, red);
-            Imgproc.threshold(red, primaryMask, 180, 255, Imgproc.THRESH_BINARY);
-        }
-        Mat white = channels.get(0);
-        Imgproc.equalizeHist(white, white);
-        Imgproc.threshold(white, whiteMask, 160, 255, Imgproc.THRESH_BINARY);
-        Core.bitwise_xor(primaryMask, whiteMask, whiteMask);
-        Imgproc.cvtColor(main, main, Imgproc.COLOR_YCrCb2RGB);
-    }
+            Mat filterMask = main.clone();
+            OpenCVJNIHooks.cmykConvert(filterMask);
 
-    enum CryptoColor {PRIMARY, WHITE, NONE}
-    class ColorRegion
-    {
-        private CryptoColor color;
-        private int length;
+            LinkedList<Mat> channels = new LinkedList<>();
+            Core.split(filterMask, channels);
+            if (alliance == CompetitionProgram.Alliance.BLUE)
+            {
+//                Imgproc.equalizeHist(channels.get(0), channels.get(0));
+                Imgproc.threshold(channels.get(0), primaryMask, 180, 255, Imgproc.THRESH_BINARY);
+            }
+            else if (alliance == CompetitionProgram.Alliance.RED)
+            {
+//                Imgproc.equalizeHist(channels.get(1), channels.get(1));
+                Imgproc.threshold(channels.get(1), primaryMask, 200, 255, Imgproc.THRESH_BINARY);
+            }
+            filterMask.release();
 
-        public ColorRegion(CryptoColor color, int length)
-        {
-            this.color = color;
-            this.length = length;
+            Mat greyMask = main.clone();
+            Imgproc.cvtColor(main, greyMask, Imgproc.COLOR_RGB2GRAY);
+            Imgproc.threshold(greyMask, whiteMask, 160, 255, Imgproc.THRESH_BINARY);
+            greyMask.release();
         }
     }
 
@@ -163,7 +179,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
                     whitePixels = Core.countNonZero(whiteMask.row(rowOfMat));
 
             // Don't analyze if this obviously isn't a column.
-            quickFilter[rowOfMat] = primaryPixels > (.6 + filterFactor * .02) * height && whitePixels > (.05 + filterFactor * .01) * height;
+            quickFilter[rowOfMat] = primaryPixels > (.6 + estimatedForwardDistance * .02) * height && whitePixels > (.05 + estimatedForwardDistance * .01) * height;
         }
 
         return quickFilter;
@@ -174,141 +190,8 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
      */
     private void deepFilterColumns(Mat mat, boolean[] rows)
     {
-        // Since image is flipped.
-        int height = mat.cols();
-
-        // Filled with an array for each row, the first index for which
-        int[][] colorRegionRepresentations = new int[rows.length][];
-
-        double averageViewedBlueStripes = 0, averageViewedWhiteStripes = 0;
-        int totalValidTrials = 0;
-
-        // Decide the average viewed blue and white stripes.
-        for (int row = 0; row < rows.length; row++)
-        {
-            if (!rows[row])
-                continue;
-
-            // Generate a simplified list of colors to define the column.
-            CryptoColor[] simplifiedColumn = new CryptoColor[height];
-            for (int j = 0; j < height; j++)
-                simplifiedColumn[j] = (whiteMask.get(row, j)[0] != 0) ? CryptoColor.WHITE : ((primaryMask.get(row, j)[0] != 0) ? CryptoColor.PRIMARY : CryptoColor.NONE);
-
-            // Determine the distinct regions in the column and their lengths.
-            ArrayList<ColorRegion> regions = new ArrayList<>();
-            int streak = 0;
-            CryptoColor last = simplifiedColumn[0];
-            for (int i = 0; i < height; i++)
-            {
-                if (simplifiedColumn[i] != last)
-                {
-                    regions.add(new ColorRegion(simplifiedColumn[i - 1], streak));
-                    streak = 0;
-                }
-
-                streak++;
-                last = simplifiedColumn[i];
-            }
-            if (streak > 0)
-                regions.add(new ColorRegion(last, streak));
-
-            // Eliminate super small regions and merge regions that may be the same by their removal.
-            for (int i = 0; i < regions.size(); i++)
-            {
-                if (regions.get(i).length < 0.02 * height) // Has to be at least some percent length.
-                {
-                    regions.remove(i);
-                    i--;
-
-                    // Merge if possible.
-                    if (i >= 0 && i < regions.size() - 1)
-                    {
-                        if (regions.get(i).color == regions.get(i + 1).color)
-                        {
-                            regions.get(i).length += regions.get(i + 1).length;
-                            regions.remove(i);
-                        }
-                    }
-                }
-            }
-
-            if (regions.size() < 3)
-                continue;
-
-            // Apply strict bounds to the regions.
-            int maxBlueRegions = 0, maxWhiteRegions = 0;
-            int blueRegions = 0, whiteRegions = 0;
-            double blueRegionMin = (.12 + filterFactor * .025) * height;
-            double blueRegionMax = (.7 + filterFactor * .05) * height;
-            double whiteRegionMin = (.03 + filterFactor * .005) * height;
-            double whiteRegionMax = (.1 + filterFactor * .01) * height;
-            for (ColorRegion region : regions)
-            {
-                if (region.color == CryptoColor.NONE)
-                {
-                    if (blueRegions > maxBlueRegions)
-                        maxBlueRegions = blueRegions;
-
-                    if (whiteRegions > maxWhiteRegions)
-                        maxWhiteRegions = whiteRegions;
-
-                    blueRegions = 0;
-                    whiteRegions = 0;
-                }
-                else if (region.color == CryptoColor.WHITE)
-                {
-                    if (region.length > whiteRegionMin && region.length < whiteRegionMax)
-                        whiteRegions++;
-                    else
-                    {
-                        if (blueRegions > maxBlueRegions)
-                            maxBlueRegions = blueRegions;
-
-                        if (whiteRegions > maxWhiteRegions)
-                            maxWhiteRegions = whiteRegions;
-
-                        blueRegions = 0;
-                        whiteRegions = 0;
-                    }
-                }
-                else if (region.color == CryptoColor.PRIMARY)
-                {
-                    if (region.length > blueRegionMin && region.length < blueRegionMax)
-                        blueRegions++;
-                    else
-                    {
-                        if (blueRegions > maxBlueRegions)
-                            maxBlueRegions = blueRegions;
-
-                        if (whiteRegions > maxWhiteRegions)
-                            maxWhiteRegions = whiteRegions;
-
-                        blueRegions = 0;
-                        whiteRegions = 0;
-                    }
-                }
-            }
-
-            if (maxBlueRegions + maxWhiteRegions < 3)
-                continue;
-
-            // Record that this was successful, and include it with the averages.
-            totalValidTrials++;
-
-            averageViewedBlueStripes = (averageViewedBlueStripes * (totalValidTrials - 1) + maxBlueRegions) / totalValidTrials;
-            averageViewedWhiteStripes = (averageViewedWhiteStripes * (totalValidTrials - 1) + maxWhiteRegions) / totalValidTrials;
-
-            int[] representation = {maxBlueRegions, maxWhiteRegions};
-            colorRegionRepresentations[row] = representation;
-
-            break;
-        }
-
-        // Filter out columns based on averages.
-        for (int i = 0; i < colorRegionRepresentations.length; i++)
-            // If this column deviates from the norm excessively then remove it.
-            if (colorRegionRepresentations[i] == null || Math.abs(averageViewedBlueStripes - colorRegionRepresentations[i][0]) > 1 || Math.abs(averageViewedWhiteStripes - colorRegionRepresentations[i][1]) > 1)
-                rows[i] = false;
+        // Use faster C++ method.
+        OpenCVJNIHooks.deepCryptoboxAnalysis(mat, primaryMask, whiteMask, rows);
     }
 
     /**
@@ -605,29 +488,37 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     /**
      * Used to determine how strict we should be while filtering column area regions.  .
      */
-    private void updateFilterFactor(ArrayList<CryptoColumnPixelLocation> columns)
+    private void recalculateEstimatedForwardDistance(ArrayList<CryptoColumnPixelLocation> columns)
     {
         // Determine average detected cryptobox width to indicate how close we are.
         double avgWidth = 0;
         for (CryptoColumnPixelLocation location : columns)
             avgWidth += location.width;
         avgWidth /= columns.size();
-        filterFactor = avgWidth - analysisResolution.width * .1;
-
-        // Be less selective if we aren't detecting any columns.
-        filterFactor -= .05 * framesSinceColumnsDetected;
+        estimatedForwardDistance = avgWidth - analysisResolution.height * .05; // 5% of height is the max distance at which we can detect.
 
         // Proportional to total analysis resolution width.
-        filterFactor /= analysisResolution.width;
+        estimatedForwardDistance /= analysisResolution.width; // Find factor to which this differs.
+
+        // Be less selective if we aren't detecting any columns.
+        estimatedForwardDistance -= .02 * framesSinceColumnsDetected;
+
+        // Convert this to CM.
+        estimatedForwardDistance *= 50;
+
+        if (estimatedForwardDistance > 50)
+            estimatedForwardDistance = 50; // Clip to 50 max.
 
         // Can't be negative.
-        if (filterFactor < 0)
-            filterFactor = 0;
+        if (estimatedForwardDistance < 0)
+            estimatedForwardDistance = 0;
     }
 
     @Override
     public Mat onCameraFrame(Mat raw)
     {
+        Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGBA2RGB);
+
         // Flip so that it appears normally on the RC.
         Core.flip(raw, raw, 1);
 
@@ -652,7 +543,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         boolean[] cryptoColumns = quickFilterColumns(raw);
 
         // Further analyze the decided columns to find which ones definitely don't belong.
-//        deepFilterColumns(raw, cryptoColumns);
+        deepFilterColumns(raw, cryptoColumns);
 
         // Discover the distinct regions of the array from the resulting boolean array.
         ArrayList<CryptoColumnPixelLocation> columns = discoverLocationsFrom(cryptoColumns);
@@ -682,7 +573,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         framesSinceColumnsDetected = 0;
 
         // Will be used for future runs to filter the sizes of the blue and white regions.
-//        updateFilterFactor(columns);
+        recalculateEstimatedForwardDistance(columns);
 
         // Resize the image to the original size.
         Imgproc.resize(raw, raw, originalResolution);
