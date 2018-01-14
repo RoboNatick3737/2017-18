@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.vision.analysis;
 
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
@@ -38,13 +39,19 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
 
         while (true)
         {
-            console.write("Distances are " + placementDistances[0] + ", " + placementDistances[1] + " and " + placementDistances[2], "Estimated forward: " + estimatedForwardDistance);
+            console.write(
+                    trackingMode == ColumnTrackingMode.COMPLEX ?
+                            "Distances are " + placementDistances[0] + ", " + placementDistances[1] + " and " + placementDistances[2] :
+                            "Closest is " + closestPlacementLocationOffset,
+                    "Estimated forward: " + estimatedForwardDistance);
             flow.yield();
         }
     }
 
     // The max forward distance away we are from the cryptobox.
-    private final int MAX_FORWARD_DIST = 50;
+    private final int MAX_FORWARD_DIST = 44; // 13% width is max close, 6% is max far
+    private final double WIDTH_FOR_MIN_FORWARD_DIST = .15; // The average portions of the screen that the cryptobox cols must take up to be seen as right in front.
+    private final double WIDTH_FOR_MAX_FORWARD_DIST = .06; // The average portions of the screen for max dist (at edge of visible detection is possible).
 
     // The alliance for which we'll be doing vision.
     private CompetitionProgram.Alliance alliance = CompetitionProgram.Alliance.BLUE;
@@ -54,8 +61,22 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     }
 
     // The way that we'll be filtering colors.
-    private enum ColorFilteringMode {YCrCb, CMYK}
+    private enum ColorFilteringMode {
+        YCrCb, // YCrCb color space
+        CMYK   // CYMK color space (I wrote custom C++ for this mode).
+    }
     private ColorFilteringMode colorFilteringMode = ColorFilteringMode.YCrCb;
+
+    // Whether or not we try to track and remember column locations.
+    public enum ColumnTrackingMode {
+        COMPLEX, // Remembers old positions and such.
+        SIMPLE   // Just returns the closest offset.
+    }
+    private ColumnTrackingMode trackingMode = ColumnTrackingMode.SIMPLE;
+    public void setTrackingMode(ColumnTrackingMode mode)
+    {
+        this.trackingMode = mode;
+    }
 
     /**
      * For when we don't have the context required to determine the crypto opening we're most
@@ -63,6 +84,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
      * certain of current location.
      */
     public final int[] placementDistances = new int[3];
+    public int closestPlacementLocationOffset = 0; // Dist we have to move to dump.
     private int lastNumColumnsDetected = 0;
     public double estimatedForwardDistance = 0;
 
@@ -99,20 +121,11 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     {
         originalResolution = new Size(width, height);
         analysisResolution = new Size(width, height);
-
-        // Area of interest where the box is illuminated.
-        analysisRegion = new Rect(new Point(analysisResolution.width * .325, analysisResolution.height * .05), new Point(analysisResolution.width * .9, analysisResolution.height * .95));
-
-        primaryMask = Mat.zeros(analysisRegion.size(), Imgproc.THRESH_BINARY); // 1-channel = grayscale image
-        whiteMask = new Mat(analysisRegion.size(), Imgproc.THRESH_BINARY);
     }
 
     @Override
     public void onCameraViewStopped()
-    {
-        whiteMask.release();
-        primaryMask.release();
-    }
+    {}
 
     // Disable this if you don't want to display the current mat state to the user (useful for ensuring everything's working properly but slow)
     private final boolean IN_MAT_DEBUG_MODE = true;
@@ -131,7 +144,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             if (alliance == CompetitionProgram.Alliance.BLUE) {
                 Mat blue = channels.get(2);
                 Imgproc.equalizeHist(blue, blue); // Blue will show up on any surface as a result of this, but we're only pointing this at cryptoboxes so it should help instead of harm.
-                Imgproc.threshold(blue, primaryMask, 200, 255, Imgproc.THRESH_BINARY);
+                Imgproc.threshold(blue, primaryMask, 180, 255, Imgproc.THRESH_BINARY);
             } else if (alliance == CompetitionProgram.Alliance.RED) {
                 Mat red = channels.get(1);
                 Imgproc.equalizeHist(red, red);
@@ -139,7 +152,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             }
             Mat white = channels.get(0);
             Imgproc.equalizeHist(white, white);
-            Imgproc.threshold(white, whiteMask, 160, 255, Imgproc.THRESH_BINARY);
+            Imgproc.threshold(white, whiteMask, 150, 255, Imgproc.THRESH_BINARY);
             Mat both = new Mat(primaryMask.size(), Imgproc.THRESH_BINARY);
             Core.bitwise_and(primaryMask, whiteMask, both);// If it's part of blue, eliminate it from white.
             Core.bitwise_not(both, both);
@@ -168,7 +181,8 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
 
             Mat greyMask = main.clone();
             Imgproc.cvtColor(main, greyMask, Imgproc.COLOR_RGB2GRAY);
-            Imgproc.threshold(greyMask, whiteMask, 160, 255, Imgproc.THRESH_BINARY);
+            Imgproc.equalizeHist(greyMask, greyMask);
+            Imgproc.threshold(greyMask, whiteMask, 200, 255, Imgproc.THRESH_BINARY);
             greyMask.release();
         }
     }
@@ -190,9 +204,9 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
                     whitePixels = Core.countNonZero(whiteMask.row(rowOfMat));
 
             // Don't analyze if this obviously isn't a column.
-            quickFilter[rowOfMat] = primaryPixels > .75 * height &&
-                    whitePixels > .09 * height &&
-                    (whitePixels + primaryPixels) > .95 * height;
+            quickFilter[rowOfMat] = primaryPixels > (.4) * height && primaryPixels < .9 * height &&
+                    whitePixels > (.04) * height && whitePixels < .3 * height &&
+                    (whitePixels + primaryPixels) > (.85) * height;
         }
 
         return quickFilter;
@@ -231,8 +245,8 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         if (currLength > 0)
             columns.add(new CryptoColumnPixelLocation(cryptoColumns.length - currLength - 1, currLength));
 
-        // Merge close currentTrackers (small column blips)
-        final int MERGE_THRESHOLD = (int)(analysisResolution.width / 20.0);
+        // Merge close columns (small column blips)
+        final int MERGE_THRESHOLD = (int)(analysisRegion.height / 20.0);
         for (int locIndex = 0; locIndex < columns.size() - 1; locIndex++)
         {
             int locOffset = columns.get(locIndex + 1).origin - (columns.get(locIndex).origin + columns.get(locIndex).width);
@@ -242,6 +256,17 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
                 columns.get(locIndex).width += locOffset + columns.get(locIndex + 1).width; // increase size of first col
                 columns.remove(locIndex + 1); // remove next col
                 locIndex--; // have to reduce count because just considered next col already
+            }
+        }
+
+        // Remove tiny columns (we're talkin like 1 pixel long)
+        final int REMOVE_THRESHOLD = (int)(analysisRegion.height / 50.0);
+        for (int i = 0; i < columns.size(); i++)
+        {
+            if (columns.get(i).width < REMOVE_THRESHOLD)
+            {
+                columns.remove(i);
+                i--;
             }
         }
 
@@ -255,7 +280,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     private void filterEquidistantColumnsFrom(ArrayList<CryptoColumnPixelLocation> locations)
     {
         // Additional filtering if we detect more than 5 columns.
-        final double CLOSE_THRESHOLD = .05 * analysisResolution.width;
+        final double CLOSE_THRESHOLD = .05 * analysisRegion.width;
 
         // Find the 4 equidistant columns which represent a cryptobox.
         for (int first = 0; first < locations.size() - 3; first++)
@@ -499,20 +524,61 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     }
 
     /**
+     * Finds the closest placement location and sets its offset to a local double.
+     */
+    private void updateClosestPlacementLocation(ArrayList<CryptoColumnPixelLocation> columns)
+    {
+        if (columns.size() <= 1)
+            return;
+
+        int centerScreen = (int)(analysisRegion.height / 2.0);
+        int closestLocation = Integer.MAX_VALUE;
+        for (int i = 0; i < columns.size() - 1; i++)
+        {
+            int currentOffset = (int)((columns.get(i).midpoint() + columns.get(i + 1).midpoint()) / 2.0) - centerScreen;
+            if (currentOffset < closestLocation)
+            {
+                closestLocation = currentOffset;
+            }
+        }
+
+        closestPlacementLocationOffset = closestLocation;
+    }
+
+    /**
      * Used to determine how strict we should be while filtering column area regions.  .
      */
     private void recalculateEstimatedForwardDistance(ArrayList<CryptoColumnPixelLocation> columns)
     {
         // Determine average detected cryptobox width to indicate how close we are.
         double avgWidth = 0;
+        int totalValid = 0;
         for (CryptoColumnPixelLocation location : columns)
+        {
+            // Make sure this isn't on the edges (not a complete column otherwise).
+            if (location.origin < .005 * analysisRegion.height || location.origin + location.width > .995 * analysisRegion.height)
+                continue;
+
             avgWidth += location.width;
-        avgWidth /= columns.size();
+            totalValid++;
+        }
 
-        estimatedForwardDistance = 1 - (avgWidth / analysisResolution.height);
+        if (totalValid == 0)
+            return;
 
-        // Convert this to centimeters by multiplying by some arbitrary constant.
-        estimatedForwardDistance *= 50;
+        avgWidth /= totalValid;
+
+        // Get relative to total width.
+        avgWidth /= analysisRegion.height;
+
+        // If avg width = min width portion, then this = max forward dist, if at max then this = 0
+        estimatedForwardDistance = MAX_FORWARD_DIST * (1 - ((avgWidth - WIDTH_FOR_MAX_FORWARD_DIST) / (WIDTH_FOR_MIN_FORWARD_DIST - WIDTH_FOR_MAX_FORWARD_DIST)));
+
+        if (estimatedForwardDistance < 0)
+            estimatedForwardDistance = 0; // must be >= 0
+
+        if (estimatedForwardDistance > MAX_FORWARD_DIST)
+            estimatedForwardDistance = MAX_FORWARD_DIST;
     }
 
     private void applyAnalysisToInput(Mat analysisMat, Mat inputFrame)
@@ -525,6 +591,16 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     @Override
     public Mat onCameraFrame(Mat raw)
     {
+        //////  Define mats and analysis region (depends on forward distance) ///////
+
+        // Area of interest where the box is illuminated.
+        analysisRegion = new Rect(
+                new Point(analysisResolution.width * (Range.clip(.325 - (estimatedForwardDistance) * .0025, 0, 1)), analysisResolution.height * .05),
+                new Point(analysisResolution.width * (Range.clip(.98 - (estimatedForwardDistance) * .003, 0, 1)), analysisResolution.height * .95));
+
+        primaryMask = new Mat(analysisRegion.size(), Imgproc.THRESH_BINARY); // 1-channel = grayscale image
+        whiteMask = new Mat(analysisRegion.size(), Imgproc.THRESH_BINARY);
+
         Imgproc.cvtColor(raw, raw, Imgproc.COLOR_RGBA2RGB);
 
         // Flip so that it appears normally on the RC.
@@ -585,14 +661,24 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             for (CryptoColumnPixelLocation location : columns)
                 Imgproc.rectangle(analysisMat, new Point(0, location.origin), new Point(raw.cols(), location.origin + location.width), new Scalar(0, 255, 0), 3);
 
-        // Decides what the placement locations should be based on the detected columns.
-        updatePlacementsBasedOn(columns);
+        // Update locations based on tracking mode.
+        if (trackingMode == ColumnTrackingMode.COMPLEX)
+            // Decides what the placement locations should be based on the detected columns.
+            updatePlacementsBasedOn(columns);
+        else if (trackingMode == ColumnTrackingMode.SIMPLE)
+            // Just calculate one.
+            updateClosestPlacementLocation(columns);
+
 
         // Used for future runs.
         lastNumColumnsDetected = columns.size();
 
         // Will be used for future runs to filter the sizes of the blue and white regions.
         recalculateEstimatedForwardDistance(columns);
+
+        // Release masks
+        primaryMask.release();
+        whiteMask.release();
 
         if (IN_MAT_DEBUG_MODE)
             // For visual analysis
