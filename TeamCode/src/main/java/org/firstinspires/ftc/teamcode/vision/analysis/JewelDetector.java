@@ -43,6 +43,11 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
         }
     }
 
+    private final Scalar
+            RED = new Scalar(255, 0, 0),
+            BLUE = new Scalar(0, 0, 255),
+            GRAY = new Scalar(127, 127, 127);
+
     // From left to right.
     public enum JewelOrder {
         RED_BLUE,
@@ -105,20 +110,20 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
             if (isRed)
             {
                 // do blue first so red goes over blue
-                toAnalyze.setTo(new Scalar(0, 0, 255), blue);
-                toAnalyze.setTo(new Scalar(255, 0, 0), red);
+                toAnalyze.setTo(BLUE, blue);
+                toAnalyze.setTo(RED, red);
             }
             else if (isBlue)
             {
                 // do red first so blue goes over
-                toAnalyze.setTo(new Scalar(255, 0, 0), red);
-                toAnalyze.setTo(new Scalar(0, 0, 255), blue);
+                toAnalyze.setTo(RED, red);
+                toAnalyze.setTo(BLUE, blue);
             }
             else
             {
                 // Default
-                toAnalyze.setTo(new Scalar(255, 0, 0), red);
-                toAnalyze.setTo(new Scalar(0, 0, 255), blue);
+                toAnalyze.setTo(RED, red);
+                toAnalyze.setTo(BLUE, blue);
             }
 
             // Apply this mat to the original mat.
@@ -179,18 +184,18 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
         Scalar firstColor = null, secondColor = null;
         switch (currentOrder) {
             case BLUE_RED:
-                firstColor = new Scalar(255, 0, 0);
-                secondColor = new Scalar(0, 0, 255);
+                firstColor = RED;
+                secondColor = BLUE;
                 break;
 
             case RED_BLUE:
-                firstColor = new Scalar(0, 0, 255);
-                secondColor = new Scalar(255, 0, 0);
+                firstColor = BLUE;
+                secondColor = RED;
                 break;
 
             case UNKNOWN:
-                firstColor = new Scalar(125, 125, 125);
-                secondColor = new Scalar(125, 125, 125);
+                firstColor = GRAY;
+                secondColor = GRAY;
                 break;
         }
 

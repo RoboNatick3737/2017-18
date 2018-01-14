@@ -153,7 +153,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             Mat white = channels.get(0);
             Imgproc.equalizeHist(white, white);
             Imgproc.threshold(white, whiteMask, 150, 255, Imgproc.THRESH_BINARY);
-            Mat both = new Mat(primaryMask.size(), Imgproc.THRESH_BINARY);
+            Mat both = Mat.zeros(primaryMask.size(), Imgproc.THRESH_BINARY);
             Core.bitwise_and(primaryMask, whiteMask, both);// If it's part of blue, eliminate it from white.
             Core.bitwise_not(both, both);
             Core.bitwise_and(whiteMask, both, whiteMask);
