@@ -60,9 +60,9 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
      */
     private class JewelAnalyzer
     {
-        public final Rect rect;
+        private final Rect rect;
         public final Mat blue, red;
-        public int bluePixels, redPixels;
+        private boolean isBlue, isRed;
 
         public JewelAnalyzer(Rect rect)
         {
@@ -72,32 +72,61 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
             this.red = Mat.zeros(rect.size(), Imgproc.THRESH_BINARY);
         }
 
-        public void analyze(Mat mat)
+        /**
+         * Pass in the entire image.
+         * @param original the entire image originally.
+         */
+        public void analyze(Mat original)
         {
-            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2YCrCb);
+            Mat toAnalyze = original.submat(rect);
+
+            // Use YCrCb color space
+            Imgproc.cvtColor(toAnalyze, toAnalyze, Imgproc.COLOR_RGB2YCrCb);
             LinkedList<Mat> channels = new LinkedList<>();
-            Core.split(mat, channels);
+            Core.split(toAnalyze, channels);
+
+            // Get blue mask
             Imgproc.equalizeHist(channels.get(2), channels.get(2));
             Imgproc.threshold(channels.get(2), blue, 160, 255, Imgproc.THRESH_BINARY);
+
+            // Get red mask
             Imgproc.equalizeHist(channels.get(2), channels.get(2));
             Imgproc.threshold(channels.get(1), red, 160, 255, Imgproc.THRESH_BINARY);
-            bluePixels = Core.countNonZero(blue);
-            redPixels = Core.countNonZero(red);
-            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_YCrCb2RGB);
 
-            mat.release();
-            for (Mat channel : channels)
-                channel.release();
-        }
+            // Decide red and blue.
+            int bluePixels = Core.countNonZero(blue), redPixels = Core.countNonZero(red);
+            isBlue = bluePixels > .4 * rect.area() && redPixels < .4 * rect.area();
+            isRed = redPixels > .4 * rect.area() && bluePixels < .4 * rect.area();
 
-        public boolean isBlue()
-        {
-            return bluePixels > .4 * rect.area() && !isRed();
-        }
+            Imgproc.cvtColor(toAnalyze, toAnalyze, Imgproc.COLOR_YCrCb2RGB);
 
-        public boolean isRed()
-        {
-            return redPixels > .4 * rect.area() && !isBlue();
+            // Apply masks to mat
+            toAnalyze.setTo(new Scalar(0, 0, 0));
+            if (isRed)
+            {
+                // do blue first so red goes over blue
+                toAnalyze.setTo(new Scalar(0, 0, 255), blue);
+                toAnalyze.setTo(new Scalar(255, 0, 0), red);
+            }
+            else if (isBlue)
+            {
+                // do red first so blue goes over
+                toAnalyze.setTo(new Scalar(255, 0, 0), red);
+                toAnalyze.setTo(new Scalar(0, 0, 255), blue);
+            }
+            else
+            {
+                // Default
+                toAnalyze.setTo(new Scalar(255, 0, 0), red);
+                toAnalyze.setTo(new Scalar(0, 0, 255), blue);
+            }
+
+            // Apply this mat to the original mat.
+            Mat copyToPointer = original.colRange((int)(rect.tl().x), (int)(rect.br().x)).rowRange((int)(rect.tl().y), (int)(rect.br().y)); //.setTo(new Scalar(0, 0, 0));
+            toAnalyze.copyTo(copyToPointer);
+
+            // Release the mat which we're analyzing.
+            toAnalyze.release();
         }
 
         public void release()
@@ -126,6 +155,8 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
     @Override
     public Mat onCameraFrame(Mat original)
     {
+        Imgproc.cvtColor(original, original, Imgproc.COLOR_RGBA2RGB);
+
         // Flip to appear normally on upside-down phone.
         Core.flip(original, original, 1);
 
@@ -133,13 +164,13 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
         Imgproc.blur(original, original, new Size(3, 3));
 
         // Get red and blue from the rectangle images.
-        first.analyze(original.submat(first.rect));
-        second.analyze(original.submat(second.rect));
+        first.analyze(original);
+        second.analyze(original);
 
         // Decide which is which.
-        if (first.isRed() && second.isBlue())
+        if (first.isRed && second.isBlue)
             currentOrder = JewelOrder.BLUE_RED;
-        else if (second.isRed() && first.isBlue())
+        else if (second.isRed && first.isBlue)
             currentOrder = JewelOrder.RED_BLUE;
         else
             currentOrder = JewelOrder.UNKNOWN;
