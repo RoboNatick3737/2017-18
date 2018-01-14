@@ -71,110 +71,75 @@ void JNICALL Java_hankextensions_vision_opencv_OpenCVJNIHooks_cmykConvert(JNIEnv
  * @param cryptoboxMatAddress   The memory address of the cryptobox mat.
  * @param currentPositives      The current array of positive hits.
  */
-void JNICALL Java_hankextensions_vision_opencv_OpenCVJNIHooks_deepCryptoboxAnalysis(JNIEnv *env, jobject instance, jlong cryptoboxMatAddress, jlong primaryMaskAddress, jlong whiteMaskAddress, jbooleanArray positives)
+void JNICALL Java_hankextensions_vision_opencv_OpenCVJNIHooks_deepCryptoboxAnalysis(JNIEnv *env, jobject instance, jlong cryptoboxMatAddress, jlong primaryMaskAddress, jlong whiteMaskAddress, jdouble estimatedForwardDistance, jbooleanArray positives)
 {
     // Define mats.
     Mat &cryptoboxMat = *(Mat *) cryptoboxMatAddress;
     Mat &primaryMask = *(Mat *) primaryMaskAddress;
     Mat &whiteMask = *(Mat *) whiteMaskAddress;
 
-    // Define minimum and maximum size for each region.
-    double blueRegionMin = (.12) * cryptoboxMat.cols;
-    double blueRegionMax = (.7) * cryptoboxMat.cols;
-    double whiteRegionMin = (.03) * cryptoboxMat.cols;
-    double whiteRegionMax = (.1) * cryptoboxMat.cols;
-
-    // First index of second dimension = distinct valid blue stripes detected, second = distinct valid white stripes detected.
-    int representations[cryptoboxMat.rows];
-
-    // Will be calculated during the first run through.
-    double averageViewedRegions = 0;
-    int totalValidTrials = 0;
-
     // Obtain references to the boolean array and such (https://www.math.uni-hamburg.de/doc/java/tutorial/native1.1/implementing/array.html)
     jboolean *positivesArrayBody = (*env).GetBooleanArrayElements(positives, 0);
 
-    // Loop through all rows.
+    //////// STAGE 1: Filter out columns with a lot of noise (solidity indicates greater likelihood of being a crypto column) ////////
     for (int row = 0; row < cryptoboxMat.rows; row++)
     {
-        // Ignore non-positives.
+        // Don't count rows which shouldn't be filtered.
         if (!positivesArrayBody[row])
             continue;
 
-        int maxConsecutiveCryptoRegions = 0;
-        int consecutiveCryptoRegions = 0;
-
-        int streak = 0, last = 0; // for last, 0 = none, 1 = primary, 2 = white.
+        // Discover the number of color changes which took place.
+        int colorChanges = 0;
+        int last = 0; // 0 = none, 1 = primary, 2 = white
         for (int col = 0; col < cryptoboxMat.cols; col++)
         {
-            int current = 0;
+            int current = primaryMask.at<uchar>(row, col) != 0 ? 1 : (whiteMask.at<uchar>(row, col) != 0 ? 2 : 0);
 
-            if (primaryMask.at<uchar>(row, col) != 0)
-                current = 1;
-            else if (whiteMask.at<uchar>(row, col) != 0)
-                current = 2;
-
-            if (last == current)
-            {
-                streak++;
-            }
-            else
-            {
-                if (streak > 0)
-                {
-                    if (last == 1 && streak > blueRegionMin && streak < blueRegionMax)
-                    {
-                        consecutiveCryptoRegions++;
-                    }
-                    else if (last == 2 && streak > whiteRegionMin && streak < whiteRegionMax)
-                    {
-                        consecutiveCryptoRegions++;
-                    }
-
-                    streak = 0;
-                }
-            }
-
-            // Start a new consecutive streak if this is a none streak.
-            if (current == 0)
-            {
-                if (consecutiveCryptoRegions > maxConsecutiveCryptoRegions)
-                    maxConsecutiveCryptoRegions = consecutiveCryptoRegions;
-                consecutiveCryptoRegions = 0;
-
-                streak = 0; // also reset internal count.
-            }
-
-            last = current;
+            if (last != current)
+                colorChanges++;
         }
-        // In case the column was uniform.
-        if (streak > 0)
-        {
-            if (last == 1 && streak > blueRegionMin && streak < blueRegionMax)
-            {
-                consecutiveCryptoRegions++;
-            }
-            else if (last == 2 && streak > whiteRegionMin && streak < whiteRegionMax)
-            {
-                consecutiveCryptoRegions++;
-            }
-        }
-        if (consecutiveCryptoRegions > maxConsecutiveCryptoRegions)
-            maxConsecutiveCryptoRegions = consecutiveCryptoRegions;
 
-        if (maxConsecutiveCryptoRegions < 3)
-            continue;
-
-        representations[row] = maxConsecutiveCryptoRegions;
-
-        // Apply data to averages
-        totalValidTrials++;
-        averageViewedRegions = (averageViewedRegions * (totalValidTrials - 1) + maxConsecutiveCryptoRegions) / totalValidTrials;
+        // Remove those with too much noise.
+        int excessiveNoiseThreshold = (int)(10 - (50 - estimatedForwardDistance) * .1);
+        if (colorChanges > excessiveNoiseThreshold) // Where 10 is some arbitrary constant which indicates a lot of noise.
+            positivesArrayBody[row] = false;
     }
 
-    // Filter out based on averages.
+    //////// STAGE 2: Ensure that the now-filtered columns are relatively consistent across rows (remove those which aren't) ////////
+    int conformityScores[cryptoboxMat.rows];
+    for (int col = 0; col < cryptoboxMat.cols; col++)
+    {
+        // Determine the most popular pixel.
+        int mostPopularPixel = 0; // 0 = none, 1 = primary, 2 = white
+        int results[3]; // first index = none etc.
+        for (int row = 0; row < cryptoboxMat.rows; row++)
+        {
+            if (!positivesArrayBody[row])
+                continue;
+
+            int current = primaryMask.at<uchar>(row, col) != 0 ? 1 : (whiteMask.at<uchar>(row, col) != 0 ? 2 : 0);
+            results[current]++;
+        }
+        // Use the array to figure it out.
+        for (int i = 1; i < 3; i++)
+            if (results[i] > results[mostPopularPixel])
+                mostPopularPixel = i;
+
+        // Update similarity scores based on the most popular pixel.
+        for (int row = 0; row < cryptoboxMat.rows; row++)
+        {
+            if (!positivesArrayBody[row])
+                continue;
+
+            int current = primaryMask.at<uchar>(row, col) != 0 ? 1 : (whiteMask.at<uchar>(row, col) != 0 ? 2 : 0);
+            if (current == mostPopularPixel)
+                conformityScores[row]++;
+        }
+    }
+
+    // There will be some discrepancies due to white stripes seeming diagonal on outermost columns, so be lenient.
     for (int row = 0; row < cryptoboxMat.rows; row++)
-        if (representations[row] == 0 || abs(representations[row] - averageViewedRegions) > 2)
+        if (positivesArrayBody[row] && conformityScores[row] < .85 * cryptoboxMat.cols)
             positivesArrayBody[row] = false;
 
     // Has to be done after finishing with the array.

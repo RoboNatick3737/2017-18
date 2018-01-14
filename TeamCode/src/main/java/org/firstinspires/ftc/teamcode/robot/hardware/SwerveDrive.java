@@ -31,7 +31,6 @@ public class SwerveDrive extends ScheduledTask
     private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 5);
 
     //////  Instance specific components ////////
-
     public enum ControlMethod { FIELD_CENTRIC, TANK_DRIVE }
     // Control method
     private ControlMethod controlMethod = ControlMethod.FIELD_CENTRIC;
@@ -200,7 +199,7 @@ public class SwerveDrive extends ScheduledTask
 
 
         // Apply dumb driver handicaps :P
-        if (desiredMovement.magnitude > .2 && joystickControlEnabled && avoidAxleDestruction)
+        if (avoidAxleDestruction && desiredMovement.magnitude > .2 && joystickControlEnabled)
         {
             if (lastMovement != null)
             {

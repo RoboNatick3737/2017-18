@@ -9,6 +9,9 @@ import org.firstinspires.ftc.teamcode.structs.pid.PIDController;
 
 public class EncoderMotor
 {
+    private enum MotorPIDControlMethod {MODERN_ROBOTICS, CUSTOM}
+    private final MotorPIDControlMethod controlMethod;
+
     /**
      * The motor reference to which this corresponds.
      */
@@ -35,12 +38,13 @@ public class EncoderMotor
      */
     public final double WHEEL_CIRCUMFERENCE;
 
-    public EncoderMotor(String motorName, DcMotor motor)
-    {
-        this(motorName, motor, new PIDConstants(0.01, 0, 0, 0), 400, 4);
-    }
+    /**
+     * For custom PID control.
+     */
     public EncoderMotor(String motorName, DcMotor motor, PIDConstants motorPID, int encoderTicksPerWheelRevolution, double wheelDiameterCM)
     {
+        controlMethod = MotorPIDControlMethod.CUSTOM;
+
         this.motor = motor;
         resetEncoder();
 
@@ -49,6 +53,29 @@ public class EncoderMotor
         // The wheel which the motor drives.
         ENCODER_TICKS_WHEEL_REVOLUTION = encoderTicksPerWheelRevolution;
         WHEEL_CIRCUMFERENCE = wheelDiameterCM * Math.PI;
+
+        processConsole = LoggingBase.instance.newProcessConsole(motorName + " Motor Process Console");
+
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+    }
+
+    /**
+     * For MR PID control.
+     */
+    public EncoderMotor(String motorName, DcMotor motor, double wheelDiameterCM)
+    {
+        controlMethod = MotorPIDControlMethod.MODERN_ROBOTICS;
+
+        this.motor = motor;
+
+        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+        // The wheel which the motor drives.
+        WHEEL_CIRCUMFERENCE = wheelDiameterCM * Math.PI;
+
+        ENCODER_TICKS_WHEEL_REVOLUTION = 0; // not used.
+        pidController = null; // Also not used.
 
         processConsole = LoggingBase.instance.newProcessConsole(motorName + " Motor Process Console");
 
@@ -77,20 +104,26 @@ public class EncoderMotor
      */
     public void setVelocity(double velocity)
     {
-        // Some really quick adjustments we can make.
-        if (Math.abs(velocity) < .001)
+        if (controlMethod == MotorPIDControlMethod.CUSTOM)
         {
-            motor.setPower(0);
-            currentPower = 0;
-        } else if (currentPower < 0 && desiredVelocity > 0) {
-            motor.setPower(.1);
-            currentPower = .1;
-        } else if (currentPower > 0 && desiredVelocity < 0) {
-            motor.setPower(-.1);
-            currentPower = -.1;
-        }
+            // Some really quick adjustments we can make.
+            if (Math.abs(velocity) < .001) {
+                motor.setPower(0);
+                currentPower = 0;
+            } else if (currentPower < 0 && desiredVelocity > 0) {
+                motor.setPower(.1);
+                currentPower = .1;
+            } else if (currentPower > 0 && desiredVelocity < 0) {
+                motor.setPower(-.1);
+                currentPower = -.1;
+            }
 
-        desiredVelocity = velocity;
+            desiredVelocity = velocity;
+        }
+        else if (controlMethod == MotorPIDControlMethod.MODERN_ROBOTICS)
+        {
+
+        }
     }
 
     /**
@@ -98,6 +131,9 @@ public class EncoderMotor
      */
     public void updatePID()
     {
+        if (controlMethod != MotorPIDControlMethod.CUSTOM)
+            return;
+
         // Calculate PID by finding the number of ticks the motor SHOULD have gone minus the amount it actually went.
         currentVelocity = ((motor.getCurrentPosition() - lastMotorPosition) / ENCODER_TICKS_WHEEL_REVOLUTION * WHEEL_CIRCUMFERENCE) /  ((System.currentTimeMillis() - lastAdjustmentTime) / 1000.0);
         currentPower += pidController.calculatePIDCorrection(desiredVelocity - currentVelocity);

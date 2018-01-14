@@ -46,9 +46,9 @@ public class OpenCVJNIHooks
      * @param toAnalyze  The mat to analyze.
      * @param array      The current array of positive hits (to be further filtered).
      */
-    public static void deepCryptoboxAnalysis(Mat toAnalyze, Mat primaryMask, Mat whiteMask, boolean[] array)
+    public static void deepCryptoboxAnalysis(Mat toAnalyze, Mat primaryMask, Mat whiteMask, double estimatedForwardDist, boolean[] array)
     {
-        deepCryptoboxAnalysis(toAnalyze.getNativeObjAddr(), primaryMask.getNativeObjAddr(), whiteMask.getNativeObjAddr(), array);
+        deepCryptoboxAnalysis(toAnalyze.getNativeObjAddr(), primaryMask.getNativeObjAddr(), whiteMask.getNativeObjAddr(), estimatedForwardDist, array);
     }
-    private static native void deepCryptoboxAnalysis(long toAnalyzeAddress, long primaryMaskAddress, long whiteMaskAddress, boolean[] array);
+    private static native void deepCryptoboxAnalysis(long toAnalyzeAddress, long primaryMaskAddress, long whiteMaskAddress, double estimatedForwardDist, boolean[] array);
 }

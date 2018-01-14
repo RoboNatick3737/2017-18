@@ -149,7 +149,7 @@ public class SwerveWheel extends ScheduledTask
             swivelAcceptable = Math.abs(angleToTurn) < ACCEPTABLE_ORIENTATION_THRESHOLD;
 
 
-            // Set the power for the motor based on the swiveling state (135/360 to represent one swivel revolution to full rotation ratio).
+            // TODO Try to offset bevel gear swiveling (incomplete)
             motorPower = 0; //-1 * turnCorrectionFactor * driveMotor.WHEEL_CIRCUMFERENCE * (135.0/360.0);
 
             // Set drive power (if angle between this and desired angle is greater than 90, reverse motor).
