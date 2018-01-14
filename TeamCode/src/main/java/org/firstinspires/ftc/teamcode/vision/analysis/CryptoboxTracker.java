@@ -49,9 +49,11 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     }
 
     // The max forward distance away we are from the cryptobox.
-    private final int MAX_FORWARD_DIST = 44; // 13% width is max close, 6% is max far
     private final double WIDTH_FOR_MIN_FORWARD_DIST = .15; // The average portions of the screen that the cryptobox cols must take up to be seen as right in front.
     private final double WIDTH_FOR_MAX_FORWARD_DIST = .06; // The average portions of the screen for max dist (at edge of visible detection is possible).
+
+    // The front camera is not positioned dead center.
+    private final double FRONT_CAMERA_VIEW_OFFSET = -.07; // the proportion of the screen to shift for.
 
     // The alliance for which we'll be doing vision.
     private CompetitionProgram.Alliance alliance = CompetitionProgram.Alliance.BLUE;
@@ -78,14 +80,14 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         this.trackingMode = mode;
     }
 
-    /**
-     * For when we don't have the context required to determine the crypto opening we're most
-     * nearly in front of.  1 <= closestGlyphPlacementSpace <= 4.  Can be set by autonomous when we're fairly
-     * certain of current location.
-     */
+    // Each placement distance for when @trackingMode = ColumnTrackingMode.COMPLEX
     public final int[] placementDistances = new int[3];
-    public int closestPlacementLocationOffset = 0; // Dist we have to move to dump.
     private int lastNumColumnsDetected = 0;
+
+    // Closest placement distance for when @trackingMode = ColumnTrackingMode.SIMPLE
+    public double closestPlacementLocationOffset = 0;
+
+    // Forward dist from crypto, based on width of detected columns.
     public double estimatedForwardDistance = 0;
 
     /**
@@ -531,17 +533,22 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         if (columns.size() <= 1)
             return;
 
-        int centerScreen = (int)(analysisRegion.height / 2.0);
-        int closestLocation = Integer.MAX_VALUE;
+        double centerScreen = analysisRegion.height / 2.0;
+        double closestLocation = Double.MAX_VALUE;
         for (int i = 0; i < columns.size() - 1; i++)
         {
-            int currentOffset = (int)((columns.get(i).midpoint() + columns.get(i + 1).midpoint()) / 2.0) - centerScreen;
+            double currentOffset = (columns.get(i).midpoint() + columns.get(i + 1).midpoint()) / 2.0 - centerScreen;
             if (currentOffset < closestLocation)
-            {
                 closestLocation = currentOffset;
-            }
         }
 
+        // With respect to screen size.
+        closestLocation /= analysisRegion.height;
+
+        // Account for camera offset.
+        closestLocation += FRONT_CAMERA_VIEW_OFFSET;
+
+        // Set closest placement location offset.
         closestPlacementLocationOffset = closestLocation;
     }
 
@@ -572,13 +579,10 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         avgWidth /= analysisRegion.height;
 
         // If avg width = min width portion, then this = max forward dist, if at max then this = 0
-        estimatedForwardDistance = MAX_FORWARD_DIST * (1 - ((avgWidth - WIDTH_FOR_MAX_FORWARD_DIST) / (WIDTH_FOR_MIN_FORWARD_DIST - WIDTH_FOR_MAX_FORWARD_DIST)));
+        estimatedForwardDistance = (1 - ((avgWidth - WIDTH_FOR_MAX_FORWARD_DIST) / (WIDTH_FOR_MIN_FORWARD_DIST - WIDTH_FOR_MAX_FORWARD_DIST)));
 
-        if (estimatedForwardDistance < 0)
-            estimatedForwardDistance = 0; // must be >= 0
-
-        if (estimatedForwardDistance > MAX_FORWARD_DIST)
-            estimatedForwardDistance = MAX_FORWARD_DIST;
+        // Keep within bounds.
+        estimatedForwardDistance = Range.clip(estimatedForwardDistance, 0, 1);
     }
 
     private void applyAnalysisToInput(Mat analysisMat, Mat inputFrame)
@@ -596,7 +600,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         // Area of interest where the box is illuminated.
         analysisRegion = new Rect(
                 new Point(analysisResolution.width * (Range.clip(.325 - (estimatedForwardDistance) * .0025, 0, 1)), analysisResolution.height * .05),
-                new Point(analysisResolution.width * (Range.clip(.98 - (estimatedForwardDistance) * .003, 0, 1)), analysisResolution.height * .95));
+                new Point(analysisResolution.width * (Range.clip(.86 - (estimatedForwardDistance) * .003, 0, 1)), analysisResolution.height * .95));
 
         primaryMask = new Mat(analysisRegion.size(), Imgproc.THRESH_BINARY); // 1-channel = grayscale image
         whiteMask = new Mat(analysisRegion.size(), Imgproc.THRESH_BINARY);
@@ -644,8 +648,9 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
 
             estimatedForwardDistance += 2;
 
-            if (estimatedForwardDistance > MAX_FORWARD_DIST)
-                estimatedForwardDistance = MAX_FORWARD_DIST;
+            // Clip to max
+            if (estimatedForwardDistance > 1)
+                estimatedForwardDistance = 1;
 
             // Resize the image to the original size.
             Imgproc.resize(raw, raw, originalResolution);
