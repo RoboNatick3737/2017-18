@@ -33,12 +33,12 @@ public class Robot
     public final SwerveDrive swerveDrive;
 
     // All other robot components (modular)
+    public Gyro gyro; // Set by one class for straight drive testing.
     public final Intake intake;
     public final Flipper flipper;
     public final Lift lift;
     public final BallKnocker ballKnocker;
     public final RelicSystem relicSystem;
-    public final Gyro gyro;
     public final LightingSystem lights;
 
     /**
@@ -83,28 +83,28 @@ public class Robot
         EncoderMotor frontLeftDrive = new EncoderMotor(
                 "Front Left",
                 hardware.initialize(DcMotor.class, "Front Left"),
-                new PIDConstants(.0006, 0.00001, 0, 0),
-                407, 7.62);
+                new PIDConstants(.0006, 0, 0, 0, 40000000),
+                475, 7.62);
 //        frontLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         EncoderMotor frontRightDrive = new EncoderMotor(
                 "Front Right",
                 hardware.initialize(DcMotor.class, "Front Right"),
-                new PIDConstants(.0006, 0.00001, 0, 0),
+                new PIDConstants(.0006, 0, 0, 0, 40000000),
                 202, 7.62);
 //        frontRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         EncoderMotor backLeftDrive = new EncoderMotor(
                 "Back Left",
                 hardware.initialize(DcMotor.class, "Back Left"),
-                new PIDConstants(.0006, 0.00001, 0, 0),
+                new PIDConstants(.0006, 0, 0, 0, 40000000),
                 202, 7.62);
 //        backLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         EncoderMotor backRightDrive = new EncoderMotor(
                 "Back Right",
                 hardware.initialize(DcMotor.class, "Back Right"),
-                new PIDConstants(.0006, 0.00001, 0, 0),
+                new PIDConstants(.0006, 0, 0, 0, 40000000),
                 475, 7.62);
 //        backRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -114,31 +114,31 @@ public class Robot
                 frontLeftDrive,
                 hardware.initialize(Servo.class, "Front Left Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
-                new PIDConstants(0.006, 0.00001, 0, .5),
-                55.47);
+                new PIDConstants(0.009, .001, 0, .5, 40000000),
+                57);
 
         SwerveWheel frontRight = new SwerveWheel(
                 "Front Right",
                 frontRightDrive,
                 hardware.initialize(Servo.class, "Front Right Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
-                new PIDConstants(0.007, 0.00001, 0, .5),
-                96.71);
+                new PIDConstants(0.01, .001, 0, .5, 40000000),
+                97);
 
         SwerveWheel backLeft = new SwerveWheel(
                 "Back Left",
                 backLeftDrive,
                 hardware.initialize(Servo.class, "Back Left Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
-                new PIDConstants(0.006, 0.00001, 0, .5),
-                73.54);
+                new PIDConstants(0.009, .001, 0, .5, 40000000),
+                73);
 
         SwerveWheel backRight = new SwerveWheel(
                 "Back Right",
                 backRightDrive,
                 hardware.initialize(Servo.class, "Back Right Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
-                new PIDConstants(0.006, 0.00001, 0, .5),
+                new PIDConstants(0.009, .001, 0, .5, 40000000),
                 137.78);
 
         // Creates the swerve drive with the correct joystick.

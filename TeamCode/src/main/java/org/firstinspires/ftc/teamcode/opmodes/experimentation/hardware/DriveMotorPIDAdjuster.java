@@ -23,25 +23,25 @@ public class DriveMotorPIDAdjuster extends EnhancedOpMode
         frontLeft = new EncoderMotor(
                 "Front Left",
                 hardware.initialize(DcMotor.class, "Front Left"),
-                new PIDConstants(.0008, 0, 0, 0),
+                new PIDConstants(.0008, 0, 0, 0, 40000000),
                 407, 7.62);
 
         frontRight = new EncoderMotor(
                 "Front Right",
                 hardware.initialize(DcMotor.class, "Front Right"),
-                new PIDConstants(.0008, 0, 0, 0),
+                new PIDConstants(.0008, 0, 0, 0, 40000000),
                 202, 7.62);
 
         backLeft = new EncoderMotor(
                 "Back Left",
                 hardware.initialize(DcMotor.class, "Back Left"),
-                new PIDConstants(.0008, 0, 0, 0),
+                new PIDConstants(.0008, 0, 0, 0, 40000000),
                 202, 7.62);
 
         backRight = new EncoderMotor(
                 "Back Right",
                 hardware.initialize(DcMotor.class, "Back Right"),
-                new PIDConstants(.0008, 0, 0, 0),
+                new PIDConstants(.0008, 0, 0, 0, 40000000),
                 475, 7.62);
 
         waitForStart();

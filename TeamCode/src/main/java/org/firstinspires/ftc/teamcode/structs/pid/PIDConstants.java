@@ -37,11 +37,17 @@ public class PIDConstants
      */
     public double errorThreshold;
 
-    public PIDConstants(double kP, double kI, double kD, double errorThreshold)
+    /**
+     * The minimum time required before updating this PID loop (in nanoseconds).
+     */
+    public long minimumNanosecondGap;
+
+    public PIDConstants(double kP, double kI, double kD, double errorThreshold, long minimumNanosecondGap)
     {
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
         this.errorThreshold = errorThreshold;
+        this.minimumNanosecondGap = minimumNanosecondGap;
     }
 }

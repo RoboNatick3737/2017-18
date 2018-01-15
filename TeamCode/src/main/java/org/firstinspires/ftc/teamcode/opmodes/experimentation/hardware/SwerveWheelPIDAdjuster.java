@@ -30,7 +30,7 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
                 null,
                 hardware.initialize(Servo.class, "Front Left Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
-                new PIDConstants(0.013042, 0, 0.000608, 5.194),
+                new PIDConstants(0.013042, 0, 0.000608, 5.194, 40000000),
                 61.58);
 
         frontRight = new SwerveWheel(
@@ -38,7 +38,7 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
                 null,
                 hardware.initialize(Servo.class, "Front Right Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
-                new PIDConstants(0.012465, 0, 0.000945, 2.5),
+                new PIDConstants(0.012465, 0, 0.000945, 2.5, 40000000),
                 228.38);
 
         backLeft = new SwerveWheel(
@@ -46,7 +46,7 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
                 null,
                 hardware.initialize(Servo.class, "Back Left Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
-                new PIDConstants(0.0127, 0, 0.000704, 2.85),
+                new PIDConstants(0.0127, 0, 0.000704, 2.85, 40000000),
                 43.636);
 
         backRight = new SwerveWheel(
@@ -54,7 +54,7 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
                 null,
                 hardware.initialize(Servo.class, "Back Right Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
-                new PIDConstants(0.01304, 0, 0.000669, 5.678),
+                new PIDConstants(0.01304, 0, 0.000669, 5.678, 40000000),
                 257.24);
 
         waitForStart();

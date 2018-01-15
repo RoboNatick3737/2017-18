@@ -28,7 +28,7 @@ public class SwerveDrive extends ScheduledTask
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
-    private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 5);
+    private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 5, 40000000);
 
     //////  Instance specific components ////////
     public enum ControlMethod { FIELD_CENTRIC, TANK_DRIVE }
@@ -58,7 +58,7 @@ public class SwerveDrive extends ScheduledTask
 
     // The SwerveWheel instances which constitute the swerve drive: frontLeft, backLeft, backRight, frontRight respectively.
     public final SwerveWheel[] swerveWheels = new SwerveWheel[4];
-    public final Gyro gyro; // Public because teleop can manually reset.
+    public Gyro gyro; // Public because teleop can manually reset.
     private final PIDController pidController;
 
     // Constantly shifting in autonomous and teleop.

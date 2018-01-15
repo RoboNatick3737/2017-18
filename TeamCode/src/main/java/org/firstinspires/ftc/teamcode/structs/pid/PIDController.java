@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.structs.pid;
 
-import hankextensions.structs.Vector2D;
-
 /**
  * Largely based on http://www.societyofrobots.com/programming_PID.shtml.
  */
@@ -18,15 +16,9 @@ public class PIDController
     public final PIDConstants pidConstants;
 
     /**
-     * Stored after each calculation for the next correction.
-     */
-    private Vector2D lastOrientation = Vector2D.polar(1, 0);
-
-    /**
      * Updates whenever calculatePIDCorrection called.
      */
     private long lastCorrectionTime = -1;
-
 
     /**
      * Required to calculate the kI * I factor.
@@ -52,8 +44,14 @@ public class PIDController
         this.integralCorrection = 0;
     }
 
+    /**
+     * Whether or not this loop isn't ready to update (would be inaccurate).
+     */
+    public boolean canUpdate()
+    {
+        return System.nanoTime() - lastCorrectionTime > pidConstants.minimumNanosecondGap;
+    }
 
-    private double timeSinceLastCorrection;
     /**
      * If the method-caller already knows the error value, this does the heavy lifting
      * and figures out what to do with it next.
@@ -62,6 +60,9 @@ public class PIDController
     public double calculatePIDCorrection(double error)
     {
         if (Math.abs(error) < pidConstants.errorThreshold)
+            return 0;
+
+        if (!canUpdate())
             return 0;
 
         // Calculate proportional correction, the "quick" correction factor.
@@ -74,7 +75,11 @@ public class PIDController
         if (lastCorrectionTime != -1 && (Math.abs(pidConstants.kD) > NO_CALCULATION_THRESHOLD || Math.abs(pidConstants.kI) > NO_CALCULATION_THRESHOLD))
         {
             // Calculate time passed since last loop.
-            timeSinceLastCorrection = (System.currentTimeMillis() - lastCorrectionTime) / 1000.0;
+            double timeSinceLastCorrection = (System.nanoTime() - lastCorrectionTime) / 1000000000.0;
+
+            // We don't know how to correct quite yet.
+            if (timeSinceLastCorrection == 0)
+                return 0;
 
             if (Math.abs(pidConstants.kD) > NO_CALCULATION_THRESHOLD) {
                 // Calculate derivative correction, which reduces the oscillation of the kP function.
@@ -90,37 +95,18 @@ public class PIDController
                 integralCorrection = 0;
 
             // Record the last correction time.
-            lastCorrectionTime = System.currentTimeMillis();
+            lastCorrectionTime = System.nanoTime();
             lastError = error;
         }
         else
         {
             derivativeCorrection = 0;
             integralCorrection = 0;
-            lastCorrectionTime = -1;
+            lastCorrectionTime = System.nanoTime();
             lastError = 0;
         }
 
         // Return the total correction (PID)
         return proportionalCorrection + derivativeCorrection + integralCorrection;
-    }
-
-    /**
-     * Does all of the heavy lifting for the PID calculations (actually doing the formula).
-     * @param currentOrientation the current orientation of the wheel, gear, whatever.
-     *                           Imagine this as a spoke in the wheel, the vector representation
-     *                           makes it easier to work with.
-     * @return the new correction factor, negative to slow down, and positive to speed up.
-     */
-    public double calculatePIDCorrection(Vector2D currentOrientation, Vector2D desiredOrientation)
-    {
-        // Calculate error based on the current orientation.
-        double error = lastOrientation.leastAngleTo(desiredOrientation) - lastOrientation.leastAngleTo(currentOrientation);
-
-        // Record last position and time.
-        lastOrientation = Vector2D.clone(currentOrientation);
-        lastCorrectionTime = System.currentTimeMillis();
-
-        return calculatePIDCorrection(error);
     }
 }

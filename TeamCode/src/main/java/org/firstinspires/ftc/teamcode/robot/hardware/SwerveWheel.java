@@ -39,7 +39,7 @@ import hankextensions.structs.Vector2D;
 public class SwerveWheel extends ScheduledTask
 {
     // Swerve wheel constants.
-    private static final double ACCEPTABLE_ORIENTATION_THRESHOLD = 45;
+    private static final double DRIVING_OK_THRESHOLD = 45;
     private static final double NO_ALIGNMENT_THRESHOLD = 0.00001;
 
     // Swerve wheel specific components.
@@ -146,7 +146,7 @@ public class SwerveWheel extends ScheduledTask
             turnMotor.setPosition(Range.clip(turnPower, 0, 1));
 
             // Set swivel acceptable.
-            swivelAcceptable = Math.abs(angleToTurn) < ACCEPTABLE_ORIENTATION_THRESHOLD;
+            swivelAcceptable = Math.abs(angleToTurn) < DRIVING_OK_THRESHOLD;
 
 
             // TODO Try to offset bevel gear swiveling (incomplete)

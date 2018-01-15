@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.robot.hardware;
 import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.structs.pid.PIDController;
@@ -30,7 +31,7 @@ public class EncoderMotor
     /**
      * The number of encoder ticks it takes this motor to rotate 360 degrees once.
      */
-    private final int ENCODER_TICKS_WHEEL_REVOLUTION;
+    private final int ENCODER_TICKS_PER_REVOLUTION;
 
     /**
      * The wheel circumference which this motor drives (public so that SwerveWheel
@@ -51,7 +52,7 @@ public class EncoderMotor
         this.pidController = new PIDController(motorPID);
 
         // The wheel which the motor drives.
-        ENCODER_TICKS_WHEEL_REVOLUTION = encoderTicksPerWheelRevolution;
+        ENCODER_TICKS_PER_REVOLUTION = encoderTicksPerWheelRevolution;
         WHEEL_CIRCUMFERENCE = wheelDiameterCM * Math.PI;
 
         processConsole = LoggingBase.instance.newProcessConsole(motorName + " Motor Process Console");
@@ -74,7 +75,7 @@ public class EncoderMotor
         // The wheel which the motor drives.
         WHEEL_CIRCUMFERENCE = wheelDiameterCM * Math.PI;
 
-        ENCODER_TICKS_WHEEL_REVOLUTION = 0; // not used.
+        ENCODER_TICKS_PER_REVOLUTION = 0; // not used.
         pidController = null; // Also not used.
 
         processConsole = LoggingBase.instance.newProcessConsole(motorName + " Motor Process Console");
@@ -122,7 +123,7 @@ public class EncoderMotor
         }
         else if (controlMethod == MotorPIDControlMethod.MODERN_ROBOTICS)
         {
-
+            motor.setPower(velocity);
         }
     }
 
@@ -134,10 +135,17 @@ public class EncoderMotor
         if (controlMethod != MotorPIDControlMethod.CUSTOM)
             return;
 
+        // Rare
+        if (System.nanoTime() - lastAdjustmentTime == 0)
+            return;
+
+        if (!pidController.canUpdate())
+            return;
+
         // Calculate PID by finding the number of ticks the motor SHOULD have gone minus the amount it actually went.
-        currentVelocity = ((motor.getCurrentPosition() - lastMotorPosition) / ENCODER_TICKS_WHEEL_REVOLUTION * WHEEL_CIRCUMFERENCE) /  ((System.currentTimeMillis() - lastAdjustmentTime) / 1000.0);
+        currentVelocity = (((motor.getCurrentPosition() - lastMotorPosition) / ENCODER_TICKS_PER_REVOLUTION) * WHEEL_CIRCUMFERENCE) / ((System.nanoTime() - lastAdjustmentTime)) *  1000000000.0; // big # is for seconds to nanoseconds conversion.
         currentPower += pidController.calculatePIDCorrection(desiredVelocity - currentVelocity);
-        motor.setPower(currentPower);
+        motor.setPower(Range.clip(currentPower, -1, 1));
 
         processConsole.write(
                 "Current position: " + lastMotorPosition,
@@ -147,6 +155,6 @@ public class EncoderMotor
                 "PID constants: " + pidController.pidConstants.kP + ", " + pidController.pidConstants.kD);
 
         lastMotorPosition = motor.getCurrentPosition();
-        lastAdjustmentTime = System.currentTimeMillis();
+        lastAdjustmentTime = System.nanoTime();
     }
 }

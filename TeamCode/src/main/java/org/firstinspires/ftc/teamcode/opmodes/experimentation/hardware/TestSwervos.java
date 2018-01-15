@@ -59,9 +59,11 @@ public class TestSwervos extends EnhancedOpMode
 
     private void pauseForX() throws InterruptedException
     {
-        while (!gamepad1.x)
-            flow.yield();
-        flow.msPause(500); // Give user time to take hands off X.
+//        while (!gamepad1.x)
+//            flow.yield();
+//        flow.msPause(500); // Give user time to take hands off X.
+
+        flow.msPause(1500);
     }
 
     private void runOn(String name, Servo servo, AbsoluteEncoder position, DcMotor motor) throws InterruptedException
@@ -69,11 +71,12 @@ public class TestSwervos extends EnhancedOpMode
         log.lines("Running " + name);
         motor.setPower(1);
         servo.setPosition(1);
-        while (!gamepad1.x)
-        {
-            console.write("Pos is " + position.position());
-            flow.yield();
-        }
+//        while (!gamepad1.x)
+//        {
+//            console.write("Pos is " + position.position());
+//            flow.yield();
+//        }
+        pauseForX();
         flow.msPause(500); // Give user time to take hands off X.
         servo.setPosition(0.5);
         motor.setPower(0);
