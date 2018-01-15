@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.vision.analysis;
 
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Constants;
@@ -35,17 +37,20 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         OpenCVCam cam = new OpenCVCam();
         cam.start(this, true);
 
-        ProcessConsole console = log.newProcessConsole("Cryptobox Tracker");
+        // See if we can turn on the lights, otherwise don't bother.
+        try
+        {
+            DcMotor lights = hardware.initialize(DcMotor.class, "Lights");
+            lights.setPower(1);
+        }
+        catch (Exception e)
+        {}
+
+        // Enable logging.
+        setLoggingEnabledTo(true);
 
         while (true)
-        {
-            console.write(
-                    trackingMode == ColumnTrackingMode.COMPLEX ?
-                            "Distances are " + placementDistances[0] + ", " + placementDistances[1] + " and " + placementDistances[2] :
-                            "Closest is " + closestPlacementLocationOffset,
-                    "Estimated forward: " + estimatedForwardDistance);
             flow.yield();
-        }
     }
 
     // The max forward distance away we are from the cryptobox.
@@ -54,6 +59,25 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
 
     // The front camera is not positioned dead center.
     private final double FRONT_CAMERA_VIEW_OFFSET = -.07; // the proportion of the screen to shift for.
+
+    // For logging
+    private ProcessConsole trackingConsole;
+    public void setLoggingEnabledTo(boolean enabled)
+    {
+        if (enabled)
+            trackingConsole = LoggingBase.instance.newProcessConsole("Tracking Console");
+        else
+            trackingConsole = null;
+    }
+    private void updateLoggingConsole()
+    {
+        if (trackingConsole != null)
+            trackingConsole.write(
+                    trackingMode == ColumnTrackingMode.COMPLEX ?
+                            "Distances are " + placementDistances[0] + ", " + placementDistances[1] + " and " + placementDistances[2] :
+                            "Closest is " + closestPlacementLocationOffset,
+                    "Estimated forward: " + estimatedForwardDistance);
+    }
 
     // The alliance for which we'll be doing vision.
     private CompetitionProgram.Alliance alliance = CompetitionProgram.Alliance.BLUE;
@@ -85,10 +109,10 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     private int lastNumColumnsDetected = 0;
 
     // Closest placement distance for when @trackingMode = ColumnTrackingMode.SIMPLE
-    public double closestPlacementLocationOffset = 0;
+    public double closestPlacementLocationOffset = 1;
 
     // Forward dist from crypto, based on width of detected columns.
-    public double estimatedForwardDistance = 0;
+    public double estimatedForwardDistance = 1;
 
     /**
      * Stores the start of the crypto column and the width of the column.
@@ -538,7 +562,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         for (int i = 0; i < columns.size() - 1; i++)
         {
             double currentOffset = (columns.get(i).midpoint() + columns.get(i + 1).midpoint()) / 2.0 - centerScreen;
-            if (currentOffset < closestLocation)
+            if (Math.abs(currentOffset) < Math.abs(closestLocation))
                 closestLocation = currentOffset;
         }
 
@@ -585,6 +609,11 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         estimatedForwardDistance = Range.clip(estimatedForwardDistance, 0, 1);
     }
 
+    /**
+     * Applies the submat to the original mat for display debugging purposes.
+     * @param analysisMat analysis submat
+     * @param inputFrame  the original mat
+     */
     private void applyAnalysisToInput(Mat analysisMat, Mat inputFrame)
     {
         Mat inputSubmatPointer = inputFrame.colRange((int)(analysisRegion.tl().x), (int)(analysisRegion.br().x)).rowRange((int)(analysisRegion.tl().y), (int)(analysisRegion.br().y));
@@ -652,6 +681,8 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             if (estimatedForwardDistance > 1)
                 estimatedForwardDistance = 1;
 
+            updateLoggingConsole();
+
             // Resize the image to the original size.
             Imgproc.resize(raw, raw, originalResolution);
             return raw;
@@ -688,6 +719,8 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         if (IN_MAT_DEBUG_MODE)
             // For visual analysis
             applyAnalysisToInput(analysisMat, raw);
+
+        updateLoggingConsole();
 
         // Resize the image to the original size.
         Imgproc.resize(raw, raw, originalResolution);

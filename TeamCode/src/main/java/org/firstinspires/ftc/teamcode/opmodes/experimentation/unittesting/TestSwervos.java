@@ -1,6 +1,7 @@
-package org.firstinspires.ftc.teamcode.opmodes.experimentation.hardware;
+package org.firstinspires.ftc.teamcode.opmodes.experimentation.unittesting;
 
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,7 +12,7 @@ import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 
 import hankextensions.EnhancedOpMode;
 
-@TeleOp(name="Test Swervos", group= Constants.EXPERIMENTATION)
+@Autonomous(name="Ensure Swervos", group= Constants.FINAL_BOT_EXPERIMENTATION)
 public class TestSwervos extends EnhancedOpMode
 {
     private DcMotor frontLeftDrive, frontRightDrive, backLeftDrive, backRightDrive;

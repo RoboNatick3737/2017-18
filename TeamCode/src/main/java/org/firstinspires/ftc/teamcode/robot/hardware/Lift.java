@@ -13,6 +13,8 @@ public class Lift
     public Lift(DcMotor controller)
     {
         this.controller = controller;
+
+        stop();
     }
 
     public void up()

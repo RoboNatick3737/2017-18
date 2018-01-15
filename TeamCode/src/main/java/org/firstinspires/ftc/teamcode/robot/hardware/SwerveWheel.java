@@ -98,6 +98,13 @@ public class SwerveWheel extends ScheduledTask
         targetVector = target;
     }
 
+    public void stopWheel()
+    {
+        setVectorTarget(Vector2D.ZERO);
+        turnMotor.setPosition(0.5);
+        driveMotor.setVelocity(0);
+    }
+
     // Prevent boxing/unboxing slowdown.
     private double desiredAngle, currentAngle, turnPower, angleFromDesired, angleToTurn, turnCorrectionFactor, motorPower;
 

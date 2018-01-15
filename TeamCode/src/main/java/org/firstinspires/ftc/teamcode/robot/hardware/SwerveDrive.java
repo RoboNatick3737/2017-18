@@ -272,6 +272,15 @@ public class SwerveDrive extends ScheduledTask
     }
 
     /**
+     * Stops all SwerveWheels.
+     */
+    public void stop()
+    {
+        for (SwerveWheel wheel : swerveWheels)
+            wheel.stopWheel();
+    }
+
+    /**
      * A scheduled task to ensure swerve consistency.
      */
     @Override

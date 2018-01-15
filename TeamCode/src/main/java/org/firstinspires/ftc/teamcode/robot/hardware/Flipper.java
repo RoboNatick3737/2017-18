@@ -22,6 +22,8 @@ public class Flipper
     {
         this.left = left;
         this.right = right;
+
+        advanceStage(0);
     }
 
     private void updateFlipperPositions()
