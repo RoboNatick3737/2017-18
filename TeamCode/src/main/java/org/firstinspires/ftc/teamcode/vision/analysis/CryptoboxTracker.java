@@ -73,9 +73,20 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     public void setLoggingEnabledTo(boolean enabled)
     {
         if (enabled)
-            trackingConsole = LoggingBase.instance.newProcessConsole("Tracking Console");
+        {
+            if (trackingConsole == null)
+            {
+                trackingConsole = LoggingBase.instance.newProcessConsole("Tracking Console");
+            }
+        }
         else
-            trackingConsole = null;
+        {
+            if (trackingConsole != null)
+            {
+                trackingConsole.destroy();
+                trackingConsole = null;
+            }
+        }
     }
     private void updateLoggingConsole()
     {
@@ -682,6 +693,11 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         analysisMat.release();
     }
 
+    /**
+     * OpenCV method from which everything here is called.
+     * @param raw  The Mat which represents the camera view.
+     * @return     The Mat which will be displayed on the phone screen.
+     */
     @Override
     public Mat onCameraFrame(Mat raw)
     {
