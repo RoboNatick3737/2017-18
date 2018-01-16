@@ -37,22 +37,42 @@ public class DumpGlyphToNearest extends EnhancedOpMode
 
         waitForStart();
 
-        double forwardSpeed = 1, horizontalSpeed = 1;
+        double offFromForwardIdeal = 1, offFromHorizontalIdeal = 1;
 
-        while (Math.abs(forwardSpeed) > 0.01 || Math.abs(horizontalSpeed) > 0.01)
+        // Double equality
+        while (Math.abs(offFromForwardIdeal) > 0.03 || Math.abs(offFromHorizontalIdeal) > 0.02)
         {
-            forwardSpeed = 0;
-            if (tracker.estimatedForwardDistance > .32)
-                forwardSpeed = -.1;
+            double horizontalSpeed, forwardSpeed;
+            if (!tracker.detectedNoColumns)
+            {
+                offFromForwardIdeal = -(tracker.estimatedForwardDistance - .32);
+                forwardSpeed = 0.7 * offFromForwardIdeal;
+                if (Math.abs(forwardSpeed) < .03)
+                    forwardSpeed = 0;
 
-            horizontalSpeed = -0.7 * tracker.closestPlacementLocationOffset;
+                offFromHorizontalIdeal = -tracker.closestPlacementLocationOffset;
+                horizontalSpeed = 0.7 * offFromHorizontalIdeal;
+                if (Math.abs(horizontalSpeed) < .03)
+                    horizontalSpeed = 0;
+            }
+            else
+            {
+                horizontalSpeed = 0;
+                forwardSpeed = 0.1;
+            }
 
             robot.swerveDrive.setDesiredMovement(Vector2D.rectangular(forwardSpeed, horizontalSpeed));
 
-            robot.swerveDrive.synchronousUpdate();
+            long start = System.currentTimeMillis();
+            while (System.currentTimeMillis() - start < 100) // Don't make super fast adjustments.
+            {
+                robot.swerveDrive.synchronousUpdate();
 
-            flow.yield();
+                flow.yield();
+            }
         }
+
+
 
         robot.swerveDrive.stop();
 
