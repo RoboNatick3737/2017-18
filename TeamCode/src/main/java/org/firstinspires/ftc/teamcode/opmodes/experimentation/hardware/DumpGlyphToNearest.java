@@ -45,7 +45,7 @@ public class DumpGlyphToNearest extends EnhancedOpMode
             double horizontalSpeed, forwardSpeed;
             if (!tracker.detectedNoColumns)
             {
-                offFromForwardIdeal = -(tracker.estimatedForwardDistance - .32);
+                offFromForwardIdeal = -(tracker.estimatedForwardDistance - .26);
                 forwardSpeed = 0.7 * offFromForwardIdeal;
                 if (Math.abs(forwardSpeed) < .03)
                     forwardSpeed = 0;
@@ -71,8 +71,6 @@ public class DumpGlyphToNearest extends EnhancedOpMode
                 flow.yield();
             }
         }
-
-
 
         robot.swerveDrive.stop();
 

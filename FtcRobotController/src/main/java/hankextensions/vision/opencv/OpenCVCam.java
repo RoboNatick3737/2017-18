@@ -1,5 +1,6 @@
 package hankextensions.vision.opencv;
 
+import android.hardware.Camera;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
@@ -16,7 +17,7 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Size;
+import android.hardware.Camera.Size;
 
 import hankextensions.EnhancedOpMode;
 
@@ -26,9 +27,6 @@ import hankextensions.EnhancedOpMode;
  */
 public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 {
-    // Picture dimensions for analysis
-    private static final int FRAME_WIDTH_REQUEST = 600, FRAME_HEIGHT_REQUEST = 400;
-
     // Singleton class.
     public static OpenCVCam instance = null;
 
@@ -41,6 +39,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     private final String LOG_TAG = "OpenCVCam";
 
     // The camera view.
+    private ImprovedJCV improvedJCV = null;
     private CameraBridgeViewBase cameraBridgeViewBase = null;
 
     private Mat cameraViewMat;
@@ -127,13 +126,23 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         while (!loadingComplete)
             EnhancedOpMode.instance.flow.yield();
 
-        if (cameraBridgeViewBase != null) {
+        if (cameraBridgeViewBase != null)
+        {
             cameraBridgeViewBase.setCvCameraViewListener(listener);
             cameraBridgeViewBase.setCameraIndex(useFrontCamera ? 1 : 0);
             setCameraViewState(true); // Might have to run on main activity.
         }
         else
             LoggingBase.instance.lines("Camera Bridge View Base was null, couldn't enable listener!");
+
+        // Gets available sizes
+        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                for (Camera.Size size : improvedJCV.getSupportedSizes())
+                    LoggingBase.instance.lines("Size: " + size.width + ", " + size.height);
+            }
+        });
     }
 
     //Stops OpenCV and hides it from the Robot Controller.
@@ -219,8 +228,8 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 
         FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        cameraBridgeViewBase = (JavaCameraView) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
-//        cameraBridgeViewBase.setMaxFrameSize(FRAME_WIDTH_REQUEST, FRAME_HEIGHT_REQUEST);
+        improvedJCV = (ImprovedJCV) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
+        cameraBridgeViewBase = improvedJCV;
     }
 
     private void onResume()
@@ -230,7 +239,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 
         if (!OpenCVLoader.initDebug()) {
             RobotLog.vv(LOG_TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_3_0, FtcRobotControllerActivity.instance, mLoaderCallback);
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_4_0, FtcRobotControllerActivity.instance, mLoaderCallback);
         } else {
             RobotLog.vv(LOG_TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);

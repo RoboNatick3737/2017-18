@@ -35,7 +35,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     protected void onRun() throws InterruptedException
     {
         OpenCVCam cam = new OpenCVCam();
-        cam.start(this, true);
+        cam.start(this);
 
         // See if we can turn on the lights, but not required.
         try
@@ -62,8 +62,8 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     private static final double
             CRYPTO_COL_PROPORTION_WIDTH_FOR_MIN_FORWARD_DIST = .14, // The average portions of the screen that the cryptobox cols must take up to be seen as right in front.
             CRYPTO_COL_PROPORTION_WIDTH_FOR_MAX_FORWARD_DIST = .06, // The average portions of the screen for max dist (at edge of visible detection is possible).
-            PLACEMENT_COL_PROPORTION_WIDTH_FOR_MIN_FORWARD_DIST = .2, // The average portion placement regions must take up for max closest.
-            PLACEMENT_COL_PROPOTION_WIDTH_FOR_MAX_FORWARD_DIST = .07; // The average portion placement regions to be taken up for max farthest.
+            PLACEMENT_COL_PROPORTION_WIDTH_FOR_MIN_FORWARD_DIST = .488, // The average portion placement regions must take up for max closest.
+            PLACEMENT_COL_PROPORTION_WIDTH_FOR_MAX_FORWARD_DIST = .302; // The average portion placement regions to be taken up for max farthest.
 
     // The front camera is not positioned dead center.
     private static final double FRONT_CAMERA_VIEW_OFFSET = -.07; // the proportion of the screen to shift for.
@@ -95,7 +95,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
                     trackingMode == ColumnTrackingMode.COMPLEX ?
                             "Distances are " + placementDistances[0] + ", " + placementDistances[1] + " and " + placementDistances[2] :
                             "Closest is " + closestPlacementLocationOffset,
-                    "Estimated forward: " + estimatedForwardDistance);
+                    "Estimated forward by col: " + forwardDistanceBasedOnColumns + ", by placement " + forwardDistanceBasedOnPlacementLocations + ", result is " + estimatedForwardDistance);
     }
 
     // Lighting helps a lot, not always on robot tho
@@ -147,6 +147,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
 
     // Forward dist from crypto, based on width of detected columns.
     public double estimatedForwardDistance = 1;
+    private double forwardDistanceBasedOnColumns, forwardDistanceBasedOnPlacementLocations;
 
     /**
      * Stores the start of the crypto column and the width of the column.
@@ -620,7 +621,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     {
         // region STEP 1: Calculate based on visible cryptobox column pixel widths.
 
-        double forwardDistanceBasedOnColumns = 0;
+        forwardDistanceBasedOnColumns = 0;
 
         // Determine average detected cryptobox width
         double avgColWidth = 0;
@@ -643,14 +644,14 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             avgColWidth /= analysisRegion.height;
 
             // If avg width = min width portion, then this = max forward dist, if at max then this = 0
-            forwardDistanceBasedOnColumns = (1 - ((avgColWidth - CRYPTO_COL_PROPORTION_WIDTH_FOR_MAX_FORWARD_DIST) / (CRYPTO_COL_PROPORTION_WIDTH_FOR_MIN_FORWARD_DIST - CRYPTO_COL_PROPORTION_WIDTH_FOR_MAX_FORWARD_DIST)));
+            forwardDistanceBasedOnColumns = (avgColWidth - CRYPTO_COL_PROPORTION_WIDTH_FOR_MIN_FORWARD_DIST) / (CRYPTO_COL_PROPORTION_WIDTH_FOR_MAX_FORWARD_DIST - CRYPTO_COL_PROPORTION_WIDTH_FOR_MIN_FORWARD_DIST);
         }
 
         // endregion
 
         // region STEP 2: Calculate based on placement location widths.
 
-        double forwardDistanceBasedOnPlacementLocations = 0;
+        forwardDistanceBasedOnPlacementLocations = 0;
 
         if (columns.size() >= 2)
         {
@@ -666,7 +667,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
 
             avgPlacementWidth /= analysisRegion.height;
 
-            forwardDistanceBasedOnPlacementLocations = (1 - ((avgColWidth - PLACEMENT_COL_PROPOTION_WIDTH_FOR_MAX_FORWARD_DIST) / (PLACEMENT_COL_PROPORTION_WIDTH_FOR_MIN_FORWARD_DIST - PLACEMENT_COL_PROPOTION_WIDTH_FOR_MAX_FORWARD_DIST)));
+            forwardDistanceBasedOnPlacementLocations = (avgPlacementWidth - PLACEMENT_COL_PROPORTION_WIDTH_FOR_MIN_FORWARD_DIST) / (PLACEMENT_COL_PROPORTION_WIDTH_FOR_MAX_FORWARD_DIST - PLACEMENT_COL_PROPORTION_WIDTH_FOR_MIN_FORWARD_DIST);
         }
 
         // endregion

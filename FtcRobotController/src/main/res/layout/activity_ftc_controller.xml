@@ -195,7 +195,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           android:id="@+id/openCVCam"
           android:visibility="invisible">
 
-        <org.opencv.android.JavaCameraView
+        <hankextensions.vision.opencv.ImprovedJCV
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:visibility="gone"
