@@ -20,7 +20,7 @@ public class ImprovedJCV extends JavaCameraView
         super(context, attrs);
     }
 
-    public List<Camera.Size> getSupportedSizes()
+    public List<Camera.Size> getSupportedPreviewSizes()
     {
         return mCamera.getParameters().getSupportedPreviewSizes();
     }

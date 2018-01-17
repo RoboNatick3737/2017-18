@@ -12,12 +12,9 @@ import com.qualcomm.robotcore.util.RobotLog;
 import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import android.hardware.Camera.Size;
 
 import hankextensions.EnhancedOpMode;
 
@@ -30,6 +27,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     // Singleton class.
     public static OpenCVCam instance = null;
 
+    // Used for the initialization of the CV libs.
     private BaseLoaderCallback mLoaderCallback;
 
     // States of the code progression.
@@ -42,8 +40,6 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     private ImprovedJCV improvedJCV = null;
     private CameraBridgeViewBase cameraBridgeViewBase = null;
 
-    private Mat cameraViewMat;
-
     // The activity's current state.
     public enum State {
         CREATE,
@@ -53,7 +49,9 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     }
     private State currentState;
 
-    // Prepares the callback for OpenCV initialization.
+    /**
+     * Registers the CV initialization callback, defines the singleton, and calls onCreate(), etc.
+     */
     public OpenCVCam()
     {
         instance = this;
@@ -98,6 +96,10 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         });
     }
 
+    /**
+     * Starts the camera view feed and streams input to a listener (defined elsewhere).
+     * @param listener  The CvCameraViewListener to which input will be streamed.
+     */
     public void start(CameraBridgeViewBase.CvCameraViewListener listener) throws InterruptedException
     {
         start(listener, false);
@@ -135,17 +137,21 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         else
             LoggingBase.instance.lines("Camera Bridge View Base was null, couldn't enable listener!");
 
-        // Gets available sizes
+        // Gets available sizes (has to run on UI thread or crash :( )
         FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                for (Camera.Size size : improvedJCV.getSupportedSizes())
-                    LoggingBase.instance.lines("Size: " + size.width + ", " + size.height);
+                // List all available preview sizes to the user.
+                for (Camera.Size size : improvedJCV.getSupportedPreviewSizes())
+                    if (LoggingBase.instance != null)
+                        LoggingBase.instance.lines("Size: " + size.width + "x" + size.height);
             }
         });
     }
 
-    //Stops OpenCV and hides it from the Robot Controller.
+    /**
+     * Stops OpenCV and hides it from the Robot Controller.
+     */
     public void stop()
     {
         if (!currentlyActive)
@@ -162,7 +168,11 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         });
     }
 
-    // Enables/disables the FrameLayout and its children.
+    /**
+     * Enables/disables the FrameLayout instance and its children on the XML layout of the robot
+     * controller.
+     * @param state true = enabled, false = disabled.
+     */
     private void setViewStatus(final boolean state)
     {
         FrameLayout layout = (FrameLayout) FtcRobotControllerActivity.instance.findViewById(R.id.openCVCam);
@@ -179,7 +189,10 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         }
     }
 
-    // Enables/disables the camera view on the RC app.
+    /**
+     * Enables/disables the camera view itself on the RC screen.
+     * @param state true = enabled, false = disabled.
+     */
     private void setCameraViewState(boolean state)
     {
         // If we don't have the camera bridge view base set up or it's already set to the state we want, don't do anything.
@@ -193,7 +206,10 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
             cameraBridgeViewBase.disableView();
     }
 
-    // Called when the FtcRobotControllerActivity changes activity states.
+    /**
+     * Called when the Activity instance changes states from pause/resume/stop etc.
+     * @param state the new state which has been switched to.
+     */
     public void newActivityState(final State state)
     {
         LoggingBase.instance.lines("Activity state change to " + state.toString());
@@ -221,7 +237,10 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         currentState = state;
     }
 
-    // HAS to run on UI thread or view thread error.
+    /**
+     * Initializes the view, and gets the CameraBridgeViewBase and JavaCameraView which constitute
+     * the OpenCV parts of the app.
+     */
     private void onCreate()
     {
         LoggingBase.instance.lines("onCreate()");
@@ -232,6 +251,9 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         cameraBridgeViewBase = improvedJCV;
     }
 
+    /**
+     * Re-initializes the app (I think, idk for certain)
+     */
     private void onResume()
     {
         LoggingBase.instance.lines("onResume()");
@@ -246,6 +268,9 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         }
     }
 
+    /**
+     * Called when the app is paused by the user.
+     */
     private void onPause()
     {
         LoggingBase.instance.lines("onPause()");
@@ -254,14 +279,8 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         setCameraViewState(false);
     }
 
-    public void onCameraViewStarted(int width, int height)
-    {
-        cameraViewMat = new Mat(height, width, CvType.CV_8UC4);
-    }
-
-    public void onCameraViewStopped() {
-        cameraViewMat.release();
-    }
+    public void onCameraViewStarted(int width, int height) {}
+    public void onCameraViewStopped() {}
 
     /**
      * When the JavaCameraView sees a new frame (called very often).  This method has to
@@ -272,7 +291,6 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
      */
     public Mat onCameraFrame(Mat inputFrame)
     {
-        //RobotCore.instance.log.lines("Normal frame called");
         return inputFrame;
     }
 }
