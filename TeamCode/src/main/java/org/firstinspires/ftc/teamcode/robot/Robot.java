@@ -1,13 +1,11 @@
 package org.firstinspires.ftc.teamcode.robot;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
-import org.firstinspires.ftc.teamcode.robot.hardware.HankuTankuIMU;
 import org.firstinspires.ftc.teamcode.robot.hardware.LightingSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.RelicSystem;
 import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
@@ -43,14 +41,13 @@ public class Robot
 
     /**
      * Initializes the whole robot.
-     * @throws InterruptedException
      */
     public Robot(HardwareInitializer hardware) throws InterruptedException
     {
         // Init the android gyro (make sure to call start()).
         AndroidGyro androidGyro = new AndroidGyro();
         androidGyro.start();
-        androidGyro.zero();
+        androidGyro.initAntiDrift();
         gyro = androidGyro;
 
         // Init the ADAFRUIT gyro.
@@ -70,10 +67,10 @@ public class Robot
         relicSystem = new RelicSystem(hardware.initialize(DcMotor.class, "Relic Arm"), hardware.initialize(Servo.class, "Relic Rotator"), hardware.initialize(Servo.class, "Relic Grabber"));
 
         // Flipper init
-        flipper = new Flipper(hardware.initialize(Servo.class, "Left Flipper"), hardware.initialize(Servo.class, "Right Flipper"));
+        flipper = new Flipper(hardware.initialize(Servo.class, "Left Flipper"), hardware.initialize(Servo.class, "Right Flipper"), hardware.initialize(Servo.class, "Glyph Holder"));
 
         // Ball knocker init
-        ballKnocker = new BallKnocker(hardware.initialize(Servo.class, "Ball Knocker"));
+        ballKnocker = null; //new BallKnocker(hardware.initialize(Servo.class, "Ball Knocker"));
 
         // Lights
         lights = new LightingSystem(hardware.initialize(DcMotor.class, "Lights"));

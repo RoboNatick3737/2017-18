@@ -46,13 +46,14 @@ public class MRGyro implements Gyro
         LoggingBase.instance.lines("Gyroscope calibration complete!");
     }
 
-    /**
-     * calibrate() overload to satisfy Gyro interface.
-     */
-    public void calibrate() throws InterruptedException
+    @Override
+    public void initAntiDrift() throws InterruptedException
     {
         calibrate(true);
     }
+
+    @Override
+    public void startAntiDrift() throws InterruptedException {}
 
     //Just resets the gyro.
     public void zero() throws InterruptedException
@@ -62,20 +63,8 @@ public class MRGyro implements Gyro
         EnhancedOpMode.instance.flow.msPause (400);
     }
 
-    /**
-     * Returns a gyro value between 0 to 360.
-     */
-    public double x()
-    {
-        return 0;
-    }
-
-    public double y()
-    {
-        return 0;
-    }
-
-    public double z()
+    @Override
+    public double getHeading()
     {
         return Vector2D.clampAngle(sensor.getHeading());
     }

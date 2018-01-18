@@ -20,7 +20,12 @@ public class RandomVectorDrive extends EnhancedOpMode
     public class FakeGyro implements Gyro
     {
         @Override
-        public void calibrate() throws InterruptedException {
+        public void initAntiDrift() throws InterruptedException {
+
+        }
+
+        @Override
+        public void startAntiDrift() throws InterruptedException {
 
         }
 
@@ -30,17 +35,7 @@ public class RandomVectorDrive extends EnhancedOpMode
         }
 
         @Override
-        public double x() {
-            return 0;
-        }
-
-        @Override
-        public double y() {
-            return 0;
-        }
-
-        @Override
-        public double z() {
+        public double getHeading() {
             return 0;
         }
     }

@@ -12,28 +12,31 @@ import hankextensions.structs.Vector2D;
 
 public class AndroidGyro implements Gyro
 {
+    // Singleton.
     public static AndroidGyro instance;
 
     public boolean active = false;
 
+    // Required for calculations
     private SensorManager sensorManager;
     private Sensor sensor;
     private static final float NS2S = 1.0f / 1000000000.0f;
     private final float[] deltaRotationVector = new float[4];
     private float timestamp;
     private static final double EPSILON = 0.05f;
-    private float omegaMagnitude = 0;
 
-    static boolean reset = false;
-    static double x = 0;
-    static double y = 0;
-    static double z = 0;
-    double delta_x = 0;
-    double delta_y = 0;
-    double delta_z = 0;
+    // Tells us the rate of drift to counteract.
+    private static long startCalibrateTime = 0;
+    private static double driftRate = 0;
+
+    // Tells the gyro when to reset the readings (set temporarily).
+    private static boolean reset = false;
+
+    // The final readings of the gyro.
+    public static double x = 0, y = 0, z = 0;
 
     // Create a listener
-    SensorEventListener gyroscopeSensorListener = new SensorEventListener() {
+    private SensorEventListener gyroscopeSensorListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
             // This timestep's delta rotation to be multiplied by the current rotation
@@ -46,7 +49,7 @@ public class AndroidGyro implements Gyro
                 float axisZ = event.values[2];
 
                 // Calculate the angular speed of the sample
-                omegaMagnitude = (float) Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
+                float omegaMagnitude = (float) Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
 
                 // Normalize the rotation vector if it's big enough to get the axis
                 // (that is, EPSILON should represent your maximum allowable margin of error)
@@ -67,9 +70,9 @@ public class AndroidGyro implements Gyro
                 deltaRotationVector[1] = sinThetaOverTwo * axisY;
                 deltaRotationVector[2] = sinThetaOverTwo * axisZ;
                 deltaRotationVector[3] = cosThetaOverTwo;
-                delta_x = 2 * Math.toDegrees(deltaRotationVector[0]);
-                delta_y = 2 * Math.toDegrees(deltaRotationVector[1]);
-                delta_z = 2 * Math.toDegrees(deltaRotationVector[2]);
+                double delta_x = 2 * Math.toDegrees(deltaRotationVector[0]);
+                double delta_y = 2 * Math.toDegrees(deltaRotationVector[1]);
+                double delta_z = 2 * Math.toDegrees(deltaRotationVector[2]);
                 x += delta_x;
                 y += delta_y;
                 z += delta_z;
@@ -91,31 +94,50 @@ public class AndroidGyro implements Gyro
     };
 
     // Initialize all of the hardware variables
-    public AndroidGyro() {
+    public AndroidGyro()
+    {
         sensorManager = (SensorManager) FtcRobotControllerActivity.instance.getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
         instance = this;
     }
 
-    public void calibrate() {
+    /**
+     * Zeroes the gyro.
+     */
+    public void initAntiDrift()
+    {
+        startCalibrateTime = System.currentTimeMillis();
         zero();
     }
 
-    public void zero() {
+    /**
+     * Calculates the rate at which the gyro is drifting.
+     */
+    public void startAntiDrift()
+    {
+        double diff = Vector2D.clampAngle(360 - y);
+        diff = diff > 180 ? diff - 360 : diff;
+
+        driftRate = diff / ((System.currentTimeMillis() - startCalibrateTime) / 1000.0);
+        zero();
+    }
+
+    /**
+     * Zeroes the gyro.
+     */
+    public void zero()
+    {
         reset = true;
     }
 
-    public double x() {
-        return Vector2D.clampAngle(360 - x);
-    }
-
-    public double y() {
-        return Vector2D.clampAngle(360 - z);
-    }
-
-    public double z() {
-        return Vector2D.clampAngle(360 - y);
+    /**
+     * Returns the current heading of the bot.
+     * @return the heading of the bot.
+     */
+    public double getHeading()
+    {
+        return Vector2D.clampAngle(Vector2D.clampAngle(360 - y) - driftRate * ((System.currentTimeMillis() - startCalibrateTime) / 1000.0));
     }
 
     /**

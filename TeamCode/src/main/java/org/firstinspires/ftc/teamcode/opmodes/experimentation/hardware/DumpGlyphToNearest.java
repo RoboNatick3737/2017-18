@@ -1,15 +1,11 @@
 package org.firstinspires.ftc.teamcode.opmodes.experimentation.hardware;
 
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
-import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
-import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.vision.analysis.CryptoboxTracker;
 
 import hankextensions.EnhancedOpMode;
@@ -37,6 +33,9 @@ public class DumpGlyphToNearest extends EnhancedOpMode
         robot.lights.setLightsTo(true);
 
         waitForStart();
+
+        // Tell the gyro to start anti-drift stuff.
+        robot.gyro.startAntiDrift();
 
         double offFromForwardIdeal = -(tracker.estimatedForwardDistance - .26), offFromHorizontalIdeal = -tracker.closestPlacementLocationOffset;
 

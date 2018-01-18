@@ -11,23 +11,28 @@ import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 @Autonomous(name = "Test Android Gyro", group = "Experimentation")
 public class EnsureAndroidGyro extends EnhancedOpMode
 {
-    private Gyro phoneGyro;
+    private AndroidGyro phoneGyro;
 
     @Override
-    protected void onRun() throws InterruptedException {
+    protected void onRun() throws InterruptedException
+    {
         phoneGyro = new AndroidGyro();
         AndroidGyro.instance.start();
+        phoneGyro.initAntiDrift();
 
         waitForStart();
+
+        phoneGyro.startAntiDrift();
 
         ProcessConsole gyroConsole = log.newProcessConsole("Phone Gyro");
 
         while (true)
         {
             gyroConsole.write(
-                    "X: " + phoneGyro.x(),
-                    "Y: " + phoneGyro.y(),
-                    "Z: " + phoneGyro.z()
+                    "X: " + phoneGyro.x,
+                    "Y: " + phoneGyro.y,
+                    "Z: " + phoneGyro.z,
+                    "Heading: " + phoneGyro.getHeading()
             );
 
             flow.yield();

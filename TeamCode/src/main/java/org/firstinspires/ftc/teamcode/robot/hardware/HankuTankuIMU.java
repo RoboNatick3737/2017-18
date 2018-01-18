@@ -44,7 +44,12 @@ public class HankuTankuIMU implements Gyro
     }
 
     @Override
-    public void calibrate() throws InterruptedException
+    public void initAntiDrift() throws InterruptedException
+    {
+    }
+
+    @Override
+    public void startAntiDrift() throws InterruptedException
     {
     }
 
@@ -55,16 +60,18 @@ public class HankuTankuIMU implements Gyro
     }
 
     @Override
+    public double getHeading() {
+        return z();
+    }
+
     public double x() {
         return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).thirdAngle;
     }
 
-    @Override
     public double y() {
         return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).secondAngle;
     }
 
-    @Override
     public double z() {
         return Vector2D.clampAngle(imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle - resetOffset);
     }

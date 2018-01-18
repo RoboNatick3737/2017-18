@@ -93,7 +93,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             robot.swerveDrive.setDesiredHeading(ballKnockHeading);
             log.lines("Turning to " + ballKnockHeading);
 
-            while (Math.abs(robot.gyro.z() - ballKnockHeading) > 10)
+            while (Math.abs(robot.gyro.getHeading() - ballKnockHeading) > 10)
             {
                 robot.swerveDrive.synchronousUpdate();
                 flow.yield();

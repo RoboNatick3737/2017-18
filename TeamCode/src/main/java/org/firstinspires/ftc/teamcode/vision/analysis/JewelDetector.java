@@ -17,6 +17,7 @@ import java.util.LinkedList;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
+import hankextensions.vision.opencv.OpenCVJNIHooks;
 
 @Autonomous(name="Jewel Vision", group= Constants.FINAL_BOT_OPMODES)
 public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
@@ -24,6 +25,9 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
     private OpenCVCam openCVCam;
 
     private ProcessConsole cameraProcessConsole;
+
+    private enum ColorDetectionMethod { YCrCb, CYMK }
+    private final ColorDetectionMethod colorDetectionMethod = ColorDetectionMethod.CYMK;
 
     @Override
     protected void onRun() throws InterruptedException
@@ -83,20 +87,38 @@ public class JewelDetector extends EnhancedOpMode implements CameraBridgeViewBas
          */
         public void analyze(Mat original)
         {
+            Imgproc.cvtColor(original, original, Imgproc.COLOR_RGBA2RGB);
+
             Mat toAnalyze = original.submat(rect);
 
-            // Use YCrCb color space
-            Imgproc.cvtColor(toAnalyze, toAnalyze, Imgproc.COLOR_RGB2YCrCb);
-            LinkedList<Mat> channels = new LinkedList<>();
-            Core.split(toAnalyze, channels);
+            if (colorDetectionMethod == ColorDetectionMethod.YCrCb)
+            {
+                // Use YCrCb color space
+                Imgproc.cvtColor(toAnalyze, toAnalyze, Imgproc.COLOR_RGB2YCrCb);
+                LinkedList<Mat> channels = new LinkedList<>();
+                Core.split(toAnalyze, channels);
 
-            // Get blue mask
-            Imgproc.equalizeHist(channels.get(2), channels.get(2));
-            Imgproc.threshold(channels.get(2), blue, 160, 255, Imgproc.THRESH_BINARY);
+                // Get blue mask
+                Imgproc.equalizeHist(channels.get(2), channels.get(2));
+                Imgproc.threshold(channels.get(2), blue, 160, 255, Imgproc.THRESH_BINARY);
 
-            // Get red mask
-            Imgproc.equalizeHist(channels.get(2), channels.get(2));
-            Imgproc.threshold(channels.get(1), red, 160, 255, Imgproc.THRESH_BINARY);
+                // Get red mask
+                Imgproc.equalizeHist(channels.get(2), channels.get(2));
+                Imgproc.threshold(channels.get(1), red, 160, 255, Imgproc.THRESH_BINARY);
+            }
+            else
+            {
+                // Use YCrCb color space
+                OpenCVJNIHooks.cmykConvert(toAnalyze);
+                LinkedList<Mat> channels = new LinkedList<>();
+                Core.split(toAnalyze, channels);
+
+                // Get blue mask
+                Imgproc.threshold(channels.get(0), blue, 160, 255, Imgproc.THRESH_BINARY);
+
+                // Get red mask
+                Imgproc.threshold(channels.get(1), red, 190, 255, Imgproc.THRESH_BINARY);
+            }
 
             // Decide red and blue.
             int bluePixels = Core.countNonZero(blue), redPixels = Core.countNonZero(red);

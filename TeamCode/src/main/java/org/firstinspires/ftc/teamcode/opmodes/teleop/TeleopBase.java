@@ -76,7 +76,10 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
             robot.swerveDrive.synchronousUpdate();
 
             // Control flipper
-            if (C1.a.currentState == HTButton.ButtonState.JUST_TAPPED)
+            if (C1.x.currentState == HTButton.ButtonState.JUST_TAPPED)
+                robot.flipper.advanceStage();
+
+            if (C2.x.currentState == HTButton.ButtonState.JUST_TAPPED)
                 robot.flipper.advanceStage();
 
             if (C1.y.currentState == HTButton.ButtonState.JUST_TAPPED)

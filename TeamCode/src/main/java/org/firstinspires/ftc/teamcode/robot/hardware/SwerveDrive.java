@@ -18,21 +18,19 @@ import hankextensions.structs.Vector2D;
 /**
  * The SwerveDrive contains 4 SwerveWheel instances to which a number of vectors are specified
  * in order to determine the direction in which movement will occur.
- *
- * TODO slow down wheel turning speeds while moving at high speed.
  */
 public class SwerveDrive extends ScheduledTask
 {
-    //////  Physical drive constants ////////
-    private static final double MAX_TELEOP_SPEED = 100;
+    // region Physical Drive Constants
+    private static final double MAX_SWERVE_SPEED_CM_S = 130; // modified over teleop duration.
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
     private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 5, 40000000);
+    // endregion
 
-    //////  Instance specific components ////////
+    // region Control Methods
     public enum ControlMethod { FIELD_CENTRIC, TANK_DRIVE }
-    // Control method
     private ControlMethod controlMethod = ControlMethod.FIELD_CENTRIC;
     public void setControlMethod(ControlMethod controlMethod)
     {
@@ -42,10 +40,17 @@ public class SwerveDrive extends ScheduledTask
     {
         return controlMethod;
     }
-    // Whether or not the joystick can direct the swerve drive (false during auto)
+    // endregion
+
+    // region Joystick Control
     private boolean joystickControlEnabled = false;
-    // Whether or not this bot will help the driver auto-align to the cryptobox using vision.
-    private boolean automaticCryptoboxAlignment = false;
+    public void setJoystickControlEnabled(boolean state)
+    {
+        joystickControlEnabled = state;
+    }
+    // endregion
+
+    // region Smart Protective Measures
     // Whether or not the robot will go in an arc instead of immediately shifting the wheels to a different direction while moving quickly.
     private boolean avoidAxleDestruction = false;
     public void setAxleDrivingProtectionTo(boolean state)
@@ -55,16 +60,25 @@ public class SwerveDrive extends ScheduledTask
         if (!state)
             lastMovement = null;
     }
+    // endregion
 
+    // region Control Components
     // The SwerveWheel instances which constitute the swerve drive: frontLeft, backLeft, backRight, frontRight respectively.
     public final SwerveWheel[] swerveWheels = new SwerveWheel[4];
-    public Gyro gyro; // Public because teleop can manually reset.
-    private final PIDController pidController;
 
+    // Mandates heading for gyro
+    public Gyro gyro;
+
+    // For turning the robot.
+    private final PIDController pidController;
+    // endregion
+
+    // region Vector Stuff
     // Constantly shifting in autonomous and teleop.
     private Vector2D desiredMovement = Vector2D.ZERO;
     private Vector2D lastMovement = null;
     private double desiredHeading = 0;
+    //endregion
 
     // Required for operation of the driving tasks.
     public final ScheduledTaskPackage swerveUpdatePackage;
@@ -92,14 +106,6 @@ public class SwerveDrive extends ScheduledTask
         pidController = new PIDController(TURN_PID_CONSTANTS);
 
         swerveConsole = LoggingBase.instance.newProcessConsole("Swerve Console");
-    }
-
-    /**
-     * Tells the swerve drive whether joystick control is acceptable.
-     */
-    public void setJoystickControlEnabled(boolean state)
-    {
-        joystickControlEnabled = state;
     }
 
     /**
@@ -168,7 +174,7 @@ public class SwerveDrive extends ScheduledTask
             {
                 try
                 {
-                    gyro.calibrate();
+                    gyro.zero();
                 }
                 catch (InterruptedException e)
                 {
@@ -185,7 +191,7 @@ public class SwerveDrive extends ScheduledTask
         }
 
         // Get current gyro val.
-        double gyroHeading = gyro.z();
+        double gyroHeading = gyro.getHeading();
 
         // Find the least heading between the gyro and the current heading.
         double angleOff = (Vector2D.clampAngle(desiredHeading - gyroHeading) + 180) % 360 - 180;
@@ -206,7 +212,7 @@ public class SwerveDrive extends ScheduledTask
                 // Sort of move via a gradient to determine the max heading change.
                 double changeCoefficient = 1 / (25 * fieldCentricTranslation.magnitude + 1);
                 double maxHeadingChange = 90 * changeCoefficient;
-                double maxMagnitudeChange = MAX_TELEOP_SPEED * .25 * changeCoefficient;
+                double maxMagnitudeChange = MAX_SWERVE_SPEED_CM_S * .25 * changeCoefficient;
 
                 double desiredChangeInHeading = lastMovement.leastAngleTo(fieldCentricTranslation);
                 if (maxHeadingChange < Math.abs(desiredChangeInHeading)) // if this isn't within the constraint, shift as close as possible.
@@ -226,7 +232,7 @@ public class SwerveDrive extends ScheduledTask
         // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
         for (int i = 0; i < swerveWheels.length; i++)
             swerveWheels[i].setVectorTarget(
-                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(fieldCentricTranslation).multiply(MAX_TELEOP_SPEED));
+                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(fieldCentricTranslation).multiply(MAX_SWERVE_SPEED_CM_S));
 
         // Check to see whether it's okay to start moving by observing the state of all wheels.
         boolean drivingCanStart = true;
@@ -268,7 +274,7 @@ public class SwerveDrive extends ScheduledTask
 
         for (int i = 0; i < swerveWheels.length; i++)
             swerveWheels[i].setVectorTarget(
-                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(desiredMovement).multiply(MAX_TELEOP_SPEED));
+                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(desiredMovement).multiply(MAX_SWERVE_SPEED_CM_S));
     }
 
     /**

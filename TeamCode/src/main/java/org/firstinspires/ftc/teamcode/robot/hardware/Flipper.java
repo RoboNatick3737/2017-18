@@ -13,15 +13,16 @@ public class Flipper
 
     private int currentStage = 0;
 
-    private final Servo left, right;
+    private final Servo left, right, glyphHolder;
 
     // The current servo position (getPosition() doesn't seem to work).
     private double position = FLIP_MIN;
 
-    public Flipper(Servo left, Servo right)
+    public Flipper(Servo left, Servo right, Servo glyphHolder)
     {
         this.left = left;
         this.right = right;
+        this.glyphHolder = glyphHolder;
 
         advanceStage(0);
     }
@@ -38,12 +39,15 @@ public class Flipper
         {
             case 0:
                 position = FLIP_MIN;
+                glyphHolder.setPosition(0.5);
                 break;
             case 1:
                 position = FLIP_MID;
+                glyphHolder.setPosition(0.5);
                 break;
             case 2:
                 position = FLIP_MAX;
+                glyphHolder.setPosition(0);
                 break;
         }
 
