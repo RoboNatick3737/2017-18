@@ -40,14 +40,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     tools:context="org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity"
     android:focusable="true"
     android:id="@+id/entire_screen"
-    android:orientation="horizontal">
+    android:orientation="vertical">
 
   <!-- The first part of the screen (text and header). -->
   <LinearLayout
-      android:layout_width="0dp"
-      android:layout_weight="1"
-      android:layout_height="fill_parent"
-      android:orientation="vertical">
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical"
+      android:id="@+id/boringFTCStuff"
+      android:visibility="visible">
 
     <!-- black bar on top -->
     <RelativeLayout
@@ -144,6 +145,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           android:visibility="invisible" />
       <!-- -->
 
+      <!-- When visible, the error message will overlay and thus partially
+           obscure part of the camera monitor. We make this trade off so as to
+           allow for a bigger camera monitor view in the common case when the
+           error is not in fact present
+        -->
+      <TextView style="@style/FtcTextViewStyleBold"
+          android:id="@+id/textErrorMessage"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_below="@+id/textOpMode"
+          android:text=""
+          android:textColor="?attr/textMediumDark" />
+
       <TextView
           android:id="@+id/textGamepad1"
           android:layout_width="match_parent"
@@ -174,81 +188,34 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           android:visibility="invisible" />
 
     </RelativeLayout>
+
   </LinearLayout>
 
+  <!-- The frame layout for the OpenCV camera -->
+  <org.opencv.android.JavaCameraView
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:visibility="invisible"
+      android:focusable="false"
+      android:id="@+id/opencvJavaCameraView"
+      opencv:show_fps="true"
+      opencv:camera_id="any"/>
 
-  <!-- The second part of the screen (camera views). -->
-  <LinearLayout
-      android:layout_width="0dp"
-      android:layout_weight="2"
+  <!-- The Vuforia camera -->
+  <FrameLayout
+      android:layout_width="fill_parent"
       android:layout_height="fill_parent"
-      android:orientation="horizontal">
+      android:id="@+id/vuforiaCamParent"
+      android:visibility="invisible">
 
-    <RelativeLayout
+    <LinearLayout
+        android:id="@+id/vuforiaCameraLayout"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent">
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        android:visibility="visible"
+        />
 
-      <!-- The frame layout for the OpenCV camera -->
-      <FrameLayout
-          android:layout_height="fill_parent"
-          android:layout_width="fill_parent"
-          android:id="@+id/openCVCam"
-          android:visibility="invisible">
-
-        <hankextensions.vision.opencv.ImprovedJCV
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:visibility="gone"
-            android:focusable="false"
-            android:id="@+id/show_camera_activity_java_surface_view"
-            opencv:show_fps="true"
-            opencv:camera_id="any"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="[RESULT]"
-            android:id="@+id/resultText"
-            android:layout_gravity="end|top"
-            android:textColor="#ff0000" />
-
-      </FrameLayout>
-
-      <!-- The Vuforia camera -->
-      <FrameLayout
-          android:layout_width="fill_parent"
-          android:layout_height="fill_parent"
-          android:id="@+id/vuforiaCamParent">
-
-        <LinearLayout
-            android:id="@+id/cameraMonitorViewId"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:orientation="vertical"
-            android:visibility="visible"
-            />
-
-        <!-- When visible, the error message will overlay and thus partially
-             obscure part of the camera monitor. We make this trade off so as to
-             allow for a bigger camera monitor view in the common case when the
-             error is not in fact present
-          -->
-        <TextView style="@style/FtcTextViewStyleBold"
-            android:id="@+id/textErrorMessage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textColor="?attr/textMediumDark" />
-
-      </FrameLayout>
-
-    </RelativeLayout>
-  </LinearLayout>
-
-  <WebView
-    android:id="@+id/webViewBlocksRuntime"
-    android:layout_width="1dp"
-    android:layout_height="1dp" />
+  </FrameLayout>
 
 </LinearLayout>

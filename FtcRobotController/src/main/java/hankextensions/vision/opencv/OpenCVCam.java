@@ -1,9 +1,7 @@
 package hankextensions.vision.opencv;
 
-import android.hardware.Camera;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
 
 import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.qualcomm.ftcrobotcontroller.R;
@@ -17,6 +15,7 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 
 import hankextensions.EnhancedOpMode;
+import hankextensions.vision.UILayoutUtility;
 
 /**
  * Singleton class instead of a static class because the BaseLoaderCallback doesn't like
@@ -37,7 +36,6 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     private final String LOG_TAG = "OpenCVCam";
 
     // The camera view.
-    private ImprovedJCV improvedJCV = null;
     private CameraBridgeViewBase cameraBridgeViewBase = null;
 
     // The activity's current state.
@@ -136,17 +134,6 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         }
         else
             LoggingBase.instance.lines("Camera Bridge View Base was null, couldn't enable listener!");
-
-        // Gets available sizes (has to run on UI thread or crash :( )
-        FtcRobotControllerActivity.instance.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                // List all available preview sizes to the user.
-                for (Camera.Size size : improvedJCV.getSupportedPreviewSizes())
-                    if (LoggingBase.instance != null)
-                        LoggingBase.instance.lines("Size: " + size.width + "x" + size.height);
-            }
-        });
     }
 
     /**
@@ -175,17 +162,16 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
      */
     private void setViewStatus(final boolean state)
     {
-        FrameLayout layout = (FrameLayout) FtcRobotControllerActivity.instance.findViewById(R.id.openCVCam);
-
-        int desiredView = state ? View.VISIBLE : View.INVISIBLE;
-
-        layout.setVisibility(desiredView);
-        layout.setEnabled(state);
-
-        for (int i = 0; i < layout.getChildCount(); i++) {
-            View child = layout.getChildAt(i);
-            child.setVisibility(desiredView);
-            child.setEnabled(state);
+        // Enable at the start if we're turning this on.
+        if (state)
+        {
+            UILayoutUtility.setFTCStuffVisibilityTo(false);
+            cameraBridgeViewBase.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            cameraBridgeViewBase.setVisibility(View.GONE);
+            UILayoutUtility.setFTCStuffVisibilityTo(true);
         }
     }
 
@@ -247,8 +233,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 
         FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        improvedJCV = (ImprovedJCV) FtcRobotControllerActivity.instance.findViewById(R.id.show_camera_activity_java_surface_view);
-        cameraBridgeViewBase = improvedJCV;
+        cameraBridgeViewBase = (CameraBridgeViewBase) FtcRobotControllerActivity.instance.findViewById(R.id.opencvJavaCameraView);
     }
 
     /**

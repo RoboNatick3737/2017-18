@@ -35,7 +35,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     protected void onRun() throws InterruptedException
     {
         OpenCVCam cam = new OpenCVCam();
-        cam.start(this);
+        cam.start(this, true);
 
         // See if we can turn on the lights, but not required.
         try

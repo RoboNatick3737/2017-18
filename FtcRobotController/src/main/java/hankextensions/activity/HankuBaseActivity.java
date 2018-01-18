@@ -27,7 +27,8 @@ public abstract class HankuBaseActivity extends Activity implements TaskParent
         VuforiaCam.instance = null;
         AndroidGyro.instance = null;
 
-        Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler(this, this));
+        // Enable when stable.
+//        Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler(this, this));
     }
 
     @Override

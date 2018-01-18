@@ -23,8 +23,6 @@
     <!-- The main robot controller activity -->
     <activity
       android:name="org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity"
-      android:screenOrientation="landscape"
-      android:configChanges="orientation|screenSize"
       android:label="@string/app_name"
       android:launchMode="singleTask" >
 

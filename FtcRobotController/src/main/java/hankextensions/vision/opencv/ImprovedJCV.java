@@ -24,4 +24,25 @@ public class ImprovedJCV extends JavaCameraView
     {
         return mCamera.getParameters().getSupportedPreviewSizes();
     }
+
+    public void setCameraResolution(int width, int height)
+    {
+        boolean foundSize = false;
+        for (Camera.Size size : getSupportedPreviewSizes())
+        {
+            if (size.width == width && size.height == height)
+            {
+                foundSize = true;
+                break;
+            }
+        }
+
+        if (foundSize)
+        {
+//            mCamera.getParameters().setPreviewSize(width, height);
+//            setMaxFrameSize(width, height);
+//            disableView();
+//            enableView();
+        }
+    }
 }
