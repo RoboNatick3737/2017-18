@@ -35,6 +35,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
     protected void onRun() throws InterruptedException
     {
         OpenCVCam cam = new OpenCVCam();
+        cam.setMaxResolution(1000, 900);
         cam.start(this, true);
 
         // See if we can turn on the lights, but not required.
@@ -199,15 +200,24 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
             Imgproc.cvtColor(main, main, Imgproc.COLOR_RGB2YCrCb);
             LinkedList<Mat> channels = new LinkedList<>();
             Core.split(main, channels);
-            if (alliance == CompetitionProgram.Alliance.BLUE) {
+
+            if (alliance == CompetitionProgram.Alliance.BLUE)
+            {
                 Mat blue = channels.get(2);
                 Imgproc.equalizeHist(blue, blue); // Blue will show up on any surface as a result of this, but we're only pointing this at cryptoboxes so it should help instead of harm.
-                Imgproc.threshold(blue, primaryMask, 190, 255, Imgproc.THRESH_BINARY);
-            } else if (alliance == CompetitionProgram.Alliance.RED) {
+
+                double blueMin = 190;
+                if (lights != null) // Reduce min of blue as we get closer because lights affect it.
+                    blueMin -=  (1 - estimatedForwardDistance) * 40;;
+                Imgproc.threshold(blue, primaryMask, blueMin, 255, Imgproc.THRESH_BINARY);
+            }
+            else if (alliance == CompetitionProgram.Alliance.RED)
+            {
                 Mat red = channels.get(1);
                 Imgproc.equalizeHist(red, red);
                 Imgproc.threshold(red, primaryMask, 180, 255, Imgproc.THRESH_BINARY);
             }
+
             Mat white = channels.get(0);
             Imgproc.equalizeHist(white, white);
             Imgproc.threshold(white, whiteMask, 150, 255, Imgproc.THRESH_BINARY);
@@ -262,7 +272,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
                     whitePixels = Core.countNonZero(whiteMask.row(rowOfMat));
 
             // Don't analyze if this obviously isn't a column.
-            quickFilter[rowOfMat] = primaryPixels > (.4) * height && primaryPixels < .9 * height &&
+            quickFilter[rowOfMat] = primaryPixels > (.6) * height && primaryPixels < .9 * height &&
                     whitePixels > (.04) * height && whitePixels < .6 * height &&
                     (whitePixels + primaryPixels) > (.85) * height;
         }
@@ -714,7 +724,7 @@ public class CryptoboxTracker extends EnhancedOpMode implements CameraBridgeView
         // Area of interest where the box is illuminated.
         analysisRegion = new Rect(
                 new Point(analysisResolution.width * (Range.clip(.325 - (estimatedForwardDistance) * .0025, 0, 1)), analysisResolution.height * .05),
-                new Point(analysisResolution.width * (Range.clip(.86 - (estimatedForwardDistance) * .003, 0, 1)), analysisResolution.height * .95));
+                new Point(analysisResolution.width * (Range.clip(.86 - (estimatedForwardDistance) * .007, 0, 1)), analysisResolution.height * .95));
 
         primaryMask = new Mat(analysisRegion.size(), Imgproc.THRESH_BINARY); // 1-channel = grayscale image
         whiteMask = new Mat(analysisRegion.size(), Imgproc.THRESH_BINARY);

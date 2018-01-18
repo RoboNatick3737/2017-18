@@ -31,45 +31,54 @@ public class DumpGlyphToNearest extends EnhancedOpMode
         tracker.setLoggingEnabledTo(true);
 
         OpenCVCam cam = new OpenCVCam();
+        cam.setMaxResolution(800, 500);
         cam.start(tracker, true);
 
         robot.lights.setLightsTo(true);
 
         waitForStart();
 
-        double offFromForwardIdeal = 1, offFromHorizontalIdeal = 1;
+        double offFromForwardIdeal = -(tracker.estimatedForwardDistance - .26), offFromHorizontalIdeal = -tracker.closestPlacementLocationOffset;
 
         // Double equality
-        while (Math.abs(offFromForwardIdeal) > 0.03 || Math.abs(offFromHorizontalIdeal) > 0.02)
+        while (Math.abs(offFromForwardIdeal) > 0.05 || Math.abs(offFromHorizontalIdeal) > 0.04)
         {
             double horizontalSpeed, forwardSpeed;
             if (!tracker.detectedNoColumns)
             {
-                offFromForwardIdeal = -(tracker.estimatedForwardDistance - .26);
-                forwardSpeed = 0.7 * offFromForwardIdeal;
-                if (Math.abs(forwardSpeed) < .03)
+                forwardSpeed = Math.signum(offFromForwardIdeal) * (Math.abs(offFromForwardIdeal) * 0 + .1);
+                if (Math.abs(forwardSpeed) < .015)
                     forwardSpeed = 0;
 
-                offFromHorizontalIdeal = -tracker.closestPlacementLocationOffset;
-                horizontalSpeed = 0.7 * offFromHorizontalIdeal;
-                if (Math.abs(horizontalSpeed) < .03)
+                horizontalSpeed = Math.signum(offFromHorizontalIdeal) * (Math.abs(offFromHorizontalIdeal) * 0 + .04);
+                if (Math.abs(horizontalSpeed) < .015)
                     horizontalSpeed = 0;
             }
             else
             {
                 horizontalSpeed = 0;
                 forwardSpeed = 0.1;
+                offFromForwardIdeal = -1;
+                offFromHorizontalIdeal = -1;
             }
 
             robot.swerveDrive.setDesiredMovement(Vector2D.rectangular(forwardSpeed, horizontalSpeed));
 
-            long start = System.currentTimeMillis();
-            while (System.currentTimeMillis() - start < 100) // Don't make super fast adjustments.
+            // Wait until we have a new reading (frames can take a while to process)
+            double currentOffFromForward = offFromForwardIdeal, currentOffFromHorizontal = offFromHorizontalIdeal; // use other vals as anchor points
+            while (Math.abs(currentOffFromForward - offFromForwardIdeal) < .00001 && Math.abs(currentOffFromHorizontal - offFromHorizontalIdeal) < .00001)
             {
+                currentOffFromForward = -(tracker.estimatedForwardDistance - .26);
+                currentOffFromHorizontal = -tracker.closestPlacementLocationOffset;
+
                 robot.swerveDrive.synchronousUpdate();
 
                 flow.yield();
             }
+
+            // Start a new loop with these anchor points.
+            offFromForwardIdeal = currentOffFromForward;
+            offFromHorizontalIdeal = currentOffFromHorizontal;
         }
 
         robot.swerveDrive.stop();

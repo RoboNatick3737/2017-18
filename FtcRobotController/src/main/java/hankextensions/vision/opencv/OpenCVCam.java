@@ -137,6 +137,18 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     }
 
     /**
+     * Sometimes we want to analyze at a lower resolution.
+     */
+    public void setMaxResolution(int maxWidth, int maxHeight) throws InterruptedException
+    {
+        while (!loadingComplete)
+            EnhancedOpMode.instance.flow.yield();
+
+        if (cameraBridgeViewBase != null)
+            cameraBridgeViewBase.setMaxFrameSize(maxWidth, maxHeight);
+    }
+
+    /**
      * Stops OpenCV and hides it from the Robot Controller.
      */
     public void stop()
