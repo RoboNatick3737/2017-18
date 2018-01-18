@@ -24,7 +24,9 @@
     <activity
       android:name="org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity"
       android:label="@string/app_name"
-      android:launchMode="singleTask" >
+      android:launchMode="singleTask"
+      android:screenOrientation="landscape"
+      android:configChanges="orientation|screenSize">
 
       <intent-filter>
         <category android:name="android.intent.category.LAUNCHER" />
