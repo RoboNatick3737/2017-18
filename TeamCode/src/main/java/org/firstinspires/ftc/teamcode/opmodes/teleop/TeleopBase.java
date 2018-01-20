@@ -66,7 +66,7 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
             C2.update();
 
             // Update swerve drive
-            if (C1.x.currentState == HTButton.ButtonState.JUST_TAPPED)
+            if (C1.b.currentState == HTButton.ButtonState.JUST_TAPPED)
             {
                 if (robot.swerveDrive.getControlMethod() == SwerveDrive.ControlMethod.FIELD_CENTRIC)
                     robot.swerveDrive.setControlMethod(SwerveDrive.ControlMethod.TANK_DRIVE);

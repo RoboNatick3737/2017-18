@@ -111,7 +111,7 @@ public class Robot
                 frontLeftDrive,
                 hardware.initialize(Servo.class, "Front Left Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
-                new PIDConstants(0.009, .001, 0, .5, 40000000),
+                new PIDConstants(0.009, 0, 0, .5, 40000000),
                 57);
 
         SwerveWheel frontRight = new SwerveWheel(
@@ -119,7 +119,7 @@ public class Robot
                 frontRightDrive,
                 hardware.initialize(Servo.class, "Front Right Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
-                new PIDConstants(0.01, .001, 0, .5, 40000000),
+                new PIDConstants(0.01, 0, 0, .5, 40000000),
                 97);
 
         SwerveWheel backLeft = new SwerveWheel(
@@ -127,7 +127,7 @@ public class Robot
                 backLeftDrive,
                 hardware.initialize(Servo.class, "Back Left Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
-                new PIDConstants(0.009, .001, 0, .5, 40000000),
+                new PIDConstants(0.009, 0, 0, .5, 40000000),
                 73);
 
         SwerveWheel backRight = new SwerveWheel(
@@ -135,7 +135,7 @@ public class Robot
                 backRightDrive,
                 hardware.initialize(Servo.class, "Back Right Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
-                new PIDConstants(0.009, .001, 0, .5, 40000000),
+                new PIDConstants(0.009, 0, 0, .5, 40000000),
                 137.78);
 
         // Creates the swerve drive with the correct joystick.
