@@ -5,6 +5,7 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
+import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveDrive;
 import org.firstinspires.ftc.teamcode.vision.analysis.CryptoboxTracker;
 
@@ -16,36 +17,9 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
 {
     private Robot robot;
 
-    private ProcessConsole camConsole;
-    private OpenCVCam cam;
-    private CryptoboxTracker tracker;
-
-    private boolean cryptoboxTestingEnabled = false;
-    public void enableTestingCryptobox() throws InterruptedException
-    {
-        cam.start(tracker, true);
-    }
-    public void disableTestingCryptobox()
-    {
-        cam.stop();
-    }
-    public void toggleCryptoTesting() throws InterruptedException
-    {
-        cryptoboxTestingEnabled = !cryptoboxTestingEnabled;
-
-        if (cryptoboxTestingEnabled)
-            enableTestingCryptobox();
-        else
-            disableTestingCryptobox();
-    }
-
     @Override
     protected final void onRun() throws InterruptedException
     {
-        cam = new OpenCVCam();
-        camConsole = log.newProcessConsole("Cam Console");
-        tracker = new CryptoboxTracker();
-
         robot = new Robot(hardware);
 
         // Init robot hardware.
@@ -79,9 +53,6 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
             if (C1.x.currentState == HTButton.ButtonState.JUST_TAPPED)
                 robot.flipper.advanceStage();
 
-            if (C2.x.currentState == HTButton.ButtonState.JUST_TAPPED)
-                robot.flipper.advanceStage();
-
             if (C1.y.currentState == HTButton.ButtonState.JUST_TAPPED)
                 robot.lights.toggleLights();
 
@@ -101,27 +72,25 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
             else
                 robot.lift.stop();
 
+            // Control ball knocker (debugging)
+            if (C2.x.currentState == HTButton.ButtonState.JUST_TAPPED)
+                robot.ballKnocker.toggleKnocker();
+
+            if (C2.y.currentState == HTButton.ButtonState.JUST_TAPPED)
+                robot.ballKnocker.setKnockerTo(Math.random() > 0.5 ? BallKnocker.KnockerPosition.LEFT : BallKnocker.KnockerPosition.RIGHT);
+
             // Controls the relic arm
-            if (C2.y.currentState == HTButton.ButtonState.JUST_TAPPED)
-                robot.relicSystem.toggleGrabber();
+//            if (C2.y.currentState == HTButton.ButtonState.JUST_TAPPED)
+//                robot.relicSystem.toggleGrabber();
 
-            robot.relicSystem.variableExtension(C2.gamepad.right_trigger, C2.gamepad.left_trigger);
+//            robot.relicSystem.variableExtension(C2.gamepad.right_trigger, C2.gamepad.left_trigger);
 
-            if (C2.gamepad.dpad_left)
-                robot.relicSystem.rotate(false);
-            else if (C2.gamepad.dpad_right)
-                robot.relicSystem.rotate(true);
-            else
-                robot.relicSystem.stopRotator();
-
-            // Temporary for cam testing
-            if (C2.y.currentState == HTButton.ButtonState.JUST_TAPPED)
-                toggleCryptoTesting();
-
-            if (cryptoboxTestingEnabled)
-            {
-                camConsole.write("Distances are " + tracker.placementDistances[0] + ", " + tracker.placementDistances[1] + " and " + tracker.placementDistances[2]);
-            }
+//            if (C2.gamepad.dpad_left)
+//                robot.relicSystem.rotate(false);
+//            else if (C2.gamepad.dpad_right)
+//                robot.relicSystem.rotate(true);
+//            else
+//                robot.relicSystem.stopRotator();
 
             flow.yield();
         }

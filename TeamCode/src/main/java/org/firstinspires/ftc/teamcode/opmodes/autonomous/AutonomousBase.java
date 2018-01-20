@@ -70,7 +70,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             double ballKnockHeading = 0;
 
             // Put down the knocker
-            robot.ballKnocker.setKnockerTo(false);
+            robot.ballKnocker.setUpwardPosTo(false);
 
             // Determine which direction we're going to have to rotate when auto starts.
             if (getAlliance() == Alliance.RED) // since this extends competition op mode.
@@ -100,7 +100,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             }
 
             // Put the knocker back up
-            robot.ballKnocker.setKnockerTo(true);
+            robot.ballKnocker.setUpwardPosTo(true);
         }
 
         // Drive off of the balance board.

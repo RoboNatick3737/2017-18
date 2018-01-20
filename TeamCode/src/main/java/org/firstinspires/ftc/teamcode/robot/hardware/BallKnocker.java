@@ -1,28 +1,66 @@
 package org.firstinspires.ftc.teamcode.robot.hardware;
 
+import com.makiah.makiahsandroidlib.threading.Flow;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class BallKnocker
 {
-    private final double UP = 0, DOWN = 0.6;
     private boolean up = true;
 
-    private final Servo ballKnocker;
-    public BallKnocker(Servo ballKnocker)
-    {
-        this.ballKnocker = ballKnocker;
+    private final Servo descender, knocker;
 
-        setKnockerTo(true);
+    public BallKnocker(Servo descender, Servo knocker)
+    {
+        this.descender = descender;
+        this.knocker = knocker;
+
+        setUpwardPosTo(true);
+        setKnockerTo(KnockerPosition.LEFT);
     }
 
-    public void setKnockerTo(boolean up)
+    public void setUpwardPosTo(boolean up)
     {
         this.up = up;
 
-        ballKnocker.setPosition(up ? UP : DOWN);
+        descender.setPosition(up ? 0.15 : 0.7);
     }
     public void toggleKnocker()
     {
-        setKnockerTo(!up);
+        setUpwardPosTo(!up);
+    }
+
+    public enum KnockerPosition {LEFT, MIDDLE, RIGHT}
+    public void setKnockerTo(KnockerPosition pos)
+    {
+        switch (pos)
+        {
+            case LEFT:
+                knocker.setPosition(0);
+                break;
+
+            case MIDDLE:
+                knocker.setPosition(0.5);
+                break;
+
+            case RIGHT:
+                knocker.setPosition(1);
+                break;
+        }
+    }
+
+    /**
+     * Run during auto, knocks the left ball off the holder.
+     */
+    public void knockBall(KnockerPosition toKnock, Flow flow) throws InterruptedException
+    {
+        setKnockerTo(KnockerPosition.MIDDLE);
+        setUpwardPosTo(false);
+
+        flow.msPause(500);
+
+        setKnockerTo(toKnock);
+        flow.msPause(100);
+
+        setUpwardPosTo(true);
     }
 }

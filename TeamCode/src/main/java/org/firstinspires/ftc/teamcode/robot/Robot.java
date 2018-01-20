@@ -54,9 +54,7 @@ public class Robot
 //        gyro = new HankuTankuIMU(hardware.map.get(BNO055IMU.class, "IMU"));
 
         // Intake setup
-        DcMotor harvesterMotor = hardware.initialize(DcMotor.class, "Harvester");
-        harvesterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        intake = new Intake(harvesterMotor, hardware.initialize(Servo.class, "Conveyor"));
+        intake = new Intake(hardware.initialize(Servo.class, "Left Harvester"), hardware.initialize(Servo.class, "Right Harvester"), hardware.initialize(DcMotor.class, "Secondary Harvester"));
 
         // Lift init
         DcMotor liftMotor = hardware.initialize(DcMotor.class, "Lift");
@@ -64,15 +62,15 @@ public class Robot
         lift = new Lift(liftMotor);
 
         // Relic Arm init
-        relicSystem = new RelicSystem(hardware.initialize(DcMotor.class, "Relic Arm"), hardware.initialize(Servo.class, "Relic Rotator"), hardware.initialize(Servo.class, "Relic Grabber"));
+        relicSystem = null; //new RelicSystem(hardware.initialize(DcMotor.class, "Relic Arm"), hardware.initialize(Servo.class, "Relic Rotator"), hardware.initialize(Servo.class, "Relic Grabber"));
 
         // Flipper init
         flipper = new Flipper(hardware.initialize(Servo.class, "Left Flipper"), hardware.initialize(Servo.class, "Right Flipper"), hardware.initialize(Servo.class, "Glyph Holder"));
 
         // Ball knocker init
-        ballKnocker = null; //new BallKnocker(hardware.initialize(Servo.class, "Ball Knocker"));
+        ballKnocker = new BallKnocker(hardware.initialize(Servo.class, "Knocker Holder"), hardware.initialize(Servo.class, "Mini Knocker"));
 
-        // Lights
+        // Lights init
         lights = new LightingSystem(hardware.initialize(DcMotor.class, "Lights"));
 
 

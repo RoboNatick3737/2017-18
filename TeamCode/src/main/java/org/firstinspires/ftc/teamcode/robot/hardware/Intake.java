@@ -8,41 +8,36 @@ import com.qualcomm.robotcore.hardware.Servo;
  */
 public class Intake
 {
-    private final double IN_SPEED = 1, OUT_SPEED = -1;
+    private final Servo leftHarvester, rightHarvester;
+    private final DcMotor secondaryHarvester;
 
-    private final DcMotor harvester;
-    private final Servo conveyor;
-
-    public Intake(DcMotor harvester, Servo conveyor)
+    public Intake(Servo leftHarvester, Servo rightHarvester, DcMotor secondaryHarvester)
     {
-        this.harvester = harvester;
-        this.conveyor = conveyor;
+        this.leftHarvester = leftHarvester;
+        this.rightHarvester = rightHarvester;
+        this.secondaryHarvester = secondaryHarvester;
+
         stop();
     }
 
     public void intake()
     {
-        this.harvester.setPower(IN_SPEED);
-        this.conveyor.setPosition(0);
+        this.rightHarvester.setPosition(1);
+        this.leftHarvester.setPosition(-1);
+        this.secondaryHarvester.setPower(1);
     }
 
     public void expel()
     {
-        this.harvester.setPower(OUT_SPEED);
-        this.conveyor.setPosition(1);
+        this.rightHarvester.setPosition(-1);
+        this.leftHarvester.setPosition(1);
+        this.secondaryHarvester.setPower(-1);
     }
 
     public void stop()
     {
-        this.harvester.setPower(0);
-        this.conveyor.setPosition(0.5);
-    }
-
-    public void variable(double in, double out)
-    {
-        double speed = IN_SPEED * in + OUT_SPEED * out;
-
-        this.harvester.setPower(Math.abs(speed) > .2 ? speed : 0);
-        this.conveyor.setPosition(speed * 0.5 + 0.5);
+        this.leftHarvester.setPosition(0.5);
+        this.rightHarvester.setPosition(0.5);
+        this.secondaryHarvester.setPower(0);
     }
 }
