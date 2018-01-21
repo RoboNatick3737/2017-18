@@ -12,7 +12,7 @@ import hankextensions.structs.Vector2D;
 import hankextensions.vision.opencv.OpenCVCam;
 import hankextensions.vision.vuforia.VuforiaCam;
 
-import org.firstinspires.ftc.teamcode.vision.analysis.JewelDetector;
+import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
 
 public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
 {

@@ -7,3 +7,6 @@
 [submodule "FtcRobotController/src/main/AndroidCV-JNILibs"]
 	path = FtcRobotController/src/main/AndroidCV-JNILibs
 	url = https://github.com/makiah/AndroidCV-JNILibs
+[submodule "TeamCode/src/main/java/org/firstinspires/ftc/teamcode/vision/relicrecoveryvisionpipelines"]
+	path = TeamCode/src/main/java/org/firstinspires/ftc/teamcode/vision/relicrecoveryvisionpipelines
+	url = https://gitlab.com/makiahtbennett/relicrecoveryvisionpipelines

@@ -1,17 +1,14 @@
 package org.firstinspires.ftc.teamcode.opmodes.teleop;
 
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveDrive;
-import org.firstinspires.ftc.teamcode.vision.analysis.CryptoboxTracker;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.input.HTButton;
-import hankextensions.vision.opencv.OpenCVCam;
 
 public abstract class TeleopBase extends EnhancedOpMode implements CompetitionProgram
 {

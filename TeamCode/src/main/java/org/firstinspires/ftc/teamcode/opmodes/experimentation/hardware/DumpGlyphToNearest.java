@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
-import org.firstinspires.ftc.teamcode.vision.analysis.CryptoboxTracker;
+import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CryptoboxTracker;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.structs.Vector2D;
