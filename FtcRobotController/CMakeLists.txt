@@ -26,6 +26,29 @@ add_library( # Sets the name of the library.
              # file are automatically included.
              src/main/cpp/native-opencv.cpp )
 
+# Cryptobox detection (heavy analysis in .cpp format)
+add_library( # Sets the name of the library.
+             cryptobox-detector
+
+             # Sets the library as a shared library.
+             SHARED
+
+             # Provides a relative path to your source file(s).
+             # Associated headers in the same location as their source
+             # file are automatically included.
+             src/main/cpp/relicrecoveryvisionpipelinescpp/cryptobox-detection.cpp )
+
+# Glyph Detection (heavy analysis in .cpp format)
+add_library( # Sets the name of the library.
+             glyph-detector
+
+             # Sets the library as a shared library.
+             SHARED
+
+             # Provides a relative path to your source file(s).
+             # Associated headers in the same location as their source
+             # file are automatically included.
+             src/main/cpp/relicrecoveryvisionpipelinescpp/glyph-detection.cpp )
 
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -47,6 +70,26 @@ find_library( # Sets the name of the path variable.
 
 target_link_libraries( # Specifies the target library.
                        native-opencv
+
+                       # OpenCV lib
+                       lib_opencv
+
+                       # Links the target library to the log library
+                       # included in the NDK.
+                       ${log-lib} )
+
+target_link_libraries( # Specifies the target library.
+                       cryptobox-detector
+
+                       # OpenCV lib
+                       lib_opencv
+
+                       # Links the target library to the log library
+                       # included in the NDK.
+                       ${log-lib} )
+
+target_link_libraries( # Specifies the target library.
+                       glyph-detector
 
                        # OpenCV lib
                        lib_opencv

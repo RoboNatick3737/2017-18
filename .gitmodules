@@ -10,3 +10,6 @@
 [submodule "TeamCode/src/main/java/org/firstinspires/ftc/teamcode/vision/relicrecoveryvisionpipelines"]
 	path = TeamCode/src/main/java/org/firstinspires/ftc/teamcode/vision/relicrecoveryvisionpipelines
 	url = https://gitlab.com/makiahtbennett/relicrecoveryvisionpipelines
+[submodule "FtcRobotController/src/main/cpp/relicrecoveryvisionpipelinescpp"]
+	path = FtcRobotController/src/main/cpp/relicrecoveryvisionpipelinescpp
+	url = https://gitlab.com/makiahtbennett/relicrecoveryvisionpipelinescpp
