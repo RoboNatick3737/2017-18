@@ -38,7 +38,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         long start; // for timed stuff.
 
         // Initialize the robot.
-        robot = new Robot(hardware);
+        robot = new Robot(hardware, Robot.InitializationMode.AUTONOMOUS);
 
         // We're in auto, after all.
         robot.swerveDrive.setJoystickControlEnabled(false);

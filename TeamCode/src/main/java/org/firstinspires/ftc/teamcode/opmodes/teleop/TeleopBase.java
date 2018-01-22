@@ -17,7 +17,7 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
     @Override
     protected final void onRun() throws InterruptedException
     {
-        robot = new Robot(hardware);
+        robot = new Robot(hardware, Robot.InitializationMode.TELEOP);
 
         // Init robot hardware.
         robot.flipper.advanceStage(0);
@@ -29,6 +29,8 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         waitForStart();
+
+        robot.gyro.startAntiDrift();
 
         while (true)
         {

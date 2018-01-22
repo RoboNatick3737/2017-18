@@ -10,23 +10,6 @@ import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity
 public class UILayoutUtility
 {
     /**
-     * Enables/disables the FrameLayout instance and its children on the XML layout of the robot
-     * controller.
-     * @param state true = enabled, false = disabled.
-     */
-    public static void setFTCStuffVisibilityTo(final boolean state)
-    {
-        if (!state)
-        {
-            setLayoutVisibilityTo(R.id.boringFTCStuff, false, true);
-        }
-        else
-        {
-            setLayoutVisibilityTo(R.id.boringFTCStuff, true, true);
-        }
-    }
-
-    /**
      * Disables/enables a given layout and its children.
      */
     public static void setLayoutVisibilityTo(int layoutID, boolean state, boolean includeChildren)

@@ -177,13 +177,11 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         // Enable at the start if we're turning this on.
         if (state)
         {
-            UILayoutUtility.setFTCStuffVisibilityTo(false);
             cameraBridgeViewBase.setVisibility(View.VISIBLE);
         }
         else
         {
             cameraBridgeViewBase.setVisibility(View.GONE);
-            UILayoutUtility.setFTCStuffVisibilityTo(true);
         }
     }
 
@@ -246,6 +244,7 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         FtcRobotControllerActivity.instance.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         cameraBridgeViewBase = (CameraBridgeViewBase) FtcRobotControllerActivity.instance.findViewById(R.id.opencvJavaCameraView);
+        cameraBridgeViewBase.setMaxFrameSize(800, 600); // default size
     }
 
     /**

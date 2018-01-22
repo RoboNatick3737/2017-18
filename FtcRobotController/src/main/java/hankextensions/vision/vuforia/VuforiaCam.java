@@ -96,13 +96,11 @@ public class VuforiaCam
                 // Enable at the start if we're turning this on.
                 if (state)
                 {
-                    UILayoutUtility.setFTCStuffVisibilityTo(false);
                     UILayoutUtility.setLayoutVisibilityTo(R.id.vuforiaCamParent, true, true);
                 }
                 else
                 {
                     UILayoutUtility.setLayoutVisibilityTo(R.id.vuforiaCamParent, false, true);
-                    UILayoutUtility.setFTCStuffVisibilityTo(true);
                 }
             }
         });

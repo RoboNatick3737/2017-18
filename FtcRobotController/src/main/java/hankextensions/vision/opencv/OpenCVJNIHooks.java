@@ -11,6 +11,8 @@ public class OpenCVJNIHooks
     static
     {
         System.loadLibrary("native-opencv");
+        System.loadLibrary("cryptobox-detector");
+        System.loadLibrary("glyph-detector");
     }
 
     /**

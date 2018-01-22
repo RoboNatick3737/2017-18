@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.Constants;
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.vuforia.VuforiaCam;
 
-@Autonomous(name="Test Vuforia", group= Constants.VISION_TESTING)
+@Autonomous(name="Check Vuforia", group= Constants.VISION_TESTING)
 public class VuforiaTester extends EnhancedOpMode
 {
     @Override

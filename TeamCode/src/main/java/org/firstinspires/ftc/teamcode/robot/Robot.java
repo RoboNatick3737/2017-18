@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -19,6 +20,7 @@ import org.firstinspires.ftc.teamcode.robot.hardware.SwerveWheel;
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
 
 import hankextensions.hardware.HardwareInitializer;
+import hankextensions.hardware.SmarterRangeSensor;
 import hankextensions.phonesensors.AndroidGyro;
 import hankextensions.phonesensors.Gyro;
 
@@ -27,6 +29,11 @@ import hankextensions.phonesensors.Gyro;
  */
 public class Robot
 {
+    public enum InitializationMode {
+        TELEOP, // no point in including sensors
+        AUTONOMOUS // no point in including relic arm
+    }
+
     // The drive system (wrapper for all complex swervey methods)
     public final SwerveDrive swerveDrive;
 
@@ -39,10 +46,13 @@ public class Robot
     public final RelicSystem relicSystem;
     public final LightingSystem lights;
 
+    // Autonomous sensors
+    public final SmarterRangeSensor frontRangeSensor, backRangeSensor;
+
     /**
      * Initializes the whole robot.
      */
-    public Robot(HardwareInitializer hardware) throws InterruptedException
+    public Robot(HardwareInitializer hardware, InitializationMode initializationMode) throws InterruptedException
     {
         // Init the android gyro (make sure to call start()).
         AndroidGyro androidGyro = new AndroidGyro();
@@ -53,6 +63,18 @@ public class Robot
         // Init the ADAFRUIT gyro.
 //        gyro = new HankuTankuIMU(hardware.map.get(BNO055IMU.class, "IMU"));
 
+        if (initializationMode == InitializationMode.AUTONOMOUS)
+        {
+            // Get front and back sensors.
+            frontRangeSensor = new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Front Range Sensor"), 0x10);
+            backRangeSensor = new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Back Range Sensor"), 0x2c);
+        }
+        else
+        {
+            frontRangeSensor = null;
+            backRangeSensor = null;
+        }
+
         // Intake setup
         intake = new Intake(hardware.initialize(Servo.class, "Left Harvester"), hardware.initialize(Servo.class, "Right Harvester"), hardware.initialize(DcMotor.class, "Secondary Harvester"));
 
@@ -61,17 +83,32 @@ public class Robot
         liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         lift = new Lift(liftMotor);
 
-        // Relic Arm init
-        relicSystem = null; //new RelicSystem(hardware.initialize(DcMotor.class, "Relic Arm"), hardware.initialize(Servo.class, "Relic Rotator"), hardware.initialize(Servo.class, "Relic Grabber"));
+        if (initializationMode == InitializationMode.TELEOP)
+        {
+            // Relic Arm init
+            relicSystem = null; //new RelicSystem(hardware.initialize(DcMotor.class, "Relic Arm"), hardware.initialize(Servo.class, "Relic Rotator"), hardware.initialize(Servo.class, "Relic Grabber"));
+        }
+        else
+        {
+            relicSystem = null;
+        }
 
         // Flipper init
         flipper = new Flipper(hardware.initialize(Servo.class, "Left Flipper"), hardware.initialize(Servo.class, "Right Flipper"), hardware.initialize(Servo.class, "Glyph Holder"));
 
-        // Ball knocker init
-        ballKnocker = new BallKnocker(hardware.initialize(Servo.class, "Knocker Holder"), hardware.initialize(Servo.class, "Mini Knocker"));
+        if (initializationMode == InitializationMode.AUTONOMOUS)
+        {
+            // Ball knocker init
+            ballKnocker = new BallKnocker(hardware.initialize(Servo.class, "Knocker Holder"), hardware.initialize(Servo.class, "Mini Knocker"));
 
-        // Lights init
-        lights = new LightingSystem(hardware.initialize(DcMotor.class, "Lights"));
+            // Lights init
+            lights = new LightingSystem(hardware.initialize(DcMotor.class, "Lights"));
+        }
+        else
+        {
+            ballKnocker = null;
+            lights = null;
+        }
 
 
         // All of the drive motors and their respective PID.

@@ -45,7 +45,7 @@ public class StraightDriveTesting extends EnhancedOpMode
     @Override
     protected void onRun() throws InterruptedException
     {
-        Robot robot = new Robot(hardware);
+        Robot robot = new Robot(hardware, Robot.InitializationMode.TELEOP);
         robot.swerveDrive.gyro = new FakeGyro();
         robot.swerveDrive.setJoystickControlEnabled(false);
         robot.swerveDrive.setControlMethod(SwerveDrive.ControlMethod.FIELD_CENTRIC);
