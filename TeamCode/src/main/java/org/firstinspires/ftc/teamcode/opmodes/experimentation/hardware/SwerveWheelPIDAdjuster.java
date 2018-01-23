@@ -7,9 +7,10 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
 import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
-import org.firstinspires.ftc.teamcode.robot.hardware.SwerveWheel;
+
 import hankextensions.structs.Vector2D;
 
 import hankextensions.EnhancedOpMode;
@@ -17,7 +18,7 @@ import hankextensions.EnhancedOpMode;
 @TeleOp(name="Swerve Wheel PID Adjuster", group= Constants.FINAL_BOT_EXPERIMENTATION)
 public class SwerveWheelPIDAdjuster extends EnhancedOpMode
 {
-    private SwerveWheel frontLeft, backLeft, frontRight, backRight;
+    private SwerveModule frontLeft, backLeft, frontRight, backRight;
     private ScheduledTaskPackage taskPackage;
 
     @Override
@@ -25,7 +26,7 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
         taskPackage = new ScheduledTaskPackage(this, "Swerve Wheel Adjustments");
 
         // All of the SwerveWheels (which align on independent threads)
-        frontLeft = new SwerveWheel(
+        frontLeft = new SwerveModule(
                 "Front Left",
                 null,
                 hardware.initialize(Servo.class, "Front Left Vex Motor"),
@@ -33,7 +34,7 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
                 new PIDConstants(0.013042, 0, 0.000608, 5.194, 40000000),
                 61.58);
 
-        frontRight = new SwerveWheel(
+        frontRight = new SwerveModule(
                 "Front Right",
                 null,
                 hardware.initialize(Servo.class, "Front Right Vex Motor"),
@@ -41,7 +42,7 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
                 new PIDConstants(0.012465, 0, 0.000945, 2.5, 40000000),
                 228.38);
 
-        backLeft = new SwerveWheel(
+        backLeft = new SwerveModule(
                 "Back Left",
                 null,
                 hardware.initialize(Servo.class, "Back Left Vex Motor"),
@@ -49,7 +50,7 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
                 new PIDConstants(0.0127, 0, 0.000704, 2.85, 40000000),
                 43.636);
 
-        backRight = new SwerveWheel(
+        backRight = new SwerveModule(
                 "Back Right",
                 null,
                 hardware.initialize(Servo.class, "Back Right Vex Motor"),
@@ -70,50 +71,50 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
 
     private ProcessConsole swervePIDConsole;
 
-    private void figureOutPIDConstantsFor(SwerveWheel swerveWheel) throws InterruptedException
+    private void figureOutPIDConstantsFor(SwerveModule swerveModule) throws InterruptedException
     {
-        taskPackage.add(swerveWheel);
+        taskPackage.add(swerveModule);
         taskPackage.run();
 
         Vector2D desiredRotation;
 
-        swervePIDConsole = log.newProcessConsole(swerveWheel.motorName + " PID");
+        swervePIDConsole = log.newProcessConsole(swerveModule.motorName + " PID");
 
         while (!gamepad1.start)
         {
             desiredRotation = Vector2D.rectangular(gamepad1.left_stick_x, -gamepad1.left_stick_y).rotateBy(-90);
 
             if (desiredRotation.magnitude > .05)
-                swerveWheel.setVectorTarget(desiredRotation);
+                swerveModule.setVectorTarget(desiredRotation);
 
             // Simulate controller latency of 90 ms
             for (int i = 0; i < 3; i++)
             {
                 if (gamepad1.a)
-                    swerveWheel.pidController.pidConstants.kP += .0001;
+                    swerveModule.pidController.pidConstants.kP += .0001;
                 else if (gamepad1.y)
-                    swerveWheel.pidController.pidConstants.kP -= .0001;
+                    swerveModule.pidController.pidConstants.kP -= .0001;
 
                 if (gamepad1.b)
-                    swerveWheel.pidController.pidConstants.kI += .0001;
+                    swerveModule.pidController.pidConstants.kI += .0001;
                 else if (gamepad1.x)
-                    swerveWheel.pidController.pidConstants.kI -= .0001;
+                    swerveModule.pidController.pidConstants.kI -= .0001;
 
                 if (gamepad1.dpad_up)
-                    swerveWheel.pidController.pidConstants.kD += .00001;
+                    swerveModule.pidController.pidConstants.kD += .00001;
                 else if (gamepad1.dpad_down)
-                    swerveWheel.pidController.pidConstants.kD -= .00001;
+                    swerveModule.pidController.pidConstants.kD -= .00001;
 
                 if (gamepad1.dpad_left)
-                    swerveWheel.pidController.pidConstants.errorThreshold += .01;
+                    swerveModule.pidController.pidConstants.errorThreshold += .01;
                 else if (gamepad1.dpad_right)
-                    swerveWheel.pidController.pidConstants.errorThreshold -= .01;
+                    swerveModule.pidController.pidConstants.errorThreshold -= .01;
 
                 swervePIDConsole.write(
-                        "kP is " + swerveWheel.pidController.pidConstants.kP,
-                        "kI is " + swerveWheel.pidController.pidConstants.kI,
-                        "kD is " + swerveWheel.pidController.pidConstants.kD,
-                        "error threshold is " + swerveWheel.pidController.pidConstants.errorThreshold,
+                        "kP is " + swerveModule.pidController.pidConstants.kP,
+                        "kI is " + swerveModule.pidController.pidConstants.kI,
+                        "kD is " + swerveModule.pidController.pidConstants.kD,
+                        "error threshold is " + swerveModule.pidController.pidConstants.errorThreshold,
                         "x = " + gamepad1.left_stick_x + " and y = " + gamepad1.left_stick_y
                 );
 
@@ -122,8 +123,8 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
         }
 
         taskPackage.stop();
-        taskPackage.remove(swerveWheel);
-        swerveWheel.turnMotor.setPosition(0.5);
+        taskPackage.remove(swerveModule);
+        swerveModule.turnMotor.setPosition(0.5);
 
         flow.msPause(3000);
     }

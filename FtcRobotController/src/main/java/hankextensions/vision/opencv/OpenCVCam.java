@@ -13,6 +13,7 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.UILayoutUtility;
@@ -21,7 +22,7 @@ import hankextensions.vision.UILayoutUtility;
  * Singleton class instead of a static class because the BaseLoaderCallback doesn't like
  * when there is a static
  */
-public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
+public class OpenCVCam implements VisionOpMode
 {
     // Singleton class.
     public static OpenCVCam instance = null;
@@ -31,6 +32,9 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 
     // States of the code progression.
     private boolean currentlyActive = false, loadingComplete = false;
+
+    // Front vs. back camera
+    public enum CameraPosition {FRONT, BACK}
 
     // Tag for file logging
     private final String LOG_TAG = "OpenCVCam";
@@ -98,18 +102,13 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
      * Starts the camera view feed and streams input to a listener (defined elsewhere).
      * @param listener  The CvCameraViewListener to which input will be streamed.
      */
-    public void start(CameraBridgeViewBase.CvCameraViewListener listener) throws InterruptedException
-    {
-        start(listener, false);
-    }
-    public void start(CameraBridgeViewBase.CvCameraViewListener listener, boolean useFrontCamera) throws InterruptedException
+    public void start(VisionOpMode listener) throws InterruptedException
     {
         if (currentlyActive)
         {
             LoggingBase.instance.lines("Can't start with listener " + listener.getClass().toString() + " because already running");
             return;
         }
-
         currentlyActive = true;
 
         LoggingBase.instance.lines("Starting with listener " + listener.getClass().toString());
@@ -128,8 +127,15 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
 
         if (cameraBridgeViewBase != null)
         {
+            int maxWidth = 800, maxHeight = 600;
+            if (listener.idealViewResolution() != null)
+            {
+                maxWidth = (int)(listener.idealViewResolution().width);
+                maxHeight = (int)(listener.idealViewResolution().height);
+            }
+            cameraBridgeViewBase.setMaxFrameSize(maxWidth, maxHeight);
             cameraBridgeViewBase.setCvCameraViewListener(listener);
-            cameraBridgeViewBase.setCameraIndex(useFrontCamera ? 1 : 0);
+            cameraBridgeViewBase.setCameraIndex(listener.viewLocation() == CameraPosition.FRONT ? 1 : 0);
             setCameraViewState(true); // Might have to run on main activity.
         }
         else
@@ -275,8 +281,25 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
         setCameraViewState(false);
     }
 
+    // region OpenCV Methods (example listener)
     public void onCameraViewStarted(int width, int height) {}
     public void onCameraViewStopped() {}
+
+    @Override
+    public Size idealViewResolution()
+    {
+        return null;
+    }
+
+    @Override
+    public CameraPosition viewLocation() {
+        return null;
+    }
+
+    @Override
+    public boolean enableCameraFlash() {
+        return false;
+    }
 
     /**
      * When the JavaCameraView sees a new frame (called very often).  This method has to
@@ -289,4 +312,5 @@ public class OpenCVCam implements CameraBridgeViewBase.CvCameraViewListener
     {
         return inputFrame;
     }
+    // endregion
 }

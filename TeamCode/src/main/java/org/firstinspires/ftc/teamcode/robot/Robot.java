@@ -9,13 +9,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.LightingSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.RelicSystem;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
 import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.robot.hardware.Flipper;
 import org.firstinspires.ftc.teamcode.robot.hardware.Intake;
 import org.firstinspires.ftc.teamcode.robot.hardware.Lift;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveDrive;
-import org.firstinspires.ftc.teamcode.robot.hardware.SwerveWheel;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
 
@@ -29,10 +29,11 @@ import hankextensions.phonesensors.Gyro;
  */
 public class Robot
 {
-    public enum InitializationMode {
+    public enum ControlMode {
         TELEOP, // no point in including sensors
         AUTONOMOUS // no point in including relic arm
     }
+    public final ControlMode controlMode;
 
     // The drive system (wrapper for all complex swervey methods)
     public final SwerveDrive swerveDrive;
@@ -52,8 +53,11 @@ public class Robot
     /**
      * Initializes the whole robot.
      */
-    public Robot(HardwareInitializer hardware, InitializationMode initializationMode) throws InterruptedException
+    public Robot(HardwareInitializer hardware, ControlMode controlMode) throws InterruptedException
     {
+        // Swerve drive needs to know this as well.
+        this.controlMode = controlMode;
+
         // Init the android gyro (make sure to call start()).
         AndroidGyro androidGyro = new AndroidGyro();
         androidGyro.start();
@@ -63,7 +67,7 @@ public class Robot
         // Init the ADAFRUIT gyro.
 //        gyro = new HankuTankuIMU(hardware.map.get(BNO055IMU.class, "IMU"));
 
-        if (initializationMode == InitializationMode.AUTONOMOUS)
+        if (controlMode == ControlMode.AUTONOMOUS)
         {
             // Get front and back sensors.
             frontRangeSensor = new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Front Range Sensor"), 0x10);
@@ -83,7 +87,7 @@ public class Robot
         liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         lift = new Lift(liftMotor);
 
-        if (initializationMode == InitializationMode.TELEOP)
+        if (controlMode == ControlMode.TELEOP)
         {
             // Relic Arm init
             relicSystem = null; //new RelicSystem(hardware.initialize(DcMotor.class, "Relic Arm"), hardware.initialize(Servo.class, "Relic Rotator"), hardware.initialize(Servo.class, "Relic Grabber"));
@@ -96,7 +100,7 @@ public class Robot
         // Flipper init
         flipper = new Flipper(hardware.initialize(Servo.class, "Left Flipper"), hardware.initialize(Servo.class, "Right Flipper"), hardware.initialize(Servo.class, "Glyph Holder"));
 
-        if (initializationMode == InitializationMode.AUTONOMOUS)
+        if (controlMode == ControlMode.AUTONOMOUS)
         {
             // Ball knocker init
             ballKnocker = new BallKnocker(hardware.initialize(Servo.class, "Knocker Holder"), hardware.initialize(Servo.class, "Mini Knocker"));
@@ -141,7 +145,7 @@ public class Robot
 //        backRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // All of the SwerveWheels (which align on independent threads)
-        SwerveWheel frontLeft = new SwerveWheel(
+        SwerveModule frontLeft = new SwerveModule(
                 "Front Left",
                 frontLeftDrive,
                 hardware.initialize(Servo.class, "Front Left Vex Motor"),
@@ -149,7 +153,7 @@ public class Robot
                 new PIDConstants(0.009, 0, 0, .5, 40000000),
                 57);
 
-        SwerveWheel frontRight = new SwerveWheel(
+        SwerveModule frontRight = new SwerveModule(
                 "Front Right",
                 frontRightDrive,
                 hardware.initialize(Servo.class, "Front Right Vex Motor"),
@@ -157,7 +161,7 @@ public class Robot
                 new PIDConstants(0.01, 0, 0, .5, 40000000),
                 97);
 
-        SwerveWheel backLeft = new SwerveWheel(
+        SwerveModule backLeft = new SwerveModule(
                 "Back Left",
                 backLeftDrive,
                 hardware.initialize(Servo.class, "Back Left Vex Motor"),
@@ -165,7 +169,7 @@ public class Robot
                 new PIDConstants(0.009, 0, 0, .5, 40000000),
                 73);
 
-        SwerveWheel backRight = new SwerveWheel(
+        SwerveModule backRight = new SwerveModule(
                 "Back Right",
                 backRightDrive,
                 hardware.initialize(Servo.class, "Back Right Vex Motor"),
@@ -174,6 +178,6 @@ public class Robot
                 137.78);
 
         // Creates the swerve drive with the correct joystick.
-        swerveDrive = new SwerveDrive(gyro, frontLeft, frontRight, backLeft, backRight);
+        swerveDrive = new SwerveDrive(this, frontLeft, frontRight, backLeft, backRight);
     }
 }

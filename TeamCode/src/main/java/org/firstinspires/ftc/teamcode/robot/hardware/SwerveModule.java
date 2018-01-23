@@ -36,11 +36,10 @@ import hankextensions.structs.Vector2D;
  * Deceleration is also a prominent part of this, since we don't want to slow to zero
  * instantly (hurting the axles).
  */
-public class SwerveWheel extends ScheduledTask
+public class SwerveModule extends ScheduledTask
 {
     // Swerve wheel constants.
     private static final double DRIVING_OK_THRESHOLD = 45;
-    private static final double NO_ALIGNMENT_THRESHOLD = 0.00001;
 
     // Swerve wheel specific components.
     public final String motorName;
@@ -60,7 +59,7 @@ public class SwerveWheel extends ScheduledTask
     // Finally, the PID controller components which prevents wheel oscillation.
     public final PIDController pidController;
 
-    public SwerveWheel(
+    public SwerveModule(
             String motorName,
             EncoderMotor driveMotor,
             Servo turnMotor,
@@ -69,7 +68,7 @@ public class SwerveWheel extends ScheduledTask
     {
         this(motorName, driveMotor, turnMotor, swerveEncoder, pidConstants, 0);
     }
-    public SwerveWheel(
+    public SwerveModule(
             String motorName,
             EncoderMotor driveMotor,
             Servo turnMotor,
@@ -98,6 +97,9 @@ public class SwerveWheel extends ScheduledTask
         targetVector = target;
     }
 
+    /**
+     * Manually stops the wheel (perhaps the task updating stopped).
+     */
     public void stopWheel()
     {
         setVectorTarget(Vector2D.ZERO);
@@ -116,7 +118,7 @@ public class SwerveWheel extends ScheduledTask
     public long onContinueTask() throws InterruptedException
     {
         // If we aren't going to be driving anywhere, don't try to align.
-        if (targetVector.magnitude < NO_ALIGNMENT_THRESHOLD)
+        if (targetVector.magnitude < .00001)
         {
             turnMotor.setPosition(0.5);
 
@@ -155,7 +157,6 @@ public class SwerveWheel extends ScheduledTask
             // Set swivel acceptable.
             swivelAcceptable = Math.abs(angleToTurn) < DRIVING_OK_THRESHOLD;
 
-
             // TODO Try to offset bevel gear swiveling (incomplete)
             motorPower = 0; //-1 * turnCorrectionFactor * driveMotor.WHEEL_CIRCUMFERENCE * (135.0/360.0);
 
@@ -187,11 +188,18 @@ public class SwerveWheel extends ScheduledTask
         return 10;
     }
 
+    /**
+     * @return Whether or not the swivel is within the DRIVING_OK_THRESHOLD bounds.
+     */
     public boolean atAcceptableSwivelOrientation()
     {
         return swivelAcceptable;
     }
 
+    /**
+     * Tells
+     * @param state
+     */
     public void setDrivingState(boolean state)
     {
         drivingEnabled = state;

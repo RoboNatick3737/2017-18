@@ -2,55 +2,64 @@ package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
-import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.structs.Vector2D;
 import hankextensions.vision.opencv.OpenCVCam;
-import hankextensions.vision.vuforia.VuforiaCam;
 
+import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
 
 public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
 {
-    //////     Constants for Autonomous      //////
-    // How far into the start of the opmode (if we haven't moved yet) that we should jump into the main opmode regardless .
-    private final long IGNORE_VISION_TARGETS_IF_NOT_VISIBLE = 10000;
-    // How far we should turn to knock the ball off of the platform.
-    private final double TURN_HEADING_TO_KNOCK_JEWEL = 45;
-
-
-    // Instantiated and such during run progression.
-    private OpenCVCam openCVCam;
-    private JewelDetector.JewelOrder determinedJewelOrder;
-
-    private Robot robot;
-
     /**
-     * Where a lot of autonomous magic happens :P
+     * So here's the strat (doesn't really vary based on the autonomous).
+     *
+     * =========== INIT ==============
+     * Detecting jewels and the crypto key during autonomous wastes precious time.  So, a single
+     * OpenCV pipeline runs during the initialization phase, constantly updating the observed
+     * jewel order and the observed crypto key.  Since it almost always takes a while to get
+     * to init from the start of auto, this takes advantage of that extra time.
+     *
+     * =========== AUTO ==============
+     * We already know the crypto key, so we quickly drop the jewel knocker and knock the correct
+     * ball.  Then, we immediately transition into placing the glyph, depending on what we observed
+     * pre-match.  Then we start multi-glyph (we probably have around 25 seconds left ideally).
      */
     @Override
     protected final void onRun() throws InterruptedException
     {
+        // Init the bot.
+        Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
+        robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
+
+        // region Initialization Detection of the Crypto Key and the Jewel Alignment
+
+        // endregion
+    }
+
+    protected void legacy() throws InterruptedException
+    {
         long start; // for timed stuff.
 
         // Initialize the robot.
-        robot = new Robot(hardware, Robot.InitializationMode.AUTONOMOUS);
+        Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
 
         // We're in auto, after all.
-        robot.swerveDrive.setJoystickControlEnabled(false);
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         // Init the jewel detector (saves time)
         JewelDetector jewelDetector = new JewelDetector();
-        openCVCam = new OpenCVCam();
-        openCVCam.start(jewelDetector, true);
+        OpenCVCam openCVCam = new OpenCVCam();
+        openCVCam.start(jewelDetector);
 
         // Wait for the auto start period.
         waitForStart();
+
+        // Tells the gyro that we haven't moved yet, so any difference in value it's experienced is incorrect.
+        robot.gyro.startAntiDrift();
 
         // Get the jewel position.
         JewelDetector.JewelOrder currentOrder = JewelDetector.JewelOrder.UNKNOWN;
@@ -60,76 +69,69 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             currentOrder = jewelDetector.getCurrentOrder();
             flow.yield();
         }
-        determinedJewelOrder = currentOrder;
+        JewelDetector.JewelOrder determinedJewelOrder = currentOrder;
         openCVCam.stop();
         log.lines("Jewel order: " + determinedJewelOrder.toString());
 
         // Knock off the jewel as quickly as possible, but skip if we couldn't tell the ball orientation.
         if (determinedJewelOrder != JewelDetector.JewelOrder.UNKNOWN)
         {
-            double ballKnockHeading = 0;
-
-            // Put down the knocker
-            robot.ballKnocker.setUpwardPosTo(false);
-
             // Determine which direction we're going to have to rotate when auto starts.
             if (getAlliance() == Alliance.RED) // since this extends competition op mode.
             {
                 if (determinedJewelOrder == JewelDetector.JewelOrder.BLUE_RED)
-                    ballKnockHeading = TURN_HEADING_TO_KNOCK_JEWEL;
+                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
                 else
-                    ballKnockHeading = 360 - TURN_HEADING_TO_KNOCK_JEWEL;
+                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
 
             }
             else if (getAlliance() == Alliance.BLUE)
             {
                 if (determinedJewelOrder == JewelDetector.JewelOrder.BLUE_RED)
-                    ballKnockHeading = 360 - TURN_HEADING_TO_KNOCK_JEWEL;
+                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
                 else
-                    ballKnockHeading = TURN_HEADING_TO_KNOCK_JEWEL;
+                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
             }
-
-            // Turn to that heading
-            robot.swerveDrive.setDesiredHeading(ballKnockHeading);
-            log.lines("Turning to " + ballKnockHeading);
-
-            while (Math.abs(robot.gyro.getHeading() - ballKnockHeading) > 10)
-            {
-                robot.swerveDrive.synchronousUpdate();
-                flow.yield();
-            }
-
-            // Put the knocker back up
-            robot.ballKnocker.setUpwardPosTo(true);
         }
 
         // Drive off of the balance board.
-        Vector2D desiredMovement = null;
-        if (getAlliance() == Alliance.RED)
-            desiredMovement = Vector2D.polar(0.5, 270);
-        else
-            desiredMovement = Vector2D.polar(0.5, 90);
-        robot.swerveDrive.setDesiredMovement(desiredMovement);
+        robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.5, getAlliance() == Alliance.RED ? 270 : 90));
         start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < 5000)
+        while (System.currentTimeMillis() - start < (getBalancePlate() == BalancePlate.BOTTOM ? 3000 : 1000))
         {
             robot.swerveDrive.synchronousUpdate();
             flow.yield();
         }
 
-        // Determine the VuMark for the glyph placement.
-        VuforiaCam vuforiaCam = new VuforiaCam();
-        vuforiaCam.start(true);
-        VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
-        vuforiaCam.getTrackables().activate();
-        RelicRecoveryVuMark vumark = RelicRecoveryVuMark.UNKNOWN;
-        start = System.currentTimeMillis();
-        while (vumark == RelicRecoveryVuMark.UNKNOWN && System.currentTimeMillis() - start < 3000)
+        // Rotate to face the cryptobox if we're right next to it.
+        if (getBalancePlate() == BalancePlate.TOP)
         {
-            vumark = RelicRecoveryVuMark.from(relicTemplate);
-            flow.yield();
+            double desiredHeading;
+            if (getAlliance() == Alliance.RED)
+                desiredHeading = 90;
+            else
+                desiredHeading = 270;
+
+            robot.swerveDrive.setDesiredHeading(desiredHeading);
+
+            while (Math.abs(robot.gyro.getHeading() - desiredHeading) > 5) {
+                robot.swerveDrive.synchronousUpdate();
+                flow.yield();
+            }
         }
-        vuforiaCam.stop();
-        log.lines("VuMark: " + vumark.toString());
+
+        robot.swerveDrive.stop();
+
+
+
+        robot.swerveDrive.stop();
+
+        robot.intake.intake();
+
+        flow.msPause(1000);
+
+        robot.flipper.advanceStage(2);
+
+        flow.msPause(1000);
     }
 }

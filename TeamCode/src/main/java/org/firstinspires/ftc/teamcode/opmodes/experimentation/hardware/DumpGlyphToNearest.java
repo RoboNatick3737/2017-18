@@ -18,7 +18,7 @@ public class DumpGlyphToNearest extends EnhancedOpMode
     @Override
     protected void onRun() throws InterruptedException
     {
-        Robot robot = new Robot(hardware, Robot.InitializationMode.AUTONOMOUS);
+        Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         CryptoboxTracker tracker = new CryptoboxTracker();
@@ -27,8 +27,7 @@ public class DumpGlyphToNearest extends EnhancedOpMode
         tracker.setLoggingEnabledTo(true);
 
         OpenCVCam cam = new OpenCVCam();
-        cam.setMaxResolution(800, 500);
-        cam.start(tracker, true);
+        cam.start(tracker);
 
         robot.lights.setLightsTo(true);
 

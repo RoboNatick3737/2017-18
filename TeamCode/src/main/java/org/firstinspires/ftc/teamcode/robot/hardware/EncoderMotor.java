@@ -34,7 +34,7 @@ public class EncoderMotor
     private final int ENCODER_TICKS_PER_REVOLUTION;
 
     /**
-     * The wheel circumference which this motor drives (public so that SwerveWheel
+     * The wheel circumference which this motor drives (public so that SwerveModule
      * can look at this to know how much to correct by)
      */
     public final double WHEEL_CIRCUMFERENCE;

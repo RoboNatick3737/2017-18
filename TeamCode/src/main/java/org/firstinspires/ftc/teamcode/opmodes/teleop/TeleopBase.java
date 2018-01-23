@@ -12,21 +12,20 @@ import hankextensions.input.HTButton;
 
 public abstract class TeleopBase extends EnhancedOpMode implements CompetitionProgram
 {
-    private Robot robot;
-
+    /**
+     * The teleop controls for our swerve drive and such.
+     */
     @Override
     protected final void onRun() throws InterruptedException
     {
-        robot = new Robot(hardware, Robot.InitializationMode.TELEOP);
+        Robot robot = new Robot(hardware, Robot.ControlMode.TELEOP);
+
+        // Synchronous teleop
+        robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         // Init robot hardware.
         robot.flipper.advanceStage(0);
         robot.intake.stop();
-
-        // Init swerve drive for teleop
-        robot.swerveDrive.setJoystickControlEnabled(true);
-        //robot.swerveDrive.setAxleDrivingProtectionTo(true); // because our drivers need to chiiilll
-        robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         waitForStart();
 

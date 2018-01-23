@@ -140,7 +140,7 @@ public class FtcRobotControllerActivity extends HankuBaseActivity
   protected TextView textOpenFTCVersion;
 
   protected UpdateUI updateUI;
-  protected Dimmer dimmer;
+//  protected Dimmer dimmer;
   protected LinearLayout entireScreenLayout;
 
   protected FtcRobotControllerService controllerService;
@@ -293,8 +293,8 @@ public class FtcRobotControllerActivity extends HankuBaseActivity
     textOpenFTCVersion.setText(org.openftc.BuildConfig.VERSION_COMPLETE);
 
     immersion = new ImmersiveMode(getWindow().getDecorView());
-    dimmer = new Dimmer(this);
-    dimmer.longBright();
+//    dimmer = new Dimmer(this);
+//    dimmer.longBright();
 
     // modified for turbo: removed variable initialization for programming mode
 
@@ -318,7 +318,7 @@ public class FtcRobotControllerActivity extends HankuBaseActivity
 
   protected UpdateUI createUpdateUI() {
     Restarter restarter = new RobotRestarter();
-    UpdateUI result = new UpdateUI(this, dimmer);
+    UpdateUI result = new UpdateUI(this, null);
     result.setRestarter(restarter);
     result.setTextViews(textNetworkConnectionStatus, textRobotStatus, textGamepad, textOpMode, textErrorMessage, textDeviceName);
     return result;
@@ -346,7 +346,7 @@ public class FtcRobotControllerActivity extends HankuBaseActivity
     entireScreenLayout.setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View v, MotionEvent event) {
-        dimmer.handleDimTimer();
+//        dimmer.handleDimTimer();
         return false;
       }
     });
@@ -472,7 +472,7 @@ public class FtcRobotControllerActivity extends HankuBaseActivity
     }
     // modified for turbo: Removed handling for blocks programming menu item
     else if (id == R.id.action_restart_robot) {
-      dimmer.handleDimTimer();
+//      dimmer.handleDimTimer();
       AppUtil.getInstance().showToast(UILocation.BOTH, context, context.getString(R.string.toastRestartingRobot));
       requestRobotRestart();
       return true;
@@ -589,7 +589,7 @@ public class FtcRobotControllerActivity extends HankuBaseActivity
         @Override
         public void onMenuVisibilityChanged(boolean isVisible) {
           if (isVisible) {
-            dimmer.handleDimTimer();
+//            dimmer.handleDimTimer();
           }
         }
       });

@@ -22,7 +22,7 @@ public class BallKnocker
     {
         this.up = up;
 
-        descender.setPosition(up ? 0.15 : 0.7);
+        descender.setPosition(up ? 0.2 : 0.8);
     }
     public void toggleKnocker()
     {
@@ -39,11 +39,11 @@ public class BallKnocker
                 break;
 
             case MIDDLE:
-                knocker.setPosition(0.5);
+                knocker.setPosition(0.45);
                 break;
 
             case RIGHT:
-                knocker.setPosition(1);
+                knocker.setPosition(0.9);
                 break;
         }
     }
@@ -56,10 +56,10 @@ public class BallKnocker
         setKnockerTo(KnockerPosition.MIDDLE);
         setUpwardPosTo(false);
 
-        flow.msPause(500);
+        flow.msPause(1000);
 
         setKnockerTo(toKnock);
-        flow.msPause(100);
+        flow.msPause(1000);
 
         setUpwardPosTo(true);
     }

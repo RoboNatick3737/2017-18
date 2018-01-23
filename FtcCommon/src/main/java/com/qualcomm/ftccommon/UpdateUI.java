@@ -270,7 +270,7 @@ public class UpdateUI {
           textErrorMessage.setTextColor(AppUtil.getInstance().getColor(R.color.text_warning));
           if (stateMonitor != null) stateMonitor.updateWarningMessage(message);
         }
-        dimmer.longBright();
+//        dimmer.longBright();
       } else {
         setText(textErrorMessage, "");
         textErrorMessage.setTextColor(textErrorMessageOriginalColor);

@@ -17,14 +17,11 @@ import org.opencv.imgproc.Imgproc;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.opencv.OpenCVCam;
+import hankextensions.vision.opencv.VisionOpMode;
 
 @Autonomous(name="Random Proportional Mask Generator", group= Constants.VISION_TESTING)
-public class RandomProportionalMask extends EnhancedOpMode implements CameraBridgeViewBase.CvCameraViewListener
+public class RandomProportionalMask extends EnhancedOpMode implements VisionOpMode
 {
-    private OpenCVCam openCVCam;
-
-    private ProcessConsole cameraProcessConsole;
-
     // Choose completely random values.
     private double randHueMaxSlope, randHueMinSlope, randSatMaxSlope, randSatMinSlope, hueMin, hueMax, satMin;
     
@@ -42,12 +39,14 @@ public class RandomProportionalMask extends EnhancedOpMode implements CameraBrid
     @Override
     protected void onRun() throws InterruptedException
     {
-        // Start the good old OpenCV camera.
-        openCVCam = new OpenCVCam();
+        // New mask nums
         regenerateNums();
+
+        // Start the good old OpenCV camera.
+        OpenCVCam openCVCam = new OpenCVCam();
         openCVCam.start(this);
 
-        cameraProcessConsole = log.newProcessConsole("Camera Process Console");
+        ProcessConsole cameraProcessConsole = log.newProcessConsole("Camera Process Console");
 
         waitForStart();
 
@@ -120,5 +119,20 @@ public class RandomProportionalMask extends EnhancedOpMode implements CameraBrid
 
         // Resize to the original (crashes otherwise)
         return raw;
+    }
+
+    @Override
+    public Size idealViewResolution() {
+        return null;
+    }
+
+    @Override
+    public OpenCVCam.CameraPosition viewLocation() {
+        return OpenCVCam.CameraPosition.BACK;
+    }
+
+    @Override
+    public boolean enableCameraFlash() {
+        return false;
     }
 }
