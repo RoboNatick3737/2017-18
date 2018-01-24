@@ -43,7 +43,7 @@ public class SwerveModule extends ScheduledTask
 
     // Swerve wheel specific components.
     public final String motorName;
-    private final EncoderMotor driveMotor;
+    public final EncoderMotor driveMotor;
     public final Servo turnMotor;
     private final AbsoluteEncoder swerveEncoder;
     private final double physicalEncoderOffset;

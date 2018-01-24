@@ -1,7 +1,5 @@
 package hankextensions.vision.opencv;
 
-import android.support.annotation.NonNull;
-
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Size;
 

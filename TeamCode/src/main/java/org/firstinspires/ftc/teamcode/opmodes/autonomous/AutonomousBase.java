@@ -10,6 +10,9 @@ import hankextensions.structs.Vector2D;
 import hankextensions.vision.opencv.OpenCVCam;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
+import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CVCryptoKeyDetector;
+import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelAndCryptoKeyTracker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
 
 public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
@@ -36,7 +39,129 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         // region Initialization Detection of the Crypto Key and the Jewel Alignment
+        JewelAndCryptoKeyTracker initializationObserver = new JewelAndCryptoKeyTracker();
+        OpenCVCam cam = new OpenCVCam();
+        cam.start(initializationObserver);
 
+        CVCryptoKeyDetector.DetectedKey detectedKey = CVCryptoKeyDetector.DetectedKey.UNKNOWN;
+        JewelDetector.JewelOrder jewelOrder = JewelDetector.JewelOrder.UNKNOWN;
+        while (!isStarted()) // Runs until OpMode is started, then just goes from there.
+        {
+            JewelDetector.JewelOrder currentOrder = initializationObserver.jewelDetector.getCurrentOrder();
+            if (currentOrder != JewelDetector.JewelOrder.UNKNOWN) // don't override valid value with unknown
+                jewelOrder = currentOrder;
+
+            CVCryptoKeyDetector.DetectedKey currentKey = initializationObserver.keyDetector.getLastDetected();
+            if (currentKey != CVCryptoKeyDetector.DetectedKey.UNKNOWN)
+                detectedKey = currentKey;
+
+            flow.yield();
+        }
+        // endregion
+
+        // region Knock Ball
+        if (jewelOrder != JewelDetector.JewelOrder.UNKNOWN)
+        {
+            // Determine which direction we're going to have to rotate when auto starts.
+            if (getAlliance() == Alliance.RED) // since this extends competition op mode.
+            {
+                if (jewelOrder == JewelDetector.JewelOrder.BLUE_RED)
+                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
+                else
+                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
+
+            }
+            else if (getAlliance() == Alliance.BLUE)
+            {
+                if (jewelOrder == JewelDetector.JewelOrder.BLUE_RED)
+                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
+                else
+                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
+            }
+        }
+        // endregion
+
+        // region Place Pre-Loaded Glyph
+        // Simple Autonomous
+        if (getBalancePlate() == BalancePlate.BOTTOM)
+        {
+            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.5, getAlliance() == Alliance.RED ? 270 : 90));
+            SwerveModule wheel1, wheel2; // will be left wheels for red alliance, right for blue.
+            if (getAlliance() == Alliance.RED)
+            {
+                wheel1 = robot.swerveDrive.swerveModules[0]; // front left
+                wheel2 = robot.swerveDrive.swerveModules[1]; // back left
+            }
+            else
+            {
+                wheel1 = robot.swerveDrive.swerveModules[2];
+                wheel2 = robot.swerveDrive.swerveModules[3];
+            }
+            double[] desiredPositions = {wheel1.driveMotor.motor.getCurrentPosition(), wheel2.driveMotor.motor.getCurrentPosition()};
+            double desiredDriveLength = 0;
+            if (getAlliance() == Alliance.BLUE)
+            {
+                switch (detectedKey)
+                {
+                    case LEFT:
+                        desiredDriveLength = 300;
+                        break;
+
+                    case CENTER:
+                        desiredDriveLength = 400;
+                        break;
+
+                    case RIGHT:
+                        desiredDriveLength = 500;
+                        break;
+                }
+            }
+            else
+            {
+                switch (detectedKey)
+                {
+                    case LEFT:
+                        desiredDriveLength = -500;
+                        break;
+
+                    case CENTER:
+                        desiredDriveLength = -400;
+                        break;
+
+                    case RIGHT:
+                        desiredDriveLength = -300;
+                        break;
+                }
+            }
+
+            // Determine desired drive positions for both now.
+            for (int i = 0; i < desiredPositions.length; i++)
+                desiredPositions[i] += desiredDriveLength;
+
+            // Drive to those positions.
+            boolean atAcceptableLocation = false;
+            while (!atAcceptableLocation)
+            {
+                // actual positions must be less than the desired positions.
+                if (desiredDriveLength < 0)
+                {
+                }
+                // above desired positions
+                else
+                {
+
+                }
+
+                robot.swerveDrive.synchronousUpdate();
+                flow.yield();
+            }
+        }
+
+        // Pain in the A** autonomous
+        else if (getBalancePlate() == BalancePlate.TOP)
+        {
+
+        }
         // endregion
     }
 
@@ -119,10 +244,6 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
                 flow.yield();
             }
         }
-
-        robot.swerveDrive.stop();
-
-
 
         robot.swerveDrive.stop();
 
