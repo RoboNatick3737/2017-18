@@ -72,7 +72,7 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
 
             // Control ball knocker (debugging)
             if (C2.x.currentState == HTButton.ButtonState.JUST_TAPPED)
-                robot.ballKnocker.toggleKnocker();
+                robot.ballKnocker.toggleDescender();
 
             if (C2.y.currentState == HTButton.ButtonState.JUST_TAPPED)
                 robot.ballKnocker.setKnockerTo(Math.random() > 0.5 ? BallKnocker.KnockerPosition.LEFT : BallKnocker.KnockerPosition.RIGHT);

@@ -22,9 +22,9 @@ public class BallKnocker
     {
         this.up = up;
 
-        descender.setPosition(up ? 0.2 : 0.8);
+        descender.setPosition(up ? 0.4 : 0.8);
     }
-    public void toggleKnocker()
+    public void toggleDescender()
     {
         setUpwardPosTo(!up);
     }

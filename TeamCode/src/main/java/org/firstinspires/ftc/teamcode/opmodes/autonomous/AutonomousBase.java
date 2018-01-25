@@ -86,18 +86,28 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
             robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.5, getAlliance() == Alliance.RED ? 270 : 90));
-            SwerveModule wheel1, wheel2; // will be left wheels for red alliance, right for blue.
+
+            // Choose the wheels which we'll use as an encoder anchor (observing their positions over time).
+            SwerveModule[] wheels; // will be left wheels for red alliance, right for blue.
             if (getAlliance() == Alliance.RED)
             {
-                wheel1 = robot.swerveDrive.swerveModules[0]; // front left
-                wheel2 = robot.swerveDrive.swerveModules[1]; // back left
+                wheels = new SwerveModule[2];
+                wheels[0] = robot.swerveDrive.swerveModules[0]; // front left
+                wheels[1] = robot.swerveDrive.swerveModules[1]; // back left
             }
             else
             {
-                wheel1 = robot.swerveDrive.swerveModules[2];
-                wheel2 = robot.swerveDrive.swerveModules[3];
+                wheels = new SwerveModule[2];
+                wheels[0] = robot.swerveDrive.swerveModules[2];
+                wheels[1] = robot.swerveDrive.swerveModules[3];
             }
-            double[] desiredPositions = {wheel1.driveMotor.motor.getCurrentPosition(), wheel2.driveMotor.motor.getCurrentPosition()};
+
+            // Get initial positions for wheels.
+            double[] desiredPositions = new double[wheels.length];
+            for (int i = 0; i < wheels.length; i++)
+                desiredPositions[i] = wheels[i].driveMotor.motor.getCurrentPosition();
+
+            // Choose the length to drive.
             double desiredDriveLength = 0;
             if (getAlliance() == Alliance.BLUE)
             {
@@ -145,114 +155,50 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
                 // actual positions must be less than the desired positions.
                 if (desiredDriveLength < 0)
                 {
+                    boolean allGood = true;
+                    for (int i = 0; i < desiredPositions.length; i++)
+                    {
+                        if (wheels[i].driveMotor.motor.getCurrentPosition() > desiredPositions[i])
+                        {
+                            allGood = false;
+                            break;
+                        }
+                    }
+
+                    atAcceptableLocation = allGood;
                 }
                 // above desired positions
                 else
                 {
+                    boolean allGood = true;
+                    for (int i = 0; i < desiredPositions.length; i++)
+                    {
+                        if (wheels[i].driveMotor.motor.getCurrentPosition() < desiredPositions[i])
+                        {
+                            allGood = false;
+                            break;
+                        }
+                    }
 
+                    atAcceptableLocation = allGood;
                 }
 
                 robot.swerveDrive.synchronousUpdate();
                 flow.yield();
             }
+
+            // Dump glyph
+            robot.flipper.advanceStage(2);
+            flow.msPause(600);
         }
 
         // Pain in the A** autonomous
         else if (getBalancePlate() == BalancePlate.TOP)
         {
-
         }
         // endregion
-    }
 
-    protected void legacy() throws InterruptedException
-    {
-        long start; // for timed stuff.
-
-        // Initialize the robot.
-        Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
-
-        // We're in auto, after all.
-        robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
-
-        // Init the jewel detector (saves time)
-        JewelDetector jewelDetector = new JewelDetector();
-        OpenCVCam openCVCam = new OpenCVCam();
-        openCVCam.start(jewelDetector);
-
-        // Wait for the auto start period.
-        waitForStart();
-
-        // Tells the gyro that we haven't moved yet, so any difference in value it's experienced is incorrect.
-        robot.gyro.startAntiDrift();
-
-        // Get the jewel position.
-        JewelDetector.JewelOrder currentOrder = JewelDetector.JewelOrder.UNKNOWN;
-        start = System.currentTimeMillis();
-        while (currentOrder == JewelDetector.JewelOrder.UNKNOWN && System.currentTimeMillis() - start < 5000)
-        {
-            currentOrder = jewelDetector.getCurrentOrder();
-            flow.yield();
-        }
-        JewelDetector.JewelOrder determinedJewelOrder = currentOrder;
-        openCVCam.stop();
-        log.lines("Jewel order: " + determinedJewelOrder.toString());
-
-        // Knock off the jewel as quickly as possible, but skip if we couldn't tell the ball orientation.
-        if (determinedJewelOrder != JewelDetector.JewelOrder.UNKNOWN)
-        {
-            // Determine which direction we're going to have to rotate when auto starts.
-            if (getAlliance() == Alliance.RED) // since this extends competition op mode.
-            {
-                if (determinedJewelOrder == JewelDetector.JewelOrder.BLUE_RED)
-                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
-                else
-                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
-
-            }
-            else if (getAlliance() == Alliance.BLUE)
-            {
-                if (determinedJewelOrder == JewelDetector.JewelOrder.BLUE_RED)
-                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
-                else
-                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
-            }
-        }
-
-        // Drive off of the balance board.
-        robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.5, getAlliance() == Alliance.RED ? 270 : 90));
-        start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < (getBalancePlate() == BalancePlate.BOTTOM ? 3000 : 1000))
-        {
-            robot.swerveDrive.synchronousUpdate();
-            flow.yield();
-        }
-
-        // Rotate to face the cryptobox if we're right next to it.
-        if (getBalancePlate() == BalancePlate.TOP)
-        {
-            double desiredHeading;
-            if (getAlliance() == Alliance.RED)
-                desiredHeading = 90;
-            else
-                desiredHeading = 270;
-
-            robot.swerveDrive.setDesiredHeading(desiredHeading);
-
-            while (Math.abs(robot.gyro.getHeading() - desiredHeading) > 5) {
-                robot.swerveDrive.synchronousUpdate();
-                flow.yield();
-            }
-        }
-
-        robot.swerveDrive.stop();
-
-        robot.intake.intake();
-
-        flow.msPause(1000);
-
-        robot.flipper.advanceStage(2);
-
-        flow.msPause(1000);
+        // region Multi-Glyph!
+        // endregion
     }
 }

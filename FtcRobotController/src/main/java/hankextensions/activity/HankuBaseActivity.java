@@ -28,7 +28,7 @@ public abstract class HankuBaseActivity extends Activity implements TaskParent
         AndroidGyro.instance = null;
 
         // Enable when stable.
-//        Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler(this, this));
+        Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler(this, this));
     }
 
     @Override
