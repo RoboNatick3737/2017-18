@@ -84,6 +84,15 @@ public class EncoderMotor
     }
 
     /**
+     * Every motor has a different number of encoder ticks per revolution and a distinct wheel
+     * circumference, so this just takes that into account while calculating distance traversed.
+     */
+    public double currentDistanceMoved()
+    {
+        return ((motor.getCurrentPosition()) / ENCODER_TICKS_PER_REVOLUTION) * WHEEL_CIRCUMFERENCE;
+    }
+
+    /**
      * Resets the motor encoder.
      */
     public void resetEncoder()

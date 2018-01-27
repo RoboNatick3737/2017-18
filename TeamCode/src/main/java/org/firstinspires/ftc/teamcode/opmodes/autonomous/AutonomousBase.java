@@ -105,7 +105,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             // Get initial positions for wheels.
             double[] desiredPositions = new double[wheels.length];
             for (int i = 0; i < wheels.length; i++)
-                desiredPositions[i] = wheels[i].driveMotor.motor.getCurrentPosition();
+                desiredPositions[i] = wheels[i].driveMotor.currentDistanceMoved();
 
             // Choose the length to drive.
             double desiredDriveLength = 0;
@@ -158,7 +158,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
                     boolean allGood = true;
                     for (int i = 0; i < desiredPositions.length; i++)
                     {
-                        if (wheels[i].driveMotor.motor.getCurrentPosition() > desiredPositions[i])
+                        if (wheels[i].driveMotor.currentDistanceMoved() > desiredPositions[i])
                         {
                             allGood = false;
                             break;
@@ -173,7 +173,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
                     boolean allGood = true;
                     for (int i = 0; i < desiredPositions.length; i++)
                     {
-                        if (wheels[i].driveMotor.motor.getCurrentPosition() < desiredPositions[i])
+                        if (wheels[i].driveMotor.currentDistanceMoved() < desiredPositions[i])
                         {
                             allGood = false;
                             break;
