@@ -92,7 +92,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             if (getAlliance() == Alliance.RED)
             {
                 wheels = new SwerveModule[2];
-                wheels[0] = robot.swerveDrive.swerveModules[0]; // front left 
+                wheels[0] = robot.swerveDrive.swerveModules[0]; // front left
                 wheels[1] = robot.swerveDrive.swerveModules[1]; // back left
             }
             else
