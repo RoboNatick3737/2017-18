@@ -100,19 +100,14 @@ public class Robot
         // Flipper init
         flipper = new Flipper(hardware.initialize(Servo.class, "Left Flipper"), hardware.initialize(Servo.class, "Right Flipper"), hardware.initialize(Servo.class, "Glyph Holder"));
 
-        if (controlMode == ControlMode.AUTONOMOUS)
-        {
-            // Ball knocker init
-            ballKnocker = new BallKnocker(hardware.initialize(Servo.class, "Knocker Holder"), hardware.initialize(Servo.class, "Mini Knocker"));
+        // Ball knocker init
+        ballKnocker = new BallKnocker(hardware.initialize(Servo.class, "Knocker Holder"), hardware.initialize(Servo.class, "Mini Knocker"));
 
+        if (controlMode == ControlMode.AUTONOMOUS)
             // Lights init
             lights = new LightingSystem(hardware.initialize(DcMotor.class, "Lights"));
-        }
         else
-        {
-            ballKnocker = null;
             lights = null;
-        }
 
 
         // All of the drive motors and their respective PID.
@@ -150,7 +145,7 @@ public class Robot
                 frontLeftDrive,
                 hardware.initialize(Servo.class, "Front Left Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
-                new PIDConstants(0.009, 0, 0, .5, 40000000),
+                new PIDConstants(0.007, 0, 0, .5, 40000000),
                 57);
 
         SwerveModule frontRight = new SwerveModule(
@@ -158,7 +153,7 @@ public class Robot
                 frontRightDrive,
                 hardware.initialize(Servo.class, "Front Right Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
-                new PIDConstants(0.01, 0, 0, .5, 40000000),
+                new PIDConstants(0.08, 0, 0, .5, 40000000),
                 97);
 
         SwerveModule backLeft = new SwerveModule(
@@ -166,7 +161,7 @@ public class Robot
                 backLeftDrive,
                 hardware.initialize(Servo.class, "Back Left Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
-                new PIDConstants(0.009, 0, 0, .5, 40000000),
+                new PIDConstants(0.007, 0, 0, .5, 40000000),
                 73);
 
         SwerveModule backRight = new SwerveModule(
@@ -174,7 +169,7 @@ public class Robot
                 backRightDrive,
                 hardware.initialize(Servo.class, "Back Right Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
-                new PIDConstants(0.009, 0, 0, .5, 40000000),
+                new PIDConstants(0.007, 0, 0, .5, 40000000),
                 137.78);
 
         // Creates the swerve drive with the correct joystick.
