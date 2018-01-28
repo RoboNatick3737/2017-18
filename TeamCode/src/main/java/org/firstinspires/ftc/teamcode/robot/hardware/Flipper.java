@@ -8,8 +8,9 @@ import com.qualcomm.robotcore.util.Range;
  */
 public class Flipper
 {
-    private final double FLIP_INCREMENT = .02, FLIP_MAX = .35, FLIP_MID = .8, FLIP_MIN = 1;
-    private final double RIGHT_FLIPPER_OFFSET = .19;
+    private static final double FLIP_INCREMENT = .02, FLIP_MAX = .35, FLIP_MID = .8, FLIP_MIN = 1;
+    private static final double RIGHT_FLIPPER_OFFSET = .19;
+    private static final double GLYPH_HOLDER_UP = 0.5, GLYPH_HOLDER_DOWN = 0;
 
     private int currentStage = 0;
 
@@ -39,15 +40,15 @@ public class Flipper
         {
             case 0:
                 position = FLIP_MIN;
-                glyphHolder.setPosition(0.5);
+                glyphHolder.setPosition(GLYPH_HOLDER_UP);
                 break;
             case 1:
                 position = FLIP_MID;
-                glyphHolder.setPosition(0.5);
+                glyphHolder.setPosition(GLYPH_HOLDER_UP);
                 break;
             case 2:
                 position = FLIP_MAX;
-                glyphHolder.setPosition(0);
+                glyphHolder.setPosition(GLYPH_HOLDER_DOWN);
                 break;
         }
 
@@ -61,6 +62,18 @@ public class Flipper
             currentStage = 0;
 
         advanceStage(currentStage);
+    }
+
+    // Used for autonomous control
+    public void setFlipperPositionManually(double position)
+    {
+        this.position = position;
+        updateFlipperPositions();
+    }
+
+    public void setGlyphHolderUpTo(boolean up)
+    {
+        glyphHolder.setPosition(up ? GLYPH_HOLDER_UP : GLYPH_HOLDER_DOWN);
     }
 
     public void move(double upInput, double downInput)

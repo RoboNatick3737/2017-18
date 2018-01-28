@@ -40,6 +40,9 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
+        // Put down the flipper glyph holder servo so that we can see the jewels.
+        robot.flipper.setGlyphHolderUpTo(false);
+
         // region Initialization Detection of the Crypto Key and the Jewel Alignment
         JewelAndCryptoKeyTracker initializationObserver = new JewelAndCryptoKeyTracker();
         OpenCVCam cam = new OpenCVCam();
