@@ -17,7 +17,7 @@ public class VuforiaTester extends EnhancedOpMode
     protected void onRun() throws InterruptedException
     {
         VuforiaCam vuforiaCam = new VuforiaCam();
-        vuforiaCam.start();
+        vuforiaCam.start(true);
         VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
         vuforiaCam.getTrackables().activate();
 

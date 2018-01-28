@@ -13,7 +13,7 @@ public class SmarterRangeSensor
     {
         this.rangeSensor = rangeSensor;
         rangeSensor.setI2cAddress(I2cAddr.create8bit(i2caddress));
-        rangeSensor.initialize();
+        rangeSensor.enableLed(true);
     }
 
     public double getForwardDist()

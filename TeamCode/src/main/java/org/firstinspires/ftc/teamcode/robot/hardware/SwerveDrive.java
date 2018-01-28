@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 
 import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import com.makiah.makiahsandroidlib.threading.Flow;
 import com.makiah.makiahsandroidlib.threading.ScheduledTask;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
@@ -12,6 +13,7 @@ import hankextensions.input.HTGamepad;
 import hankextensions.phonesensors.Gyro;
 
 import org.firstinspires.ftc.teamcode.robot.Robot;
+import org.firstinspires.ftc.teamcode.structs.VariableVector2D;
 import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.structs.pid.PIDController;
 import hankextensions.structs.Vector2D;
@@ -258,6 +260,69 @@ public class SwerveDrive extends ScheduledTask
     {
         this.desiredMovement = newlyDesiredMovement;
     }
+
+    // region Autonomous Methods
+    /**
+     * Represents the encoder positions of each of the four drive motor encoders.
+     */
+    public double[] currentDrivePosition()
+    {
+        double[] toReturn = new double[swerveModules.length];
+        for (int i = 0; i < toReturn.length; i++)
+            toReturn[i] = swerveModules[i].driveMotor.currentDistanceMoved();
+        return toReturn;
+    }
+
+    /**
+     * Drives a certain distance with a variable heading/power.
+     * @param direction represents the direction and speed of movement, with current distance
+     *                  moved as the parameter.
+     * @param distance  the distance in inches to move.
+     */
+    public void driveDistance(VariableVector2D direction, double distance, Flow flow) throws InterruptedException
+    {
+        // Represents distance driven by each module.
+        double[] cumulativeOffsets = new double[swerveModules.length];
+
+        double[] lastPosition = currentDrivePosition();
+        boolean canStop = false; // becomes true once the average offset reaches the requested distance.
+        while (!canStop)
+        {
+            double[] currentPosition = currentDrivePosition();
+
+            // Determine how far we've moved and add that distance to the cumulative offsets.
+            for (int i = 0; i < currentPosition.length; i++)
+                cumulativeOffsets[i] += Math.abs(currentPosition[i] - lastPosition[i]);
+
+            // New anchor.
+            lastPosition = currentPosition;
+
+            // Figure out the average offset and thus whether we can stop.
+            double avgOffset = 0;
+            for (double offset : cumulativeOffsets)
+                avgOffset += offset;
+            avgOffset /= cumulativeOffsets.length;
+            canStop = avgOffset >= distance;
+
+            // Keep updating unless we can stop.
+            if (!canStop)
+            {
+                setDesiredMovement(direction.getVector(avgOffset));
+
+                if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
+                    synchronousUpdate();
+            }
+
+            flow.yield();
+        }
+
+        stop();
+    }
+    public void driveDistance(Vector2D direction, double distance, Flow flow) throws InterruptedException
+    {
+        driveDistance(VariableVector2D.from(direction), distance, flow);
+    }
+    // endregion
 
     /**
      * Stops all SwerveWheels.

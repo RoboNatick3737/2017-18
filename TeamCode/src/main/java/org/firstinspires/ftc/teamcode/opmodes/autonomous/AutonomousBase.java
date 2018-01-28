@@ -17,6 +17,8 @@ import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelD
 
 public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
 {
+    private final double[] DEPOSIT_LOCATIONS = {300, 400, 500};
+
     /**
      * So here's the strat (doesn't really vary based on the autonomous).
      *
@@ -43,7 +45,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         OpenCVCam cam = new OpenCVCam();
         cam.start(initializationObserver);
 
-        CVCryptoKeyDetector.DetectedKey detectedKey = CVCryptoKeyDetector.DetectedKey.UNKNOWN;
+        CVCryptoKeyDetector.DetectedKey detectedKey = CVCryptoKeyDetector.DetectedKey.LEFT;
         JewelDetector.JewelOrder jewelOrder = JewelDetector.JewelOrder.UNKNOWN;
         while (!isStarted()) // Runs until OpMode is started, then just goes from there.
         {
@@ -51,9 +53,9 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             if (currentOrder != JewelDetector.JewelOrder.UNKNOWN) // don't override valid value with unknown
                 jewelOrder = currentOrder;
 
-            CVCryptoKeyDetector.DetectedKey currentKey = initializationObserver.keyDetector.getLastDetected();
-            if (currentKey != CVCryptoKeyDetector.DetectedKey.UNKNOWN)
-                detectedKey = currentKey;
+//            CVCryptoKeyDetector.DetectedKey currentKey = initializationObserver.keyDetector.getLastDetected();
+//            if (currentKey != CVCryptoKeyDetector.DetectedKey.UNKNOWN)
+//                detectedKey = currentKey;
 
             flow.yield();
         }
@@ -85,28 +87,6 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         // Simple Autonomous
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
-            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.5, getAlliance() == Alliance.RED ? 270 : 90));
-
-            // Choose the wheels which we'll use as an encoder anchor (observing their positions over time).
-            SwerveModule[] wheels; // will be left wheels for red alliance, right for blue.
-            if (getAlliance() == Alliance.RED)
-            {
-                wheels = new SwerveModule[2];
-                wheels[0] = robot.swerveDrive.swerveModules[0]; // front left
-                wheels[1] = robot.swerveDrive.swerveModules[1]; // back left
-            }
-            else
-            {
-                wheels = new SwerveModule[2];
-                wheels[0] = robot.swerveDrive.swerveModules[2];
-                wheels[1] = robot.swerveDrive.swerveModules[3];
-            }
-
-            // Get initial positions for wheels.
-            double[] desiredPositions = new double[wheels.length];
-            for (int i = 0; i < wheels.length; i++)
-                desiredPositions[i] = wheels[i].driveMotor.currentDistanceMoved();
-
             // Choose the length to drive.
             double desiredDriveLength = 0;
             if (getAlliance() == Alliance.BLUE)
@@ -114,15 +94,15 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
                 switch (detectedKey)
                 {
                     case LEFT:
-                        desiredDriveLength = 300;
+                        desiredDriveLength = DEPOSIT_LOCATIONS[0];
                         break;
 
                     case CENTER:
-                        desiredDriveLength = 400;
+                        desiredDriveLength = DEPOSIT_LOCATIONS[1];
                         break;
 
                     case RIGHT:
-                        desiredDriveLength = 500;
+                        desiredDriveLength = DEPOSIT_LOCATIONS[2];
                         break;
                 }
             }
@@ -131,74 +111,61 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
                 switch (detectedKey)
                 {
                     case LEFT:
-                        desiredDriveLength = -500;
+                        desiredDriveLength = DEPOSIT_LOCATIONS[2];
                         break;
 
                     case CENTER:
-                        desiredDriveLength = -400;
+                        desiredDriveLength = DEPOSIT_LOCATIONS[1];
                         break;
 
                     case RIGHT:
-                        desiredDriveLength = -300;
+                        desiredDriveLength = DEPOSIT_LOCATIONS[0];
                         break;
                 }
             }
 
-            // Determine desired drive positions for both now.
-            for (int i = 0; i < desiredPositions.length; i++)
-                desiredPositions[i] += desiredDriveLength;
-
-            // Drive to those positions.
-            boolean atAcceptableLocation = false;
-            while (!atAcceptableLocation)
-            {
-                // actual positions must be less than the desired positions.
-                if (desiredDriveLength < 0)
-                {
-                    boolean allGood = true;
-                    for (int i = 0; i < desiredPositions.length; i++)
-                    {
-                        if (wheels[i].driveMotor.currentDistanceMoved() > desiredPositions[i])
-                        {
-                            allGood = false;
-                            break;
-                        }
-                    }
-
-                    atAcceptableLocation = allGood;
-                }
-                // above desired positions
-                else
-                {
-                    boolean allGood = true;
-                    for (int i = 0; i < desiredPositions.length; i++)
-                    {
-                        if (wheels[i].driveMotor.currentDistanceMoved() < desiredPositions[i])
-                        {
-                            allGood = false;
-                            break;
-                        }
-                    }
-
-                    atAcceptableLocation = allGood;
-                }
-
-                robot.swerveDrive.synchronousUpdate();
-                flow.yield();
-            }
+            // Drive that length
+            robot.swerveDrive.driveDistance(Vector2D.polar(0.5, getAlliance() == Alliance.RED ? 270 : 90), desiredDriveLength, flow);
 
             // Dump glyph
             robot.flipper.advanceStage(2);
             flow.msPause(600);
         }
 
-        // Pain in the A** autonomous
+        // TODO Pain in the A** autonomous
         else if (getBalancePlate() == BalancePlate.TOP)
         {
         }
         // endregion
 
         // region Multi-Glyph!
+        if (getBalancePlate() == BalancePlate.BOTTOM)
+        {
+            // Drive to the glyph pile.
+            robot.swerveDrive.setDesiredMovement(Vector2D.polar(1, 0));
+            while (robot.frontRangeSensor.getForwardDist() > 20)
+            {
+                robot.swerveDrive.synchronousUpdate();
+                flow.yield();
+            }
+            robot.swerveDrive.stop();
+
+            // Succ in dem glyphs
+            robot.intake.intake();
+            flow.msPause(5000);
+
+            // Drive back to the cryptobox.
+            while (robot.backRangeSensor.getForwardDist() > 20)
+            {
+                robot.swerveDrive.synchronousUpdate();
+                flow.yield();
+            }
+        }
+
+        // TODO Pain in the A** multiglyph
+        else if (getBalancePlate() == BalancePlate.TOP)
+        {
+        }
         // endregion
     }
 }

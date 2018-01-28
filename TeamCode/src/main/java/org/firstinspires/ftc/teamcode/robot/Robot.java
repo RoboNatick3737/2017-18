@@ -153,7 +153,7 @@ public class Robot
                 frontRightDrive,
                 hardware.initialize(Servo.class, "Front Right Vex Motor"),
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
-                new PIDConstants(0.08, 0, 0, .5, 40000000),
+                new PIDConstants(0.008, 0, 0, .5, 40000000),
                 97);
 
         SwerveModule backLeft = new SwerveModule(

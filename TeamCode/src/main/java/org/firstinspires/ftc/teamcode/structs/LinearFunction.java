@@ -15,7 +15,7 @@ public class LinearFunction implements Function
         return a * input + b;
     }
 
-    public ComplexFunction toFunction()
+    public ComplexFunction toComplexFunction()
     {
         return new ComplexFunction(ComplexFunction.FunctionType.POLYNOMIAL, a, b);
     }
