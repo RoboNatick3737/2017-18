@@ -58,6 +58,16 @@ public class Robot
         // Swerve drive needs to know this as well.
         this.controlMode = controlMode;
 
+        // Do these first so they don't move and mess up alignment.
+        Servo frontLeftVex = hardware.initialize(Servo.class, "Front Left Vex Motor");
+        frontLeftVex.setPosition(0.5);
+        Servo frontRightVex = hardware.initialize(Servo.class, "Front Right Vex Motor");
+        frontRightVex.setPosition(0.5);
+        Servo backLeftVex = hardware.initialize(Servo.class, "Back Left Vex Motor");
+        backLeftVex.setPosition(0.5);
+        Servo backRightVex = hardware.initialize(Servo.class, "Back Right Vex Motor");
+        backRightVex.setPosition(0.5);
+
         // Init the android gyro (make sure to call start()).
         AndroidGyro androidGyro = new AndroidGyro();
         androidGyro.start();
@@ -109,49 +119,49 @@ public class Robot
         else
             lights = null;
 
-
         // All of the drive motors and their respective PID.
+        DcMotor.ZeroPowerBehavior desiredZeroPowerBehavior = /*controlMode == ControlMode.AUTONOMOUS ? DcMotor.ZeroPowerBehavior.BRAKE : */DcMotor.ZeroPowerBehavior.FLOAT;
         EncoderMotor frontLeftDrive = new EncoderMotor(
                 "Front Left",
                 hardware.initialize(DcMotor.class, "Front Left"),
                 new PIDConstants(.0006, 0, 0, 0, 40000000),
-                475, 7.62);
+                475, 7.62, desiredZeroPowerBehavior);
 //        frontLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         EncoderMotor frontRightDrive = new EncoderMotor(
                 "Front Right",
                 hardware.initialize(DcMotor.class, "Front Right"),
                 new PIDConstants(.0006, 0, 0, 0, 40000000),
-                202, 7.62);
+                202, 7.62, desiredZeroPowerBehavior);
 //        frontRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         EncoderMotor backLeftDrive = new EncoderMotor(
                 "Back Left",
                 hardware.initialize(DcMotor.class, "Back Left"),
-                new PIDConstants(.0006, 0, 0, 0, 40000000),
-                202, 7.62);
+                new PIDConstants(.00065, 0, 0, 0, 40000000),
+                202, 7.62, desiredZeroPowerBehavior);
 //        backLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         EncoderMotor backRightDrive = new EncoderMotor(
                 "Back Right",
                 hardware.initialize(DcMotor.class, "Back Right"),
                 new PIDConstants(.0006, 0, 0, 0, 40000000),
-                475, 7.62);
+                475, 7.62, desiredZeroPowerBehavior);
 //        backRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // All of the SwerveWheels (which align on independent threads)
         SwerveModule frontLeft = new SwerveModule(
                 "Front Left",
                 frontLeftDrive,
-                hardware.initialize(Servo.class, "Front Left Vex Motor"),
+                frontLeftVex,
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
-                new PIDConstants(0.007, 0, 0, .5, 40000000),
+                new PIDConstants(0.0055, 0, 0, .5, 40000000),
                 57);
 
         SwerveModule frontRight = new SwerveModule(
                 "Front Right",
                 frontRightDrive,
-                hardware.initialize(Servo.class, "Front Right Vex Motor"),
+                frontRightVex,
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
                 new PIDConstants(0.008, 0, 0, .5, 40000000),
                 97);
@@ -159,15 +169,15 @@ public class Robot
         SwerveModule backLeft = new SwerveModule(
                 "Back Left",
                 backLeftDrive,
-                hardware.initialize(Servo.class, "Back Left Vex Motor"),
+                backLeftVex,
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
-                new PIDConstants(0.007, 0, 0, .5, 40000000),
+                new PIDConstants(0.0065, 0, 0, .5, 40000000),
                 73);
 
         SwerveModule backRight = new SwerveModule(
                 "Back Right",
                 backRightDrive,
-                hardware.initialize(Servo.class, "Back Right Vex Motor"),
+                backRightVex,
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
                 new PIDConstants(0.007, 0, 0, .5, 40000000),
                 137.78);

@@ -42,7 +42,7 @@ public class EncoderMotor
     /**
      * For custom PID control.
      */
-    public EncoderMotor(String motorName, DcMotor motor, PIDConstants motorPID, int encoderTicksPerWheelRevolution, double wheelDiameterCM)
+    public EncoderMotor(String motorName, DcMotor motor, PIDConstants motorPID, int encoderTicksPerWheelRevolution, double wheelDiameterCM, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
     {
         controlMethod = MotorPIDControlMethod.CUSTOM;
 
@@ -57,7 +57,7 @@ public class EncoderMotor
 
         processConsole = LoggingBase.instance.newProcessConsole(motorName + " Motor Process Console");
 
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        motor.setZeroPowerBehavior(zeroPowerBehavior);
     }
 
     /**

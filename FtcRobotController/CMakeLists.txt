@@ -50,6 +50,17 @@ add_library( # Sets the name of the library.
              # file are automatically included.
              src/main/cpp/relicrecoveryvisionpipelinescpp/glyph-detection.cpp )
 
+# Crypto-Key Detection (heavy analysis in .cpp format)
+add_library( # Sets the name of the library.
+             cryptokey-detector
+
+             # Sets the library as a shared library.
+             SHARED
+
+             # Provides a relative path to your source file(s).
+             # Associated headers in the same location as their source
+             # file are automatically included.
+             src/main/cpp/relicrecoveryvisionpipelinescpp/cryptokey-detection.cpp )
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because system libraries are included in the search path by
@@ -90,6 +101,16 @@ target_link_libraries( # Specifies the target library.
 
 target_link_libraries( # Specifies the target library.
                        glyph-detector
+
+                       # OpenCV lib
+                       lib_opencv
+
+                       # Links the target library to the log library
+                       # included in the NDK.
+                       ${log-lib} )
+
+target_link_libraries( # Specifies the target library.
+                       cryptokey-detector
 
                        # OpenCV lib
                        lib_opencv

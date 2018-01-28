@@ -13,6 +13,7 @@ public class OpenCVJNIHooks
         System.loadLibrary("native-opencv");
         System.loadLibrary("cryptobox-detector");
         System.loadLibrary("glyph-detector");
+        System.loadLibrary("cryptokey-detector");
     }
 
     /**
@@ -53,4 +54,19 @@ public class OpenCVJNIHooks
         deepCryptoboxAnalysis(toAnalyze.getNativeObjAddr(), primaryMask.getNativeObjAddr(), whiteMask.getNativeObjAddr(), estimatedForwardDist, array);
     }
     private static native void deepCryptoboxAnalysis(long toAnalyzeAddress, long primaryMaskAddress, long whiteMaskAddress, double estimatedForwardDist, boolean[] array);
+
+    /**
+     * Once Java's done the simple filtering by ensuring that each positive has some blue and white,
+     * this does the more complex filtering (checking each region meets specific criteria, etc.
+     *
+     * @param toAnalyze  The descriptors of the mat to analyze.
+     * @param left       Loaded left cryptokey descriptors (grayscale)
+     * @param center     Loaded center cryptokey descriptors (grayscale)
+     * @param right      Loaded right cryptokey descriptors (grayscale)
+     */
+    public static int decideOnCryptokeyIndex(Mat toAnalyze, Mat left, Mat center, Mat right)
+    {
+        return decideOnCryptokeyIndex(toAnalyze.getNativeObjAddr(), left.getNativeObjAddr(), center.getNativeObjAddr(), right.getNativeObjAddr());
+    }
+    private static native int decideOnCryptokeyIndex(long toAnalyze, long left, long center, long right);
 }

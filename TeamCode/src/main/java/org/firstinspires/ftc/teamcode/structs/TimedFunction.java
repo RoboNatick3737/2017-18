@@ -13,6 +13,6 @@ public class TimedFunction
 
     public double value()
     {
-        return someFunction.value(System.currentTimeMillis() - startTime);
+        return someFunction.value((System.currentTimeMillis() - startTime) * .001); // value with current elapsed time in seconds
     }
 }

@@ -11,13 +11,17 @@ import hankextensions.vision.opencv.OpenCVCam;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
+import org.firstinspires.ftc.teamcode.structs.ComplexFunction;
+import org.firstinspires.ftc.teamcode.structs.LinearFunction;
+import org.firstinspires.ftc.teamcode.structs.TimedFunction;
+import org.firstinspires.ftc.teamcode.structs.VariableVector2D;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CVCryptoKeyDetector;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelAndCryptoKeyTracker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
 
 public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
 {
-    private final double[] DEPOSIT_LOCATIONS = {300, 400, 500};
+    private final double[] DEPOSIT_LOCATIONS = {48.5, 55, 70};
 
     /**
      * So here's the strat (doesn't really vary based on the autonomous).
@@ -62,6 +66,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
 
             flow.yield();
         }
+        cam.stop();
         // endregion
 
         // region Knock Ball
@@ -87,6 +92,9 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         // endregion
 
         // region Place Pre-Loaded Glyph
+
+        robot.intake.intake();
+
         // Simple Autonomous
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
@@ -127,12 +135,52 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
                 }
             }
 
-            // Drive that length
-            robot.swerveDrive.driveDistance(Vector2D.polar(0.5, getAlliance() == Alliance.RED ? 270 : 90), desiredDriveLength, flow);
+            // Drive that length slowing down over time.
+            VariableVector2D driveInstruction = VariableVector2D.polar(
+                    new ComplexFunction(ComplexFunction.FunctionType.POLYNOMIAL, -.25 / (desiredDriveLength), 0.3),
+                    new ComplexFunction(ComplexFunction.FunctionType.POLYNOMIAL, getAlliance() == Alliance.RED ? 270 : 90));
+            robot.swerveDrive.driveDistance(driveInstruction, desiredDriveLength, flow);
+
+            // Flip glyph so it slides to bottom.
+            robot.flipper.setGlyphHolderUpTo(true);
+
+            // Use math to figure out flipper position over time.
+            TimedFunction flipperPosition = new TimedFunction(new LinearFunction(-.2, 1));
+
+            // Drive back to the cryptobox.
+            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 180));
+            while (robot.backRangeSensor.getForwardDist() > 20)
+            {
+                double newFlipperPosition = flipperPosition.value();
+                // Don't accidentally drop glyph.
+                if (newFlipperPosition > .5)
+                    robot.flipper.setFlipperPositionManually(newFlipperPosition);
+
+                robot.swerveDrive.synchronousUpdate();
+                flow.yield();
+            }
+
+            robot.swerveDrive.stop();
 
             // Dump glyph
             robot.flipper.advanceStage(2);
             flow.msPause(600);
+
+            // Shove that glyph in there.
+            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 0));
+            long start = System.currentTimeMillis();
+            while (System.currentTimeMillis() - start < 900)
+            {
+                robot.swerveDrive.synchronousUpdate();
+                flow.yield();
+            }
+            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.7, 180));
+            start = System.currentTimeMillis();
+            while (System.currentTimeMillis() - start < 900)
+            {
+                robot.swerveDrive.synchronousUpdate();
+                flow.yield();
+            }
         }
 
         // TODO Pain in the A** autonomous
@@ -146,7 +194,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         {
             // Drive to the glyph pile.
             robot.swerveDrive.setDesiredMovement(Vector2D.polar(1, 0));
-            while (robot.frontRangeSensor.getForwardDist() > 20)
+            while (robot.frontRangeSensor.getForwardDist() > 24)
             {
                 robot.swerveDrive.synchronousUpdate();
                 flow.yield();

@@ -281,6 +281,8 @@ public class SwerveDrive extends ScheduledTask
      */
     public void driveDistance(VariableVector2D direction, double distance, Flow flow) throws InterruptedException
     {
+        ProcessConsole distanceConsole = LoggingBase.instance.newProcessConsole("Distance Drive");
+
         // Represents distance driven by each module.
         double[] cumulativeOffsets = new double[swerveModules.length];
 
@@ -309,6 +311,8 @@ public class SwerveDrive extends ScheduledTask
             {
                 setDesiredMovement(direction.getVector(avgOffset));
 
+                distanceConsole.write("Cumulative offsets are: ", "0: " + cumulativeOffsets[0], "1: " + cumulativeOffsets[1], "2: " + cumulativeOffsets[2], "3: " + cumulativeOffsets[3]);
+
                 if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
                     synchronousUpdate();
             }
@@ -317,6 +321,7 @@ public class SwerveDrive extends ScheduledTask
         }
 
         stop();
+        distanceConsole.destroy();
     }
     public void driveDistance(Vector2D direction, double distance, Flow flow) throws InterruptedException
     {

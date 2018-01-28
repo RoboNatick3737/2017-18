@@ -25,25 +25,25 @@ public class MotorPIDTesting extends EnhancedOpMode
                 "Front Left",
                 hardware.initialize(DcMotor.class, "Front Left"),
                 new PIDConstants(.0006, 0, 0, 0, 40000000),
-                407, 7.62);
+                407, 7.62, DcMotor.ZeroPowerBehavior.BRAKE);
 
         frontRight = new EncoderMotor(
                 "Front Right",
                 hardware.initialize(DcMotor.class, "Front Right"),
                 new PIDConstants(.0006, 0, 0, 0, 40000000),
-                202, 7.62);
+                202, 7.62, DcMotor.ZeroPowerBehavior.BRAKE);
 
         backLeft = new EncoderMotor(
                 "Back Left",
                 hardware.initialize(DcMotor.class, "Back Left"),
                 new PIDConstants(.0006, 0, 0, 0, 40000000),
-                202, 7.62);
+                202, 7.62, DcMotor.ZeroPowerBehavior.BRAKE);
 
         backRight = new EncoderMotor(
                 "Back Right",
                 hardware.initialize(DcMotor.class, "Back Right"),
                 new PIDConstants(.0006, 0, 0, 0, 40000000),
-                475, 7.62);
+                475, 7.62, DcMotor.ZeroPowerBehavior.BRAKE);
 
         waitForStart();
 
