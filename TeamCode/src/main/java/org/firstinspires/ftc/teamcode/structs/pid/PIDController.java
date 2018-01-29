@@ -39,6 +39,14 @@ public class PIDController
     }
 
     /**
+     * Don't integrate or derive over MASSIVE lapses of time.
+     */
+    public void pauseController()
+    {
+        lastCorrectionTime = -1;
+    }
+
+    /**
      * Has to remember past states.
      */
     private double i = 0;
@@ -59,39 +67,42 @@ public class PIDController
         // Calculate proportional correction.
         double p = Math.abs(pidConstants.kP) > NO_CALCULATION_THRESHOLD ? pidConstants.kP * error : 0;
 
-        // Only calculate integral and derivative correction if possible.
-        if (lastCorrectionTime != -1 && (Math.abs(pidConstants.kD) > NO_CALCULATION_THRESHOLD || Math.abs(pidConstants.kI) > NO_CALCULATION_THRESHOLD))
+        // Stop here if I and D can't be calculated
+        if (Math.abs(pidConstants.kD) < NO_CALCULATION_THRESHOLD && Math.abs(pidConstants.kI) < NO_CALCULATION_THRESHOLD)
+            return p;
+
+        // Don't calculate I and D if paused or never started.
+        if (lastCorrectionTime == -1)
         {
-            // Calculate time passed since last loop.
-            double secondsSinceLoop = (System.nanoTime() - lastCorrectionTime) / 1000000000.0;
-
-            // Calculate derivative correction
-            double d = Math.abs(pidConstants.kD) > NO_CALCULATION_THRESHOLD ? pidConstants.kD * (error - lastError) / secondsSinceLoop : 0;
-
-            // Calculate integral correction.
-            if (Math.abs(pidConstants.kI) > NO_CALCULATION_THRESHOLD)
-            {
-                // Keep track of previous error
-                i += pidConstants.kI * error * secondsSinceLoop;
-
-                // Prevent windup (don't scale up output excessively).
-                if (i > pidConstants.maximumOutput)
-                    i = pidConstants.maximumOutput;
-                else if (i < pidConstants.minimumOutput)
-                    i = pidConstants.minimumOutput;
-            }
-            else
-                i = 0;
-
-            // Record the last correction time.
             lastCorrectionTime = System.nanoTime();
-            lastError = error;
-
-            return p + i + d;
-        }
-        else
-        {
             return p;
         }
+
+        // Calculate time passed since last loop.
+        double secondsSinceLoop = (System.nanoTime() - lastCorrectionTime) / 1e9;
+
+        // Calculate derivative correction
+        double d = Math.abs(pidConstants.kD) > NO_CALCULATION_THRESHOLD ? pidConstants.kD * (error - lastError) / secondsSinceLoop : 0;
+
+        // Calculate integral correction.
+        if (Math.abs(pidConstants.kI) > NO_CALCULATION_THRESHOLD)
+        {
+            // Keep track of previous error
+            i += pidConstants.kI * error * secondsSinceLoop;
+
+            // Prevent windup (don't scale up output excessively).
+            if (i > pidConstants.maximumOutput)
+                i = pidConstants.maximumOutput;
+            else if (i < pidConstants.minimumOutput)
+                i = pidConstants.minimumOutput;
+        }
+        else
+            i = 0;
+
+        // Record the last correction time.
+        lastCorrectionTime = System.nanoTime();
+        lastError = error;
+
+        return p + i + d;
     }
 }

@@ -135,4 +135,12 @@ public class EncoderMotor
         lastMotorPosition = motor.getCurrentPosition();
         lastAdjustmentTime = System.nanoTime();
     }
+
+    /**
+     * Important for I and D timing.
+     */
+    public void pausePID()
+    {
+        pidController.pauseController();
+    }
 }

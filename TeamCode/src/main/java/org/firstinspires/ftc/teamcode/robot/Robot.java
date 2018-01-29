@@ -90,7 +90,7 @@ public class Robot
         driveMotors[0] = new EncoderMotor(
                 "Front Left",
                 hardware.initialize(DcMotor.class, "Front Left"),
-                new PIDConstants(.0006, 0, 0, 0, PIDConstants.TimeUnits.MILLISECONDS, 40, -1, 1),
+                new PIDConstants(0, -.1, 0, 0, PIDConstants.TimeUnits.MILLISECONDS, 40, -1, 1),
                 475, 7.62, desiredZeroPowerBehavior);
 //        frontLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -98,7 +98,7 @@ public class Robot
         driveMotors[1] = new EncoderMotor(
                 "Back Left",
                 hardware.initialize(DcMotor.class, "Back Left"),
-                new PIDConstants(.00065, 0, 0, 0, PIDConstants.TimeUnits.MILLISECONDS, 40, -1, 1),
+                new PIDConstants(0, -.1, 0, 0, PIDConstants.TimeUnits.MILLISECONDS, 40, -1, 1),
                 202, 7.62, desiredZeroPowerBehavior);
 //        backLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -106,7 +106,7 @@ public class Robot
         driveMotors[2] = new EncoderMotor(
                 "Back Right",
                 hardware.initialize(DcMotor.class, "Back Right"),
-                new PIDConstants(.0006, 0, 0, 0, PIDConstants.TimeUnits.MILLISECONDS, 40, -1, 1),
+                new PIDConstants(0, -.1, 0, 0, PIDConstants.TimeUnits.MILLISECONDS, 40, -1, 1),
                 475, 7.62, desiredZeroPowerBehavior);
 //        backRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -114,7 +114,7 @@ public class Robot
         driveMotors[3] = new EncoderMotor(
                 "Front Right",
                 hardware.initialize(DcMotor.class, "Front Right"),
-                new PIDConstants(.0006, 0, 0, 0, PIDConstants.TimeUnits.MILLISECONDS, 40, -1, 1),
+                new PIDConstants(0, -.1, 0, 0, PIDConstants.TimeUnits.MILLISECONDS, 40, -1, 1),
                 202, 7.62, desiredZeroPowerBehavior);
 //        frontRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 

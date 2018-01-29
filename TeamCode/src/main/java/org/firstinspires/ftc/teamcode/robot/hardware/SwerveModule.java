@@ -126,6 +126,10 @@ public class SwerveModule extends ScheduledTask
 
             if (driveMotor != null)
                 driveMotor.setVelocity(0);
+
+            pidController.pauseController();
+            if (driveMotor != null)
+                driveMotor.pausePID();
         }
         else
         {
@@ -170,6 +174,10 @@ public class SwerveModule extends ScheduledTask
 
                 driveMotor.setVelocity(drivePower);
                 driveMotor.updatePID();
+            }
+            else
+            {
+                driveMotor.pausePID();
             }
         }
 
