@@ -51,30 +51,30 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
             for (int i = 0; i < 3; i++)
             {
                 if (gamepad1.a)
-                    swerveModule.pidController.pidConstants.kP += .0001;
+                    swerveModule.pidController.kP += .0001;
                 else if (gamepad1.y)
-                    swerveModule.pidController.pidConstants.kP -= .0001;
+                    swerveModule.pidController.kP -= .0001;
 
                 if (gamepad1.b)
-                    swerveModule.pidController.pidConstants.kI += .0001;
+                    swerveModule.pidController.kI += .0001;
                 else if (gamepad1.x)
-                    swerveModule.pidController.pidConstants.kI -= .0001;
+                    swerveModule.pidController.kI -= .0001;
 
                 if (gamepad1.dpad_up)
-                    swerveModule.pidController.pidConstants.kD += .00001;
+                    swerveModule.pidController.kD += .00001;
                 else if (gamepad1.dpad_down)
-                    swerveModule.pidController.pidConstants.kD -= .00001;
+                    swerveModule.pidController.kD -= .00001;
 
                 if (gamepad1.dpad_left)
-                    swerveModule.pidController.pidConstants.errorThreshold += .01;
+                    swerveModule.pidController.errorThreshold += .01;
                 else if (gamepad1.dpad_right)
-                    swerveModule.pidController.pidConstants.errorThreshold -= .01;
+                    swerveModule.pidController.errorThreshold -= .01;
 
                 swervePIDConsole.write(
-                        "kP is " + swerveModule.pidController.pidConstants.kP,
-                        "kI is " + swerveModule.pidController.pidConstants.kI,
-                        "kD is " + swerveModule.pidController.pidConstants.kD,
-                        "error threshold is " + swerveModule.pidController.pidConstants.errorThreshold,
+                        "kP is " + swerveModule.pidController.kP,
+                        "kI is " + swerveModule.pidController.kI,
+                        "kD is " + swerveModule.pidController.kD,
+                        "error threshold is " + swerveModule.pidController.errorThreshold,
                         "x = " + gamepad1.left_stick_x + " and y = " + gamepad1.left_stick_y
                 );
 

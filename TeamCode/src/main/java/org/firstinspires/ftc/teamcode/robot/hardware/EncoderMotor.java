@@ -5,8 +5,7 @@ import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.structs.pid.PIDController;
+import org.firstinspires.ftc.teamcode.structs.PIDController;
 
 public class EncoderMotor
 {
@@ -44,14 +43,14 @@ public class EncoderMotor
     /**
      * For custom PID control.
      */
-    public EncoderMotor(String motorName, DcMotor motor, PIDConstants motorPID, int encoderTicksPerWheelRevolution, double wheelDiameterCM, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
+    public EncoderMotor(String motorName, DcMotor motor, PIDController motorPID, int encoderTicksPerWheelRevolution, double wheelDiameterCM, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
     {
         this.motorName = motorName;
 
         this.motor = motor;
         resetEncoder();
 
-        this.pidController = new PIDController(motorPID);
+        this.pidController = motorPID;
 
         // The wheel which the motor drives.
         ENCODER_TICKS_PER_REVOLUTION = encoderTicksPerWheelRevolution;
@@ -130,17 +129,9 @@ public class EncoderMotor
                 "Desired velocity: " + desiredVelocity + " cm/s",
                 "Current velocity: " + currentVelocity + " cm/s",
                 "Current power: " + currentPower,
-                "PID constants: " + pidController.pidConstants.kP + ", " + pidController.pidConstants.kD);
+                "PID constants: " + pidController.kP + ", " + pidController.kD);
 
         lastMotorPosition = motor.getCurrentPosition();
         lastAdjustmentTime = System.nanoTime();
-    }
-
-    /**
-     * Important for I and D timing.
-     */
-    public void pausePID()
-    {
-        pidController.pauseController();
     }
 }

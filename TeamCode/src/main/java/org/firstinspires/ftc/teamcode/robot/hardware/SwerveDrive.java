@@ -10,12 +10,10 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.input.HTGamepad;
-import hankextensions.phonesensors.Gyro;
 
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.structs.VariableVector2D;
-import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.structs.pid.PIDController;
+import org.firstinspires.ftc.teamcode.structs.PIDController;
 import hankextensions.structs.Vector2D;
 
 /**
@@ -29,7 +27,7 @@ public class SwerveDrive extends ScheduledTask
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
-    private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 5, PIDConstants.TimeUnits.MILLISECONDS, 40, -1000, 1000);
+    private static final PIDController FIELD_CENTRIC_TURN_PID = new PIDController(.005, 0, 0, 5, PIDController.TimeUnits.MILLISECONDS, 40, -1000, 1000);
     // endregion
 
     // region Initialization
@@ -38,9 +36,6 @@ public class SwerveDrive extends ScheduledTask
 
     // Robot reference (for gyro and such.
     private final Robot robot;
-
-    // For turning the robot.
-    private final PIDController pidController;
 
     // Required for operation of the driving tasks.
     private final ScheduledTaskPackage swerveUpdatePackage;
@@ -78,20 +73,14 @@ public class SwerveDrive extends ScheduledTask
         swerveUpdatePackage = new ScheduledTaskPackage(EnhancedOpMode.instance, "Swerve Turn Alignments",
                 this, this.swerveModules[0], this.swerveModules[1], this.swerveModules[2], this.swerveModules[3]);
 
-        // For turning the drive.
-        pidController = new PIDController(TURN_PID_CONSTANTS);
-
         swerveConsole = LoggingBase.instance.newProcessConsole("Swerve Console");
     }
     // endregion
 
-    // region Vector Stuff
-    // Constantly shifting in autonomous and teleop.
+    // region Control Methods
     private Vector2D desiredMovement = Vector2D.ZERO;
     private double desiredHeading = 0;
-    //endregion
 
-    // region Control Methods
     public enum ControlMethod { FIELD_CENTRIC, TANK_DRIVE }
     private ControlMethod controlMethod = ControlMethod.FIELD_CENTRIC;
     public void setControlMethod(ControlMethod controlMethod)
@@ -157,7 +146,7 @@ public class SwerveDrive extends ScheduledTask
         Vector2D fieldCentricTranslation = desiredMovement.rotateBy(-gyroHeading);
 
         // Don't bother trying to be more accurate than 8 degrees while turning.
-        double rotationSpeed = -pidController.calculatePIDCorrection(angleOff);
+        double rotationSpeed = -FIELD_CENTRIC_TURN_PID.calculatePIDCorrection(angleOff);
 
         // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
         for (int i = 0; i < swerveModules.length; i++)
@@ -184,8 +173,8 @@ public class SwerveDrive extends ScheduledTask
                 "Desired Angle: " + desiredHeading,
                 "Rotation Speed: " + rotationSpeed,
                 "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
-                "PID kP: " + TURN_PID_CONSTANTS.kP,
-                "PID kD: " + TURN_PID_CONSTANTS.kD,
+                "PID kP: " + FIELD_CENTRIC_TURN_PID.kP,
+                "PID kD: " + FIELD_CENTRIC_TURN_PID.kD,
                 "Magnitude: " + fieldCentricTranslation.magnitude,
                 "Driving acceptable: " + drivingCanStart
         );

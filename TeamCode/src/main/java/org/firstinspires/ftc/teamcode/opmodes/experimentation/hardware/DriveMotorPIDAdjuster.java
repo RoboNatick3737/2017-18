@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
-import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 
 import hankextensions.EnhancedOpMode;
 
@@ -40,33 +39,33 @@ public class DriveMotorPIDAdjuster extends EnhancedOpMode
             for (int i = 0; i < 3; i++)
             {
                 if (gamepad1.a)
-                    motor.pidController.pidConstants.kP += .00001;
+                    motor.pidController.kP += .00001;
                 else if (gamepad1.y)
-                    motor.pidController.pidConstants.kP -= .00001;
+                    motor.pidController.kP -= .00001;
 
                 if (gamepad1.b)
-                    motor.pidController.pidConstants.kI += .00001;
+                    motor.pidController.kI += .00001;
                 else if (gamepad1.x)
-                    motor.pidController.pidConstants.kI -= .00001;
+                    motor.pidController.kI -= .00001;
 
                 if (gamepad1.dpad_up)
-                    motor.pidController.pidConstants.kD += .00001;
+                    motor.pidController.kD += .00001;
                 else if (gamepad1.dpad_down)
-                    motor.pidController.pidConstants.kD -= .00001;
+                    motor.pidController.kD -= .00001;
 
                 if (gamepad1.dpad_left)
-                    motor.pidController.pidConstants.errorThreshold += .1;
+                    motor.pidController.errorThreshold += .1;
                 else if (gamepad1.dpad_right)
-                    motor.pidController.pidConstants.errorThreshold -= .1;
+                    motor.pidController.errorThreshold -= .1;
 
                 motor.updatePID();
 
                 swerveConsole.write(
                         "Desired speed is " + desiredVelocity,
-                        "kP is " + motor.pidController.pidConstants.kP,
-                        "kI is " + motor.pidController.pidConstants.kI,
-                        "kD is " + motor.pidController.pidConstants.kD,
-                        "error threshold is " + motor.pidController.pidConstants.errorThreshold
+                        "kP is " + motor.pidController.kP,
+                        "kI is " + motor.pidController.kI,
+                        "kD is " + motor.pidController.kD,
+                        "error threshold is " + motor.pidController.errorThreshold
                 );
 
                 flow.msPause(30);

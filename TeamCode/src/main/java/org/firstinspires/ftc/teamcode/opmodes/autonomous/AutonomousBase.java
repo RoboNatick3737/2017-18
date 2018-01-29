@@ -10,7 +10,6 @@ import hankextensions.structs.Vector2D;
 import hankextensions.vision.opencv.OpenCVCam;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
-import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
 import org.firstinspires.ftc.teamcode.structs.ComplexFunction;
 import org.firstinspires.ftc.teamcode.structs.LinearFunction;
 import org.firstinspires.ftc.teamcode.structs.TimedFunction;

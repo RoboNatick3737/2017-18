@@ -17,8 +17,7 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTask;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.structs.pid.PIDController;
+import org.firstinspires.ftc.teamcode.structs.PIDController;
 
 import hankextensions.structs.Vector2D;
 
@@ -65,7 +64,7 @@ public class SwerveModule extends ScheduledTask
      * @param driveMotor  The drive motor for the module.
      * @param turnMotor   The turning vex motor for the module.
      * @param swerveEncoder  The absolute encoder on the vex motor.
-     * @param pidConstants   The PID constants for aligning the vex motor.
+     * @param pid            The PID constants for aligning the vex motor.
      * @param physicalEncoderOffset  The degree offset of the absolute encoder from zero.
      */
     public SwerveModule(
@@ -73,7 +72,7 @@ public class SwerveModule extends ScheduledTask
             EncoderMotor driveMotor,
             Servo turnMotor,
             AbsoluteEncoder swerveEncoder,
-            PIDConstants pidConstants,
+            PIDController pid,
             double physicalEncoderOffset)
     {
         this.moduleName = moduleName;
@@ -85,7 +84,7 @@ public class SwerveModule extends ScheduledTask
 
         wheelConsole = LoggingBase.instance.newProcessConsole(moduleName + " Swivel Console");
 
-        this.pidController = new PIDController(pidConstants);
+        this.pidController = pid;
     }
 
     /**
@@ -127,9 +126,9 @@ public class SwerveModule extends ScheduledTask
             if (driveMotor != null)
                 driveMotor.setVelocity(0);
 
-            pidController.pauseController();
+            pidController.resetController();
             if (driveMotor != null)
-                driveMotor.pausePID();
+                driveMotor.pidController.resetController();
         }
         else
         {
@@ -177,7 +176,7 @@ public class SwerveModule extends ScheduledTask
             }
             else
             {
-                driveMotor.pausePID();
+                driveMotor.pidController.resetController();
             }
         }
 
@@ -189,7 +188,7 @@ public class SwerveModule extends ScheduledTask
                 "Driving: " + drivingEnabled);
 
         // The ms to wait before updating again.
-        return (long)(pidController.pidConstants.minimumNanosecondGap / 1e3 * .95);
+        return (long)(pidController.minimumNanosecondGap / 1e3 * .95);
     }
 
     /**
