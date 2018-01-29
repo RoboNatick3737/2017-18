@@ -21,27 +21,13 @@ public class PIDController
     private long lastCorrectionTime = -1;
 
     /**
-     * Required to calculate the kI * I factor.
-     */
-    private double errorAccumulation;
-
-    /**
      * Required for derivative correction calculation.
      */
     private double lastError;
 
-    /**
-     * Prevent boxing/unboxing by placing these items before the method.
-     */
-    private double proportionalCorrection, derivativeCorrection, integralCorrection;
-
     public PIDController(PIDConstants pidConstants)
     {
         this.pidConstants = pidConstants;
-
-        this.proportionalCorrection = 0;
-        this.derivativeCorrection = 0;
-        this.integralCorrection = 0;
     }
 
     /**
@@ -53,9 +39,14 @@ public class PIDController
     }
 
     /**
+     * Has to remember past states.
+     */
+    private double i = 0;
+
+    /**
      * If the method-caller already knows the error value, this does the heavy lifting
      * and figures out what to do with it next.
-     * @return
+     * @return correction result
      */
     public double calculatePIDCorrection(double error)
     {
@@ -65,48 +56,42 @@ public class PIDController
         if (!canUpdate())
             return 0;
 
-        // Calculate proportional correction, the "quick" correction factor.
-        if (Math.abs(pidConstants.kP) > NO_CALCULATION_THRESHOLD)
-            proportionalCorrection = pidConstants.kP * error;
-        else
-            proportionalCorrection = 0;
+        // Calculate proportional correction.
+        double p = Math.abs(pidConstants.kP) > NO_CALCULATION_THRESHOLD ? pidConstants.kP * error : 0;
 
-        // Only calculate integral and derivative correction if we have to.
+        // Only calculate integral and derivative correction if possible.
         if (lastCorrectionTime != -1 && (Math.abs(pidConstants.kD) > NO_CALCULATION_THRESHOLD || Math.abs(pidConstants.kI) > NO_CALCULATION_THRESHOLD))
         {
             // Calculate time passed since last loop.
-            double timeSinceLastCorrection = (System.nanoTime() - lastCorrectionTime) / 1000000000.0;
+            double secondsSinceLoop = (System.nanoTime() - lastCorrectionTime) / 1000000000.0;
 
-            // We don't know how to correct quite yet.
-            if (timeSinceLastCorrection == 0)
-                return 0;
+            // Calculate derivative correction
+            double d = Math.abs(pidConstants.kD) > NO_CALCULATION_THRESHOLD ? pidConstants.kD * (error - lastError) / secondsSinceLoop : 0;
 
-            if (Math.abs(pidConstants.kD) > NO_CALCULATION_THRESHOLD) {
-                // Calculate derivative correction, which reduces the oscillation of the kP function.
-                derivativeCorrection = pidConstants.kD * (error - lastError) / timeSinceLastCorrection;
-            } else
-                derivativeCorrection = 0;
+            // Calculate integral correction.
+            if (Math.abs(pidConstants.kI) > NO_CALCULATION_THRESHOLD)
+            {
+                // Keep track of previous error
+                i += pidConstants.kI * error * secondsSinceLoop;
 
-            if (Math.abs(pidConstants.kI) > NO_CALCULATION_THRESHOLD) {
-                // Calculate integral correction, which further reduces oscillation.
-                errorAccumulation += error * timeSinceLastCorrection;
-                integralCorrection = pidConstants.kI * errorAccumulation;
-            } else
-                integralCorrection = 0;
+                // Prevent windup (don't scale up output excessively).
+                if (i > pidConstants.maximumOutput)
+                    i = pidConstants.maximumOutput;
+                else if (i < pidConstants.minimumOutput)
+                    i = pidConstants.minimumOutput;
+            }
+            else
+                i = 0;
 
             // Record the last correction time.
             lastCorrectionTime = System.nanoTime();
             lastError = error;
+
+            return p + i + d;
         }
         else
         {
-            derivativeCorrection = 0;
-            integralCorrection = 0;
-            lastCorrectionTime = System.nanoTime();
-            lastError = 0;
+            return p;
         }
-
-        // Return the total correction (PID)
-        return proportionalCorrection + derivativeCorrection + integralCorrection;
     }
 }

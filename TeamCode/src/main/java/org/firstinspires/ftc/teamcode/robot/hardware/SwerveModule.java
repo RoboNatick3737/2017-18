@@ -59,31 +59,31 @@ public class SwerveModule extends ScheduledTask
     // Finally, the PID controller components which prevents wheel oscillation.
     public final PIDController pidController;
 
+    /**
+     * Instantiates the SwerveModule with the data it requires.
+     * @param moduleName  The module name (will appear with this name in logging).
+     * @param driveMotor  The drive motor for the module.
+     * @param turnMotor   The turning vex motor for the module.
+     * @param swerveEncoder  The absolute encoder on the vex motor.
+     * @param pidConstants   The PID constants for aligning the vex motor.
+     * @param physicalEncoderOffset  The degree offset of the absolute encoder from zero.
+     */
     public SwerveModule(
-            String motorName,
-            EncoderMotor driveMotor,
-            Servo turnMotor,
-            AbsoluteEncoder swerveEncoder,
-            PIDConstants pidConstants)
-    {
-        this(motorName, driveMotor, turnMotor, swerveEncoder, pidConstants, 0);
-    }
-    public SwerveModule(
-            String motorName,
+            String moduleName,
             EncoderMotor driveMotor,
             Servo turnMotor,
             AbsoluteEncoder swerveEncoder,
             PIDConstants pidConstants,
             double physicalEncoderOffset)
     {
-        this.motorName = motorName;
+        this.motorName = moduleName;
         this.driveMotor = driveMotor;
         this.turnMotor = turnMotor;
         this.turnMotor.setPosition(0.5);
         this.swerveEncoder = swerveEncoder;
         this.physicalEncoderOffset = physicalEncoderOffset;
 
-        wheelConsole = LoggingBase.instance.newProcessConsole(motorName + " Swivel Console");
+        wheelConsole = LoggingBase.instance.newProcessConsole(moduleName + " Swivel Console");
 
         this.pidController = new PIDController(pidConstants);
     }
@@ -107,9 +107,6 @@ public class SwerveModule extends ScheduledTask
         driveMotor.setVelocity(0);
     }
 
-    // Prevent boxing/unboxing slowdown.
-    private double desiredAngle, currentAngle, turnPower, angleFromDesired, angleToTurn, turnCorrectionFactor, motorPower;
-
     /**
      * Right here, we're given a vector which we have to match this wheel to as quickly as
      * possible.
@@ -117,6 +114,8 @@ public class SwerveModule extends ScheduledTask
     @Override
     public long onContinueTask() throws InterruptedException
     {
+        double angleToTurn = 0;
+
         // If we aren't going to be driving anywhere, don't try to align.
         if (targetVector.magnitude < .00001)
         {
@@ -128,9 +127,9 @@ public class SwerveModule extends ScheduledTask
         else
         {
             // Shortest angle from current heading to desired heading.
-            desiredAngle = targetVector.angle;
-            currentAngle = swerveEncoder.position() - physicalEncoderOffset;
-            angleFromDesired = (Vector2D.clampAngle(desiredAngle - currentAngle) + 180) % 360 - 180;
+            double desiredAngle = targetVector.angle;
+            double currentAngle = swerveEncoder.position() - physicalEncoderOffset;
+            double angleFromDesired = (Vector2D.clampAngle(desiredAngle - currentAngle) + 180) % 360 - 180;
             angleFromDesired = angleFromDesired < -180 ? angleFromDesired + 360 : angleFromDesired;
 
             // Clip this angle to 90 degree maximum turns.
@@ -142,10 +141,10 @@ public class SwerveModule extends ScheduledTask
                 angleToTurn = angleFromDesired;
 
             // Set turn power.
-            turnPower = 0.5;
+            double turnPower = 0.5;
 
             // Use PID to calculate the correction factor (error bars contained within PID).
-            turnCorrectionFactor = pidController.calculatePIDCorrection(angleToTurn);
+            double turnCorrectionFactor = pidController.calculatePIDCorrection(angleToTurn);
 
             // Change the turn factor depending on our distance from the angle desired (180 vs 0)
             if (angleFromDesired > 90 || angleFromDesired < -90)
@@ -157,9 +156,6 @@ public class SwerveModule extends ScheduledTask
             // Set swivel acceptable.
             swivelAcceptable = Math.abs(angleToTurn) < DRIVING_OK_THRESHOLD;
 
-            // TODO Try to offset bevel gear swiveling (incomplete)
-            motorPower = 0; //-1 * turnCorrectionFactor * driveMotor.WHEEL_CIRCUMFERENCE * (135.0/360.0);
-
             // Set drive power (if angle between this and desired angle is greater than 90, reverse motor).
             if (drivingEnabled)
             {
@@ -169,9 +165,7 @@ public class SwerveModule extends ScheduledTask
                 if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
                     drivePower *= -1;
 
-                motorPower += drivePower;
-
-                driveMotor.setVelocity(motorPower);
+                driveMotor.setVelocity(drivePower);
                 driveMotor.updatePID();
             }
         }
@@ -180,12 +174,11 @@ public class SwerveModule extends ScheduledTask
         wheelConsole.write(
                 "Vector target: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                 "Current vector: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
-                "Angle from desired: " + angleFromDesired,
                 "Angle to turn: " + angleToTurn,
                 "Driving: " + drivingEnabled);
 
         // The ms to wait before updating again.
-        return 10;
+        return (long)(pidController.pidConstants.minimumNanosecondGap / 1e3 * .95);
     }
 
     /**
@@ -197,8 +190,9 @@ public class SwerveModule extends ScheduledTask
     }
 
     /**
-     * Tells
-     * @param state
+     * Tells us whether or not we can start driving (all SwerveModules must be within acceptable
+     * bounds).
+     * @param state  True = driving is ok, false = driving is bad.
      */
     public void setDrivingState(boolean state)
     {

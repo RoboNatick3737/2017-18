@@ -29,12 +29,12 @@ public class SwerveDrive extends ScheduledTask
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
-    private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 5, 40000000);
+    private static final PIDConstants TURN_PID_CONSTANTS = new PIDConstants(.005, 0, 0, 5, PIDConstants.TimeUnits.MILLISECONDS, 40, -1000, 1000);
     // endregion
 
     // region Initialization
     // The SwerveModule instances which constitute the swerve drive: frontLeft, backLeft, backRight, frontRight respectively.
-    public final SwerveModule[] swerveModules = new SwerveModule[4];
+    public final SwerveModule[] swerveModules;
 
     // Robot reference (for gyro and such.
     private final Robot robot;
@@ -58,18 +58,25 @@ public class SwerveDrive extends ScheduledTask
      */
     public SwerveDrive(Robot robot, SwerveModule frontLeft, SwerveModule frontRight, SwerveModule backLeft, SwerveModule backRight)
     {
+        this(robot, new SwerveModule[]{frontLeft, backLeft, backRight, frontRight});
+    }
+
+    /**
+     * Constructor, starts the alignment threads and such.
+     * @param robot        Contains a gyro and the control method for the bot.
+     * @param modules      The swerve modules (in an array duh)
+     */
+    public SwerveDrive(Robot robot, SwerveModule[] modules)
+    {
         // Robot reference
         this.robot = robot;
 
         // The swerve wheels.
-        this.swerveModules[0] = frontLeft;
-        this.swerveModules[1] = backLeft;
-        this.swerveModules[2] = backRight;
-        this.swerveModules[3] = frontRight;
+        this.swerveModules = modules;
 
         // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
         swerveUpdatePackage = new ScheduledTaskPackage(EnhancedOpMode.instance, "Swerve Turn Alignments",
-                this, frontLeft, frontRight, backLeft, backRight);
+                this, this.swerveModules[0], this.swerveModules[1], this.swerveModules[2], this.swerveModules[3]);
 
         // For turning the drive.
         pidController = new PIDController(TURN_PID_CONSTANTS);

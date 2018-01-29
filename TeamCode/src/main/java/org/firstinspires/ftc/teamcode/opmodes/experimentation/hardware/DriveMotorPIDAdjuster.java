@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
 import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 
@@ -14,54 +15,21 @@ import hankextensions.EnhancedOpMode;
 @TeleOp(name="Drive Motor PID Adjuster", group= Constants.FINAL_BOT_EXPERIMENTATION)
 public class DriveMotorPIDAdjuster extends EnhancedOpMode
 {
-    private EncoderMotor frontLeft, backLeft, frontRight, backRight;
-
     @Override
     protected void onRun() throws InterruptedException
     {
         // All of the drive motors and their respective PID.
-        frontLeft = new EncoderMotor(
-                "Front Left",
-                hardware.initialize(DcMotor.class, "Front Left"),
-                new PIDConstants(.0008, 0, 0, 0, 40000000),
-                407, 7.62, DcMotor.ZeroPowerBehavior.BRAKE);
-
-        frontRight = new EncoderMotor(
-                "Front Right",
-                hardware.initialize(DcMotor.class, "Front Right"),
-                new PIDConstants(.0008, 0, 0, 0, 40000000),
-                202, 7.62, DcMotor.ZeroPowerBehavior.BRAKE);
-
-        backLeft = new EncoderMotor(
-                "Back Left",
-                hardware.initialize(DcMotor.class, "Back Left"),
-                new PIDConstants(.0008, 0, 0, 0, 40000000),
-                202, 7.62, DcMotor.ZeroPowerBehavior.BRAKE);
-
-        backRight = new EncoderMotor(
-                "Back Right",
-                hardware.initialize(DcMotor.class, "Back Right"),
-                new PIDConstants(.0008, 0, 0, 0, 40000000),
-                475, 7.62, DcMotor.ZeroPowerBehavior.BRAKE);
+        EncoderMotor[] driveMotors = Robot.getDriveMotors(hardware, DcMotor.ZeroPowerBehavior.FLOAT);
 
         waitForStart();
 
-        figureOutPIDConstantsFor(frontLeft);
-
-        figureOutPIDConstantsFor(frontRight);
-
-        figureOutPIDConstantsFor(backLeft);
-
-        figureOutPIDConstantsFor(backRight);
+        for (EncoderMotor driveMotor : driveMotors)
+            figureOutPIDConstantsFor(driveMotor);
     }
 
-    ProcessConsole swerveConsole;
-
-    private int increment = 0;
     private void figureOutPIDConstantsFor(EncoderMotor motor) throws InterruptedException
     {
-        increment++;
-        swerveConsole = log.newProcessConsole("PID " + increment);
+        ProcessConsole swerveConsole = log.newProcessConsole(motor.motorName);
 
         while (!gamepad1.start)
         {
@@ -104,6 +72,8 @@ public class DriveMotorPIDAdjuster extends EnhancedOpMode
                 flow.msPause(30);
             }
         }
+
+        swerveConsole.destroy();
 
         flow.msPause(3000);
     }

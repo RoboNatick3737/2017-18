@@ -38,16 +38,50 @@ public class PIDConstants
     public double errorThreshold;
 
     /**
+     * The unit which controls how quickly it updates (just gets converted in the constructor).
+     */
+    public enum TimeUnits {SECONDS, MILLISECONDS, NANOSECONDS, HERTZ}
+
+    /**
      * The minimum time required before updating this PID loop (in nanoseconds).
      */
     public long minimumNanosecondGap;
 
-    public PIDConstants(double kP, double kI, double kD, double errorThreshold, long minimumNanosecondGap)
+    /**
+     * Required to prevent integral windup (in which the integrator proceeds despite having
+     * surpassed the maximum output.
+     */
+    public double minimumOutput, maximumOutput;
+
+    public PIDConstants(double kP, double kI, double kD, double errorThreshold, TimeUnits updateRateUnits, long minimumTimeGap, double minimumOutput, double maximumOutput)
     {
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
         this.errorThreshold = errorThreshold;
-        this.minimumNanosecondGap = minimumNanosecondGap;
+
+        this.minimumOutput = minimumOutput;
+        this.maximumOutput = maximumOutput;
+
+        // Decide nanoseconds required for update.
+        switch (updateRateUnits)
+        {
+            case SECONDS:
+                minimumTimeGap *= 1e9;
+                break;
+
+            case MILLISECONDS:
+                minimumTimeGap *= 1e3;
+                break;
+
+            case NANOSECONDS:
+                // no conversion necessary
+                break;
+
+            case HERTZ:
+                minimumTimeGap = (long)(1e9 / minimumTimeGap);
+                break;
+        }
+        this.minimumNanosecondGap = minimumTimeGap;
     }
 }

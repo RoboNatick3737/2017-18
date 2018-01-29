@@ -4,9 +4,11 @@ import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
 import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
@@ -18,58 +20,20 @@ import hankextensions.EnhancedOpMode;
 @TeleOp(name="Swerve Wheel PID Adjuster", group= Constants.FINAL_BOT_EXPERIMENTATION)
 public class SwerveWheelPIDAdjuster extends EnhancedOpMode
 {
-    private SwerveModule frontLeft, backLeft, frontRight, backRight;
     private ScheduledTaskPackage taskPackage;
 
     @Override
-    protected void onRun() throws InterruptedException {
+    protected void onRun() throws InterruptedException
+    {
         taskPackage = new ScheduledTaskPackage(this, "Swerve Wheel Adjustments");
 
-        // All of the SwerveWheels (which align on independent threads)
-        frontLeft = new SwerveModule(
-                "Front Left",
-                null,
-                hardware.initialize(Servo.class, "Front Left Vex Motor"),
-                new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
-                new PIDConstants(0.013042, 0, 0.000608, 5.194, 40000000),
-                61.58);
-
-        frontRight = new SwerveModule(
-                "Front Right",
-                null,
-                hardware.initialize(Servo.class, "Front Right Vex Motor"),
-                new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
-                new PIDConstants(0.012465, 0, 0.000945, 2.5, 40000000),
-                228.38);
-
-        backLeft = new SwerveModule(
-                "Back Left",
-                null,
-                hardware.initialize(Servo.class, "Back Left Vex Motor"),
-                new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
-                new PIDConstants(0.0127, 0, 0.000704, 2.85, 40000000),
-                43.636);
-
-        backRight = new SwerveModule(
-                "Back Right",
-                null,
-                hardware.initialize(Servo.class, "Back Right Vex Motor"),
-                new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
-                new PIDConstants(0.01304, 0, 0.000669, 5.678, 40000000),
-                257.24);
+        SwerveModule[] swerveModules = Robot.getSwerveModules(hardware, DcMotor.ZeroPowerBehavior.FLOAT);
 
         waitForStart();
 
-        figureOutPIDConstantsFor(frontLeft);
-
-        figureOutPIDConstantsFor(frontRight);
-
-        figureOutPIDConstantsFor(backLeft);
-
-        figureOutPIDConstantsFor(backRight);
+        for (SwerveModule module : swerveModules)
+            figureOutPIDConstantsFor(module);
     }
-
-    private ProcessConsole swervePIDConsole;
 
     private void figureOutPIDConstantsFor(SwerveModule swerveModule) throws InterruptedException
     {
@@ -78,7 +42,7 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
 
         Vector2D desiredRotation;
 
-        swervePIDConsole = log.newProcessConsole(swerveModule.motorName + " PID");
+        ProcessConsole swervePIDConsole = log.newProcessConsole(swerveModule.motorName + " PID");
 
         while (!gamepad1.start)
         {
@@ -125,6 +89,8 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
         taskPackage.stop();
         taskPackage.remove(swerveModule);
         swerveModule.turnMotor.setPosition(0.5);
+
+        swervePIDConsole.destroy();
 
         flow.msPause(3000);
     }
