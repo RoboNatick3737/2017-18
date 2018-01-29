@@ -3,15 +3,11 @@ package org.firstinspires.ftc.teamcode.opmodes.experimentation.hardware;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
-import org.firstinspires.ftc.teamcode.structs.pid.PIDConstants;
-import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 
 import hankextensions.structs.Vector2D;
 
@@ -42,7 +38,7 @@ public class SwerveWheelPIDAdjuster extends EnhancedOpMode
 
         Vector2D desiredRotation;
 
-        ProcessConsole swervePIDConsole = log.newProcessConsole(swerveModule.motorName + " PID");
+        ProcessConsole swervePIDConsole = log.newProcessConsole(swerveModule.moduleName + " PID");
 
         while (!gamepad1.start)
         {

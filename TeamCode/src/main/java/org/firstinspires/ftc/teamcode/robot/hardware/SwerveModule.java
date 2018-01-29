@@ -42,7 +42,7 @@ public class SwerveModule extends ScheduledTask
     private static final double DRIVING_OK_THRESHOLD = 45;
 
     // Swerve wheel specific components.
-    public final String motorName;
+    public final String moduleName;
     public final EncoderMotor driveMotor;
     public final Servo turnMotor;
     private final AbsoluteEncoder swerveEncoder;
@@ -76,7 +76,7 @@ public class SwerveModule extends ScheduledTask
             PIDConstants pidConstants,
             double physicalEncoderOffset)
     {
-        this.motorName = moduleName;
+        this.moduleName = moduleName;
         this.driveMotor = driveMotor;
         this.turnMotor = turnMotor;
         this.turnMotor.setPosition(0.5);
@@ -103,8 +103,11 @@ public class SwerveModule extends ScheduledTask
     public void stopWheel()
     {
         setVectorTarget(Vector2D.ZERO);
+
         turnMotor.setPosition(0.5);
-        driveMotor.setVelocity(0);
+
+        if (driveMotor != null)
+            driveMotor.setVelocity(0);
     }
 
     /**

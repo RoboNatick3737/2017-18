@@ -129,8 +129,8 @@ public class Robot
      */
     public static SwerveModule[] getSwerveModules(HardwareInitializer hardware, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
     {
-        EncoderMotor[] driveMotors = getDriveMotors(hardware, zeroPowerBehavior);
         Servo[] swerveModuleServos = getSwerveModuleServos(hardware);
+        EncoderMotor[] driveMotors = getDriveMotors(hardware, zeroPowerBehavior);
 
         SwerveModule[] swerveModules = new SwerveModule[4];
 
@@ -177,14 +177,14 @@ public class Robot
         // Swerve drive needs to know this as well.
         this.controlMode = controlMode;
 
-        // Do these first so they don't move and mess up alignment.
-
-
         // Init the android gyro (make sure to call start()).
         AndroidGyro androidGyro = new AndroidGyro();
         androidGyro.start();
         androidGyro.initAntiDrift();
         gyro = androidGyro;
+
+        // Instantiate the swerve drive.
+        swerveDrive = new SwerveDrive(this, getSwerveModules(hardware, /*controlMode == ControlMode.AUTONOMOUS ? DcMotor.ZeroPowerBehavior.BRAKE : */DcMotor.ZeroPowerBehavior.FLOAT));
 
         // Init the ADAFRUIT gyro.
 //        gyro = new HankuTankuIMU(hardware.map.get(BNO055IMU.class, "IMU"));
@@ -210,14 +210,10 @@ public class Robot
         lift = new Lift(liftMotor);
 
         if (controlMode == ControlMode.TELEOP)
-        {
             // Relic Arm init
             relicSystem = null; //new RelicSystem(hardware.initialize(DcMotor.class, "Relic Arm"), hardware.initialize(Servo.class, "Relic Rotator"), hardware.initialize(Servo.class, "Relic Grabber"));
-        }
         else
-        {
             relicSystem = null;
-        }
 
         // Flipper init
         flipper = new Flipper(hardware.initialize(Servo.class, "Left Flipper"), hardware.initialize(Servo.class, "Right Flipper"), hardware.initialize(Servo.class, "Glyph Holder"));
@@ -230,8 +226,5 @@ public class Robot
             lights = new LightingSystem(hardware.initialize(DcMotor.class, "Lights"));
         else
             lights = null;
-
-        // Creates the swerve drive with the correct joystick.
-        swerveDrive = new SwerveDrive(this, getSwerveModules(hardware, /*controlMode == ControlMode.AUTONOMOUS ? DcMotor.ZeroPowerBehavior.BRAKE : */DcMotor.ZeroPowerBehavior.FLOAT));
     }
 }
