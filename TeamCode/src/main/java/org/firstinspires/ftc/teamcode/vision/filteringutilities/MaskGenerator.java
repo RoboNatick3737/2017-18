@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.vision.filteringutilities;
 
-import org.firstinspires.ftc.teamcode.structs.LinearFunction;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;

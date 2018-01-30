@@ -17,6 +17,7 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTask;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.structs.Function;
 import org.firstinspires.ftc.teamcode.structs.PIDController;
 
 import hankextensions.structs.Vector2D;
@@ -46,7 +47,24 @@ public class SwerveModule extends ScheduledTask
     public final Servo turnMotor;
     private final AbsoluteEncoder swerveEncoder;
     private final double physicalEncoderOffset;
-    private final ProcessConsole wheelConsole;
+
+    // Whether or not we can log.
+    private ProcessConsole wheelConsole = null;
+    public void setEnableLogging(boolean enabled)
+    {
+        boolean currentlyEnabled = wheelConsole != null;
+
+        if (enabled == currentlyEnabled)
+            return;
+
+        if (enabled)
+            wheelConsole = LoggingBase.instance.newProcessConsole(moduleName + " Swivel Console");
+        else
+        {
+            wheelConsole.destroy();
+            wheelConsole = null;
+        }
+    }
 
     // The vector components which should constitute the direction and power of this wheel.
     private Vector2D targetVector = Vector2D.polar(0, 0);
@@ -56,7 +74,8 @@ public class SwerveModule extends ScheduledTask
     private boolean drivingEnabled = false;
 
     // Finally, the PID controller components which prevents wheel oscillation.
-    public final PIDController pidController;
+    public final Function errorResponder;
+    private long updateRateMS;
 
     /**
      * Instantiates the SwerveModule with the data it requires.
@@ -64,7 +83,7 @@ public class SwerveModule extends ScheduledTask
      * @param driveMotor  The drive motor for the module.
      * @param turnMotor   The turning vex motor for the module.
      * @param swerveEncoder  The absolute encoder on the vex motor.
-     * @param pid            The PID constants for aligning the vex motor.
+     * @param pidController   The PID constants for aligning the vex motor.
      * @param physicalEncoderOffset  The degree offset of the absolute encoder from zero.
      */
     public SwerveModule(
@@ -72,7 +91,27 @@ public class SwerveModule extends ScheduledTask
             EncoderMotor driveMotor,
             Servo turnMotor,
             AbsoluteEncoder swerveEncoder,
-            PIDController pid,
+            PIDController pidController,
+            double physicalEncoderOffset)
+    {
+        this(moduleName, driveMotor, turnMotor, swerveEncoder, pidController, (long)(pidController.minimumNanosecondGap / 1e3), physicalEncoderOffset);
+    }
+    /**
+     * Instantiates the SwerveModule with the data it requires.
+     * @param moduleName  The module name (will appear with this name in logging).
+     * @param driveMotor  The drive motor for the module.
+     * @param turnMotor   The turning vex motor for the module.
+     * @param swerveEncoder  The absolute encoder on the vex motor.
+     * @param errorResponder   The error responder for aligning the vex motor.
+     * @param physicalEncoderOffset  The degree offset of the absolute encoder from zero.
+     */
+    public SwerveModule(
+            String moduleName,
+            EncoderMotor driveMotor,
+            Servo turnMotor,
+            AbsoluteEncoder swerveEncoder,
+            Function errorResponder,
+            long updateRateMS,
             double physicalEncoderOffset)
     {
         this.moduleName = moduleName;
@@ -82,9 +121,8 @@ public class SwerveModule extends ScheduledTask
         this.swerveEncoder = swerveEncoder;
         this.physicalEncoderOffset = physicalEncoderOffset;
 
-        wheelConsole = LoggingBase.instance.newProcessConsole(moduleName + " Swivel Console");
-
-        this.pidController = pid;
+        this.errorResponder = errorResponder;
+        this.updateRateMS = updateRateMS;
     }
 
     /**
@@ -116,19 +154,19 @@ public class SwerveModule extends ScheduledTask
     @Override
     public long onContinueTask() throws InterruptedException
     {
-        double angleToTurn = 0;
-
         // If we aren't going to be driving anywhere, don't try to align.
         if (targetVector.magnitude < .00001)
         {
             turnMotor.setPosition(0.5);
 
+            if (errorResponder instanceof PIDController)
+                ((PIDController) errorResponder).resetController();
+
             if (driveMotor != null)
                 driveMotor.setVelocity(0);
 
-            pidController.resetController();
-            if (driveMotor != null)
-                driveMotor.pidController.resetController();
+            if (wheelConsole != null)
+                wheelConsole.write("Insufficient input");
         }
         else
         {
@@ -139,6 +177,7 @@ public class SwerveModule extends ScheduledTask
             angleFromDesired = angleFromDesired < -180 ? angleFromDesired + 360 : angleFromDesired;
 
             // Clip this angle to 90 degree maximum turns.
+            double angleToTurn = 0;
             if (angleFromDesired > 90)
                 angleToTurn = -angleFromDesired + 180;
             else if (angleFromDesired < -90)
@@ -150,7 +189,7 @@ public class SwerveModule extends ScheduledTask
             double turnPower = 0.5;
 
             // Use PID to calculate the correction factor (error bars contained within PID).
-            double turnCorrectionFactor = pidController.calculatePIDCorrection(angleToTurn);
+            double turnCorrectionFactor = errorResponder.value(angleToTurn);
 
             // Change the turn factor depending on our distance from the angle desired (180 vs 0)
             if (angleFromDesired > 90 || angleFromDesired < -90)
@@ -172,23 +211,19 @@ public class SwerveModule extends ScheduledTask
                     drivePower *= -1;
 
                 driveMotor.setVelocity(drivePower);
-                driveMotor.updatePID();
             }
-            else
-            {
-                driveMotor.pidController.resetController();
-            }
+
+            if (wheelConsole != null)
+                // Add console information.
+                wheelConsole.write(
+                        "Vector target: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
+                        "Current vector: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
+                        "Angle to turn: " + angleToTurn,
+                        "Driving: " + drivingEnabled);
         }
 
-        // Add console information.
-        wheelConsole.write(
-                "Vector target: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
-                "Current vector: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
-                "Angle to turn: " + angleToTurn,
-                "Driving: " + drivingEnabled);
-
         // The ms to wait before updating again.
-        return (long)(pidController.minimumNanosecondGap / 1e3 * .95);
+        return updateRateMS;
     }
 
     /**

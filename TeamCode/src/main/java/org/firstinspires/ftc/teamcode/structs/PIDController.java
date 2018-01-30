@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.structs;
 /**
  * Largely based on http://www.societyofrobots.com/programming_PID.shtml.
  */
-public class PIDController
+public class PIDController implements Function
 {
     /**
      * Typically the main drive in a control loop, KP reduces a large part of the overall
@@ -138,7 +138,7 @@ public class PIDController
      * and figures out what to do with it next.
      * @return correction result
      */
-    public double calculatePIDCorrection(double error)
+    public double value(double error)
     {
         if (Math.abs(error) < errorThreshold)
             return 0;

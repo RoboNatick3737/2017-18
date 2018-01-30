@@ -4,12 +4,11 @@ import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.structs.LinearFunction;
+import org.firstinspires.ftc.teamcode.structs.Linear;
 import org.firstinspires.ftc.teamcode.vision.filteringutilities.AdditionalFilteringUtilities;
 import org.firstinspires.ftc.teamcode.vision.filteringutilities.commonareafilter.LinearChannelBound;
 import org.firstinspires.ftc.teamcode.vision.filteringutilities.LinearFunctionBounds;
 import org.firstinspires.ftc.teamcode.vision.filteringutilities.commonareafilter.ThreeChannelProportionalFilter;
-import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -108,8 +107,8 @@ public class RandomProportionalMask extends EnhancedOpMode implements VisionOpMo
 
                 // for when we're calculating value
                 new LinearChannelBound(
-                        new LinearFunctionBounds(new LinearFunction(randHueMinSlope, hueMin), new LinearFunction(randHueMaxSlope, hueMax)),  // describes hue
-                        new LinearFunctionBounds(new LinearFunction(randSatMinSlope, satMin), new LinearFunction(randSatMaxSlope, 255)))  // describes saturation
+                        new LinearFunctionBounds(new Linear(randHueMinSlope, hueMin), new Linear(randHueMaxSlope, hueMax)),  // describes hue
+                        new LinearFunctionBounds(new Linear(randSatMinSlope, satMin), new Linear(randSatMaxSlope, 255)))  // describes saturation
 
                 );
 

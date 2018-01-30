@@ -28,8 +28,8 @@ public class ThreeChannelProportionalFilter
      *
      * Example is you want hue to be between .1 * value + 57 and -.1 * value + 255
      * You'd call commonAreaFilter(raw, result, HSV.HUE,
-     *      new LinearChannelBound(HSV.VALUE, new LinearFunction(.1, 57)),
-     *      new LinearChannelBound(HSV.VALUE, new LinearFunction(-.1, 255)));
+     *      new LinearChannelBound(HSV.VALUE, new Linear(.1, 57)),
+     *      new LinearChannelBound(HSV.VALUE, new Linear(-.1, 255)));
      *
      * @param input The three-channel mat to filter (typically HSV).
      * @param output A mat of ones to which the filters will be applied.

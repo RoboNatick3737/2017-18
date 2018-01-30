@@ -11,7 +11,7 @@ import hankextensions.vision.opencv.OpenCVCam;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.structs.ComplexFunction;
-import org.firstinspires.ftc.teamcode.structs.LinearFunction;
+import org.firstinspires.ftc.teamcode.structs.Linear;
 import org.firstinspires.ftc.teamcode.structs.TimedFunction;
 import org.firstinspires.ftc.teamcode.structs.VariableVector2D;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CVCryptoKeyDetector;
@@ -144,7 +144,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             robot.flipper.setGlyphHolderUpTo(true);
 
             // Use math to figure out flipper position over time.
-            TimedFunction flipperPosition = new TimedFunction(new LinearFunction(-.2, 1));
+            TimedFunction flipperPosition = new TimedFunction(new Linear(-.2, 1));
 
             // Drive back to the cryptobox.
             robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 180));

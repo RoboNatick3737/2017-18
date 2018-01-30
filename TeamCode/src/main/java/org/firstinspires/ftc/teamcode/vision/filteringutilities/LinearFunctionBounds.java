@@ -1,12 +1,12 @@
 package org.firstinspires.ftc.teamcode.vision.filteringutilities;
 
-import org.firstinspires.ftc.teamcode.structs.LinearFunction;
+import org.firstinspires.ftc.teamcode.structs.Linear;
 
 public class LinearFunctionBounds
 {
-    public final LinearFunction lower, upper;
+    public final Linear lower, upper;
 
-    public LinearFunctionBounds(LinearFunction lower, LinearFunction upper)
+    public LinearFunctionBounds(Linear lower, Linear upper)
     {
         this.lower = lower;
         this.upper = upper;

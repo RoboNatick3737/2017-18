@@ -2,12 +2,14 @@ package org.firstinspires.ftc.teamcode.robot.hardware;
 
 import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import com.makiah.makiahsandroidlib.threading.ScheduledTask;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.structs.Function;
 import org.firstinspires.ftc.teamcode.structs.PIDController;
 
-public class EncoderMotor
+public class EncoderMotor extends ScheduledTask
 {
     /**
      * For debugging
@@ -22,12 +24,28 @@ public class EncoderMotor
     /**
      * The PID controller which this motor uses to stabilize itself.
      */
-    public final PIDController pidController;
+    private final Function errorResponder;
+    private long updateRateMS;
 
     /**
      * The process console which this motor needs to output data.
      */
-    private final ProcessConsole processConsole;
+    private ProcessConsole processConsole = null;
+    public void setEnableLogging(boolean enabled)
+    {
+        boolean currentlyEnabled = processConsole != null;
+
+        if (enabled == currentlyEnabled)
+            return;
+
+        if (enabled)
+            processConsole = LoggingBase.instance.newProcessConsole(motorName + " Console");
+        else
+        {
+            processConsole.destroy();
+            processConsole = null;
+        }
+    }
 
     /**
      * The number of encoder ticks it takes this motor to rotate 360 degrees once.
@@ -41,24 +59,58 @@ public class EncoderMotor
     public final double WHEEL_CIRCUMFERENCE;
 
     /**
-     * For custom PID control.
+     * The encoder motor response methods.
+     * @param motorName  The motor name which appears on the console.
+     * @param motor  The motor itself.
+     * @param motorErrorResponse  The motor error response PID Controller
+     * @param encoderTicksPerWheelRevolution  duh
+     * @param wheelDiameterCM  The diameter of the wheel
+     * @param zeroPowerBehavior  The zero power behavior for the motor (whether to actively
+     *                           try to maintain position)
      */
-    public EncoderMotor(String motorName, DcMotor motor, PIDController motorPID, int encoderTicksPerWheelRevolution, double wheelDiameterCM, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
+    public EncoderMotor(
+            String motorName,
+            DcMotor motor,
+            PIDController motorErrorResponse,
+            int encoderTicksPerWheelRevolution,
+            double wheelDiameterCM,
+            DcMotor.ZeroPowerBehavior zeroPowerBehavior)
+    {
+        this(motorName, motor, motorErrorResponse, (long)(motorErrorResponse.minimumNanosecondGap / 1e3), encoderTicksPerWheelRevolution, wheelDiameterCM, zeroPowerBehavior);
+    }
+
+    /**
+     * The encoder motor response methods.
+     * @param motorName  The motor name which appears on the console.
+     * @param motor  The motor itself.
+     * @param motorErrorResponse  The motor error response function
+     * @param updateRateMS  The rate at which the motor responds to error
+     * @param encoderTicksPerWheelRevolution  duh
+     * @param wheelDiameterCM  The diameter of the wheel
+     * @param zeroPowerBehavior  The zero power behavior for the motor (whether to actively
+     *                           try to maintain position)
+     */
+    public EncoderMotor(
+            String motorName,
+            DcMotor motor,
+            Function motorErrorResponse,
+            long updateRateMS,
+            int encoderTicksPerWheelRevolution,
+            double wheelDiameterCM,
+            DcMotor.ZeroPowerBehavior zeroPowerBehavior)
     {
         this.motorName = motorName;
 
         this.motor = motor;
+        motor.setZeroPowerBehavior(zeroPowerBehavior);
         resetEncoder();
 
-        this.pidController = motorPID;
+        this.errorResponder = motorErrorResponse;
+        this.updateRateMS = updateRateMS;
 
         // The wheel which the motor drives.
         ENCODER_TICKS_PER_REVOLUTION = encoderTicksPerWheelRevolution;
         WHEEL_CIRCUMFERENCE = wheelDiameterCM * Math.PI;
-
-        processConsole = LoggingBase.instance.newProcessConsole(motorName + " Motor Process Console");
-
-        motor.setZeroPowerBehavior(zeroPowerBehavior);
     }
 
     /**
@@ -84,7 +136,7 @@ public class EncoderMotor
     private double desiredVelocity = 0;
     private double lastMotorPosition = 0;
     private long lastAdjustmentTime = 0;
-    private double currentPower = 0, currentVelocity = 0;
+    private double currentPower = 0;
 
     /**
      * Tells this motor the number of revolutions that it should be moving per second.
@@ -93,45 +145,47 @@ public class EncoderMotor
     public void setVelocity(double velocity)
     {
         // Some really quick adjustments we can make.
-        if (Math.abs(velocity) < .001) {
+        if (Math.abs(velocity) < .0001)
+        {
             motor.setPower(0);
             currentPower = 0;
-        } else if (currentPower < 0 && desiredVelocity > 0) {
-            motor.setPower(.1);
-            currentPower = .1;
-        } else if (currentPower > 0 && desiredVelocity < 0) {
-            motor.setPower(-.1);
-            currentPower = -.1;
         }
 
         desiredVelocity = velocity;
     }
 
     /**
-     * Controls updating PID for the motor.
+     * Controls updating error correction for the motor.
      */
-    public void updatePID()
+    private void updateErrorCorrection()
     {
         // Rare
         if (System.nanoTime() - lastAdjustmentTime == 0)
             return;
 
-        if (!pidController.canUpdate())
+        if (Math.abs(desiredVelocity) < .00001)
             return;
 
         // Calculate PID by finding the number of ticks the motor SHOULD have gone minus the amount it actually went.
-        currentVelocity = (((motor.getCurrentPosition() - lastMotorPosition) / ENCODER_TICKS_PER_REVOLUTION) * WHEEL_CIRCUMFERENCE) / ((System.nanoTime() - lastAdjustmentTime)) *  1e9; // big # is for seconds to nanoseconds conversion.
-        currentPower += pidController.calculatePIDCorrection(desiredVelocity - currentVelocity);
+        double currentVelocity = (((motor.getCurrentPosition() - lastMotorPosition) / ENCODER_TICKS_PER_REVOLUTION) * WHEEL_CIRCUMFERENCE) / ((System.nanoTime() - lastAdjustmentTime)) * 1e9;
+        currentPower += errorResponder.value(desiredVelocity - currentVelocity);
         motor.setPower(Range.clip(currentPower, -1, 1));
 
         processConsole.write(
                 "Current position: " + lastMotorPosition,
                 "Desired velocity: " + desiredVelocity + " cm/s",
                 "Current velocity: " + currentVelocity + " cm/s",
-                "Current power: " + currentPower,
-                "PID constants: " + pidController.kP + ", " + pidController.kD);
+                "Current power: " + currentPower);
 
         lastMotorPosition = motor.getCurrentPosition();
         lastAdjustmentTime = System.nanoTime();
+    }
+
+    @Override
+    protected long onContinueTask() throws InterruptedException
+    {
+        updateErrorCorrection();
+
+        return updateRateMS;
     }
 }

@@ -12,8 +12,9 @@ import hankextensions.EnhancedOpMode;
 import hankextensions.input.HTGamepad;
 
 import org.firstinspires.ftc.teamcode.robot.Robot;
+import org.firstinspires.ftc.teamcode.structs.Function;
 import org.firstinspires.ftc.teamcode.structs.VariableVector2D;
-import org.firstinspires.ftc.teamcode.structs.PIDController;
+
 import hankextensions.structs.Vector2D;
 
 /**
@@ -27,7 +28,13 @@ public class SwerveDrive extends ScheduledTask
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
-    private static final PIDController FIELD_CENTRIC_TURN_PID = new PIDController(.005, 0, 0, 5, PIDController.TimeUnits.MILLISECONDS, 40, -1000, 1000);
+//    private static final PIDController FIELD_CENTRIC_TURN_CONTROLLER = new PIDController(.005, 0, 0, 5, PIDController.TimeUnits.MILLISECONDS, 40, -1000, 1000);
+    private static Function FIELD_CENTRIC_TURN_CONTROLLER = new Function() {
+        @Override
+        public double value(double input) {
+            return .005 * input;
+        }
+    };
     // endregion
 
     // region Initialization
@@ -71,7 +78,8 @@ public class SwerveDrive extends ScheduledTask
 
         // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
         swerveUpdatePackage = new ScheduledTaskPackage(EnhancedOpMode.instance, "Swerve Turn Alignments",
-                this, this.swerveModules[0], this.swerveModules[1], this.swerveModules[2], this.swerveModules[3]);
+                this, this.swerveModules[0], this.swerveModules[1], this.swerveModules[2], this.swerveModules[3],
+                this.swerveModules[0].driveMotor, this.swerveModules[1].driveMotor, this.swerveModules[2].driveMotor, this.swerveModules[3].driveMotor);
 
         swerveConsole = LoggingBase.instance.newProcessConsole("Swerve Console");
     }
@@ -146,7 +154,7 @@ public class SwerveDrive extends ScheduledTask
         Vector2D fieldCentricTranslation = desiredMovement.rotateBy(-gyroHeading);
 
         // Don't bother trying to be more accurate than 8 degrees while turning.
-        double rotationSpeed = -FIELD_CENTRIC_TURN_PID.calculatePIDCorrection(angleOff);
+        double rotationSpeed = FIELD_CENTRIC_TURN_CONTROLLER.value(-angleOff);
 
         // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
         for (int i = 0; i < swerveModules.length; i++)
@@ -173,8 +181,6 @@ public class SwerveDrive extends ScheduledTask
                 "Desired Angle: " + desiredHeading,
                 "Rotation Speed: " + rotationSpeed,
                 "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
-                "PID kP: " + FIELD_CENTRIC_TURN_PID.kP,
-                "PID kD: " + FIELD_CENTRIC_TURN_PID.kD,
                 "Magnitude: " + fieldCentricTranslation.magnitude,
                 "Driving acceptable: " + drivingCanStart
         );
