@@ -4,19 +4,31 @@ import hankextensions.structs.Vector2D;
 
 public class VariableVector2D
 {
-    public static VariableVector2D from(Vector2D base)
+    public static VariableVector2D from(final Vector2D base)
     {
         return VariableVector2D.rectangular(
-                new ComplexFunction(ComplexFunction.FunctionType.POLYNOMIAL, base.x),
-                new ComplexFunction(ComplexFunction.FunctionType.POLYNOMIAL, base.y));
+                new Function()
+                {
+                    public double value(double input)
+                    {
+                        return base.x;
+                    }
+                },
+                new Function()
+                {
+                    public double value(double input)
+                    {
+                        return base.y;
+                    }
+                });
     }
 
-    public static VariableVector2D polar(ComplexFunction mag, ComplexFunction theta)
+    public static VariableVector2D polar(Function mag, Function theta)
     {
         return new VariableVector2D(VariableVectorType.POLAR, mag, theta);
     }
 
-    public static VariableVector2D rectangular(ComplexFunction x, ComplexFunction y)
+    public static VariableVector2D rectangular(Function x, Function y)
     {
         return new VariableVector2D(VariableVectorType.RECTANGULAR, x, y);
     }
@@ -26,9 +38,9 @@ public class VariableVector2D
     private final VariableVectorType type;
 
     // The components of this function.
-    private final ComplexFunction a, b;
+    private final Function a, b;
 
-    private VariableVector2D(VariableVectorType type, ComplexFunction a, ComplexFunction b)
+    private VariableVector2D(VariableVectorType type, Function a, Function b)
     {
         this.type = type;
 

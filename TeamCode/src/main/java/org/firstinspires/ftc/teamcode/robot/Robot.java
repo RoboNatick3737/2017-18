@@ -176,7 +176,7 @@ public class Robot
                 {
                     public double value(double input)
                     {
-                        return .0055 * input + .15;
+                        return .0055 * input;
                     }
                 },
                 10,
@@ -192,7 +192,7 @@ public class Robot
                 {
                     public double value(double input)
                     {
-                        return .0065 * input + .15;
+                        return .0065 * input;
                     }
                 },
                 10,
@@ -208,7 +208,7 @@ public class Robot
                 {
                     public double value(double input)
                     {
-                        return .0007 * input;
+                        return .007 * input;
                     }
                 },
                 10,
@@ -224,7 +224,7 @@ public class Robot
                 {
                     public double value(double input)
                     {
-                        return .0008 * input;
+                        return .008 * input;
                     }
                 },
                 10,

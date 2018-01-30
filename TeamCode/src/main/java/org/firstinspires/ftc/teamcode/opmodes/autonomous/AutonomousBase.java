@@ -10,8 +10,8 @@ import hankextensions.structs.Vector2D;
 import hankextensions.vision.opencv.OpenCVCam;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
-import org.firstinspires.ftc.teamcode.structs.ComplexFunction;
-import org.firstinspires.ftc.teamcode.structs.Linear;
+import org.firstinspires.ftc.teamcode.structs.Function;
+import org.firstinspires.ftc.teamcode.structs.Polynomial;
 import org.firstinspires.ftc.teamcode.structs.TimedFunction;
 import org.firstinspires.ftc.teamcode.structs.VariableVector2D;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CVCryptoKeyDetector;
@@ -136,15 +136,20 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
 
             // Drive that length slowing down over time.
             VariableVector2D driveInstruction = VariableVector2D.polar(
-                    new ComplexFunction(ComplexFunction.FunctionType.POLYNOMIAL, -.25 / (desiredDriveLength), 0.3),
-                    new ComplexFunction(ComplexFunction.FunctionType.POLYNOMIAL, getAlliance() == Alliance.RED ? 270 : 90));
+                    new Polynomial(-.25 / (desiredDriveLength), 0.3),
+                    new Polynomial(getAlliance() == Alliance.RED ? 270 : 90));
             robot.swerveDrive.driveDistance(driveInstruction, desiredDriveLength, flow);
 
             // Flip glyph so it slides to bottom.
             robot.flipper.setGlyphHolderUpTo(true);
 
             // Use math to figure out flipper position over time.
-            TimedFunction flipperPosition = new TimedFunction(new Linear(-.2, 1));
+            TimedFunction flipperPosition = new TimedFunction(new Function() {
+                @Override
+                public double value(double input) {
+                    return -.2 * input + 1;
+                }
+            });
 
             // Drive back to the cryptobox.
             robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 180));
@@ -205,6 +210,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             flow.msPause(5000);
 
             // Drive back to the cryptobox.
+            robot.swerveDrive.setDesiredMovement(Vector2D.polar(1, 180));
             while (robot.backRangeSensor.getForwardDist() > 20)
             {
                 robot.swerveDrive.synchronousUpdate();
