@@ -24,7 +24,6 @@ import hankextensions.structs.Vector2D;
 public class SwerveDrive extends ScheduledTask
 {
     // region Physical Drive Constants
-    private static final double MAX_SWERVE_SPEED_CM_S = 130; // modified over teleop duration.
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
@@ -49,6 +48,20 @@ public class SwerveDrive extends ScheduledTask
 
     // The logger for when data needs to be displayed to the drivers.
     private final ProcessConsole swerveConsole;
+
+    // region Fast/Slow Mode
+    // The speed of the swerve drive.
+    public enum SwerveSpeedMode {FAST, SLOW}
+    private SwerveSpeedMode swerveSpeedMode = SwerveSpeedMode.FAST;
+    public void setSwerveSpeedMode(SwerveSpeedMode mode)
+    {
+        this.swerveSpeedMode = mode;
+    }
+    public SwerveSpeedMode getSwerveSpeedMode()
+    {
+        return swerveSpeedMode;
+    }
+    //endregion
 
     /**
      * Constructor, starts the alignment threads and such.
@@ -159,7 +172,8 @@ public class SwerveDrive extends ScheduledTask
         // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
         for (int i = 0; i < swerveModules.length; i++)
             swerveModules[i].setVectorTarget(
-                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(fieldCentricTranslation).multiply(MAX_SWERVE_SPEED_CM_S));
+                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(fieldCentricTranslation)
+                            .multiply(swerveSpeedMode == SwerveSpeedMode.FAST ? 130 : 70)); // whether to be fast/slow
 
         // Check to see whether it's okay to start moving by observing the state of all wheels.
         boolean drivingCanStart = true;
@@ -205,7 +219,8 @@ public class SwerveDrive extends ScheduledTask
         // Set vector targets for wheels.
         for (int i = 0; i < swerveModules.length; i++)
             swerveModules[i].setVectorTarget(
-                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(desiredMovement).multiply(MAX_SWERVE_SPEED_CM_S));
+                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(desiredMovement)
+                            .multiply(swerveSpeedMode == SwerveSpeedMode.FAST ? 130 : 70)); // whether to be fast/slow
 
         // Check to see whether it's okay to start moving by observing the state of all wheels.
         boolean drivingCanStart = true;

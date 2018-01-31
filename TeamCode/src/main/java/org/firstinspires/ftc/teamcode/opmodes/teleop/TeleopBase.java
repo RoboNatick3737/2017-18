@@ -39,6 +39,13 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
             C2.update();
 
             // Update swerve drive
+            if (C1.b.currentState == HTButton.ButtonState.JUST_TAPPED)
+            {
+                if (robot.swerveDrive.getSwerveSpeedMode() == SwerveDrive.SwerveSpeedMode.FAST)
+                    robot.swerveDrive.setSwerveSpeedMode(SwerveDrive.SwerveSpeedMode.SLOW);
+                else
+                    robot.swerveDrive.setSwerveSpeedMode(SwerveDrive.SwerveSpeedMode.FAST);
+            }
             robot.swerveDrive.synchronousUpdate();
 
             // Control flipper
