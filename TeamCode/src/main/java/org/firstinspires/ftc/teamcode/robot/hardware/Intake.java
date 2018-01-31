@@ -22,16 +22,16 @@ public class Intake
 
     public void intake()
     {
-        this.rightHarvester.setPosition(1);
-        this.leftHarvester.setPosition(-1);
-        this.secondaryHarvester.setPower(1);
+        leftIntake(1);
+        rightIntake(1);
+        secondaryIntake(1);
     }
 
     public void expel()
     {
-        this.rightHarvester.setPosition(-1);
-        this.leftHarvester.setPosition(1);
-        this.secondaryHarvester.setPower(-1);
+        leftIntake(-1);
+        rightIntake(-1);
+        secondaryIntake(-1);
     }
 
     public void stop()
@@ -39,5 +39,29 @@ public class Intake
         this.leftHarvester.setPosition(0.5);
         this.rightHarvester.setPosition(0.5);
         this.secondaryHarvester.setPower(0);
+    }
+
+    public void leftIntake(double speed)
+    {
+        if (Math.abs(speed) < .03)
+            speed = 0;
+
+        this.leftHarvester.setPosition(0.5 * -speed + 0.5);
+    }
+
+    public void rightIntake(double speed)
+    {
+        if (Math.abs(speed) < .03)
+            speed = 0;
+
+        this.rightHarvester.setPosition(0.5 * speed + 0.5);
+    }
+
+    public void secondaryIntake(double speed)
+    {
+        if (Math.abs(speed) < .03)
+            speed = 0;
+
+        this.secondaryHarvester.setPower(speed);
     }
 }

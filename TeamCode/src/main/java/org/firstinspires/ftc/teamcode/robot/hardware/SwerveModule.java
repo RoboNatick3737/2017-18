@@ -66,6 +66,8 @@ public class SwerveModule extends ScheduledTask
         }
     }
 
+    private int updates = 0;
+
     // The vector components which should constitute the direction and power of this wheel.
     private Vector2D targetVector = Vector2D.polar(0, 0);
 
@@ -154,6 +156,8 @@ public class SwerveModule extends ScheduledTask
     @Override
     public long onContinueTask() throws InterruptedException
     {
+        updates++;
+
         // If we aren't going to be driving anywhere, don't try to align.
         if (targetVector.magnitude < .00001)
         {
@@ -166,7 +170,9 @@ public class SwerveModule extends ScheduledTask
                 driveMotor.setVelocity(0);
 
             if (wheelConsole != null)
-                wheelConsole.write("Insufficient input");
+                // Add console information.
+                wheelConsole.write(
+                        "Updates: " + updates);
         }
         else
         {
@@ -219,7 +225,8 @@ public class SwerveModule extends ScheduledTask
                         "Vector target: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                         "Current vector: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                         "Angle to turn: " + angleToTurn,
-                        "Driving: " + drivingEnabled);
+                        "Driving: " + drivingEnabled,
+                        "Updates: " + updates);
         }
 
         // The ms to wait before updating again.

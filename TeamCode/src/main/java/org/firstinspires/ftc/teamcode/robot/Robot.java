@@ -95,10 +95,10 @@ public class Robot
                 {
                     public double value(double input)
                     {
-                        return .0006 * input;
+                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
                     }
                 },
-                10,
+                50,
                 475, 7.62, desiredZeroPowerBehavior);
 //        frontLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -111,10 +111,10 @@ public class Robot
                 {
                     public double value(double input)
                     {
-                        return .00065 * input;
+                        return Math.signum(input) * (.000065 * Math.pow(Math.abs(input), 2));
                     }
                 },
-                10,
+                50,
                 202, 7.62, desiredZeroPowerBehavior);
 //        backLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -127,10 +127,10 @@ public class Robot
                 {
                     public double value(double input)
                     {
-                        return .0006 * input;
+                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
                     }
                 },
-                10,
+                50,
                 475, 7.62, desiredZeroPowerBehavior);
 //        backRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -143,10 +143,10 @@ public class Robot
                 {
                     public double value(double input)
                     {
-                        return .0006 * input;
+                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
                     }
                 },
-                10,
+                50,
                 202, 7.62, desiredZeroPowerBehavior);
 //        frontRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -171,15 +171,15 @@ public class Robot
                 driveMotors[0],
                 swerveModuleServos[0],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
-//                new PIDController(0.0055, 0, 0, .5, PIDController.TimeUnits.MILLISECONDS, 40, -.5, .5),
-                new Function()
-                {
-                    public double value(double input)
-                    {
-                        return .0055 * input;
-                    }
-                },
-                10,
+                new PIDController(0.006, 0, 0, .5, PIDController.TimeUnits.MILLISECONDS, 50, -.5, .5),
+//                new Function()
+//                {
+//                    public double value(double input)
+//                    {
+//                        return Math.signum(input) * (.000055 * Math.pow(Math.abs(input), 2));
+//                    }
+//                },
+                50,
                 57);
 
         swerveModules[1] = new SwerveModule(
@@ -187,15 +187,15 @@ public class Robot
                 driveMotors[1],
                 swerveModuleServos[1],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
-//                new PIDController(0.0065, 0, 0, .5, PIDController.TimeUnits.MILLISECONDS, 40, -.5, .5),
-                new Function()
-                {
-                    public double value(double input)
-                    {
-                        return .0065 * input;
-                    }
-                },
-                10,
+                new PIDController(0.006, 0, 0, .5, PIDController.TimeUnits.MILLISECONDS, 50, -.5, .5),
+//                new Function()
+//                {
+//                    public double value(double input)
+//                    {
+//                        return Math.signum(input) * (.000065 * Math.pow(Math.abs(input), 2));
+//                    }
+//                },
+                50,
                 73);
 
         swerveModules[2] = new SwerveModule(
@@ -203,15 +203,15 @@ public class Robot
                 driveMotors[2],
                 swerveModuleServos[2],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
-//                new PIDController(0.007, 0, 0, .5, PIDController.TimeUnits.MILLISECONDS, 40, -.5, .5),
-                new Function()
-                {
-                    public double value(double input)
-                    {
-                        return .007 * input;
-                    }
-                },
-                10,
+                new PIDController(0.007, 0, 0, .5, PIDController.TimeUnits.MILLISECONDS, 50, -.5, .5),
+//                new Function()
+//                {
+//                    public double value(double input)
+//                    {
+//                        return Math.signum(input) * (.00007 * Math.pow(Math.abs(input), 2));
+//                    }
+//                },
+                50,
                 137.78);
 
         swerveModules[3] = new SwerveModule(
@@ -219,16 +219,20 @@ public class Robot
                 driveMotors[3],
                 swerveModuleServos[3],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
-//                new PIDController(0.008, 0, 0, .5, PIDController.TimeUnits.MILLISECONDS, 40, -.5, .5),
-                new Function()
-                {
-                    public double value(double input)
-                    {
-                        return .008 * input;
-                    }
-                },
-                10,
+                new PIDController(0.006, 0, 0, .5, PIDController.TimeUnits.MILLISECONDS, 50, -.5, .5),
+//                new Function()
+//                {
+//                    public double value(double input)
+//                    {
+//                        return Math.signum(input) * (.00008 * Math.pow(Math.abs(input), 2));
+//                    }
+//                },
+//                50,
                 97);
+
+        // todo remove this is temporary
+        for (SwerveModule module : swerveModules)
+            module.setEnableLogging(true);
 
         return swerveModules;
     }

@@ -22,6 +22,7 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
 
         // Synchronous teleop
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
+        robot.swerveDrive.setControlMethod(SwerveDrive.ControlMethod.TANK_DRIVE);
 
         // Init robot hardware.
         robot.flipper.advanceStage(0);
@@ -38,13 +39,6 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
             C2.update();
 
             // Update swerve drive
-            if (C1.b.currentState == HTButton.ButtonState.JUST_TAPPED)
-            {
-                if (robot.swerveDrive.getControlMethod() == SwerveDrive.ControlMethod.FIELD_CENTRIC)
-                    robot.swerveDrive.setControlMethod(SwerveDrive.ControlMethod.TANK_DRIVE);
-                else
-                    robot.swerveDrive.setControlMethod(SwerveDrive.ControlMethod.FIELD_CENTRIC);
-            }
             robot.swerveDrive.synchronousUpdate();
 
             // Control flipper
@@ -59,6 +53,16 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
                 robot.intake.expel();
             else if (C1.gamepad.right_bumper)
                 robot.intake.intake();
+            else if (C1.gamepad.left_trigger > .03 || C1.gamepad.right_trigger > .03)
+            {
+                if (C1.gamepad.left_trigger > .03)
+                    robot.intake.leftIntake(C1.gamepad.left_trigger);
+
+                if (C1.gamepad.right_trigger > .03)
+                    robot.intake.rightIntake(C1.gamepad.right_trigger);
+
+                robot.intake.secondaryIntake(1);
+            }
             else
                 robot.intake.stop();
 

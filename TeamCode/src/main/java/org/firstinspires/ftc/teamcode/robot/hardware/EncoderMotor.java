@@ -171,11 +171,12 @@ public class EncoderMotor extends ScheduledTask
         currentPower += errorResponder.value(desiredVelocity - currentVelocity);
         motor.setPower(Range.clip(currentPower, -1, 1));
 
-        processConsole.write(
-                "Current position: " + lastMotorPosition,
-                "Desired velocity: " + desiredVelocity + " cm/s",
-                "Current velocity: " + currentVelocity + " cm/s",
-                "Current power: " + currentPower);
+        if (processConsole != null)
+            processConsole.write(
+                    "Current position: " + lastMotorPosition,
+                    "Desired velocity: " + desiredVelocity + " cm/s",
+                    "Current velocity: " + currentVelocity + " cm/s",
+                    "Current power: " + currentPower);
 
         lastMotorPosition = motor.getCurrentPosition();
         lastAdjustmentTime = System.nanoTime();

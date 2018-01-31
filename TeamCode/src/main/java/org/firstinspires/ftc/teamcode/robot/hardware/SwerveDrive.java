@@ -174,7 +174,6 @@ public class SwerveDrive extends ScheduledTask
         for (SwerveModule wheel : swerveModules)
             wheel.setDrivingState(drivingCanStart);
 
-
         // Write some information to the telemetry console.
         swerveConsole.write(
                 "Current Heading: " + gyroHeading,
@@ -207,6 +206,19 @@ public class SwerveDrive extends ScheduledTask
         for (int i = 0; i < swerveModules.length; i++)
             swerveModules[i].setVectorTarget(
                     Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(desiredMovement).multiply(MAX_SWERVE_SPEED_CM_S));
+
+        // Check to see whether it's okay to start moving by observing the state of all wheels.
+        boolean drivingCanStart = true;
+        for (SwerveModule wheel : swerveModules)
+        {
+            if (!wheel.atAcceptableSwivelOrientation())
+            {
+                drivingCanStart = false;
+                break;
+            }
+        }
+        for (SwerveModule wheel : swerveModules)
+            wheel.setDrivingState(drivingCanStart);
     }
     // endregion
 
