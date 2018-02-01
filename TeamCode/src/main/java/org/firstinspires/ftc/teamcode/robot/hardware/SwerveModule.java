@@ -172,7 +172,8 @@ public class SwerveModule extends ScheduledTask
             if (wheelConsole != null)
                 // Add console information.
                 wheelConsole.write(
-                        "Updates: " + updates);
+                        "Updates: " + updates,
+                        errorResponder instanceof PIDController ? ((PIDController) errorResponder).summary() : "Using constant method");
         }
         else
         {
@@ -226,7 +227,8 @@ public class SwerveModule extends ScheduledTask
                         "Current vector: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                         "Angle to turn: " + angleToTurn,
                         "Driving: " + drivingEnabled,
-                        "Updates: " + updates);
+                        "Updates: " + updates,
+                        errorResponder instanceof PIDController ? ((PIDController) errorResponder).summary() : "Using constant method");
         }
 
         // The ms to wait before updating again.

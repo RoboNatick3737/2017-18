@@ -176,10 +176,12 @@ public class Robot
 //                {
 //                    public double value(double input)
 //                    {
-//                        return Math.signum(input) * (.000055 * Math.pow(Math.abs(input), 2));
+//                        if (Math.abs(input) < 1)
+//                            return 0;
+//                        return Math.signum(input) * (.05 + .003 * Math.abs(input));
 //                    }
 //                },
-                50,
+//                50,
                 57);
 
         swerveModules[1] = new SwerveModule(
@@ -192,7 +194,9 @@ public class Robot
 //                {
 //                    public double value(double input)
 //                    {
-//                        return Math.signum(input) * (.000065 * Math.pow(Math.abs(input), 2));
+//                        if (Math.abs(input) < 1)
+//                            return 0;
+//                        return Math.signum(input) * (.05 + .003 * Math.abs(input));
 //                    }
 //                },
                 50,
@@ -208,10 +212,12 @@ public class Robot
 //                {
 //                    public double value(double input)
 //                    {
-//                        return Math.signum(input) * (.00007 * Math.pow(Math.abs(input), 2));
+//                        if (Math.abs(input) < 1)
+//                            return 0;
+//                        return Math.signum(input) * (.075 + .0035 * Math.abs(input));
 //                    }
 //                },
-                50,
+//                50,
                 137.78);
 
         swerveModules[3] = new SwerveModule(
@@ -224,15 +230,13 @@ public class Robot
 //                {
 //                    public double value(double input)
 //                    {
-//                        return Math.signum(input) * (.00008 * Math.pow(Math.abs(input), 2));
+//                        if (Math.abs(input) < 1)
+//                            return 0;
+//                        return Math.signum(input) * (.05 + .003 * Math.abs(input));
 //                    }
 //                },
 //                50,
                 97);
-
-        // todo remove this is temporary
-        for (SwerveModule module : swerveModules)
-            module.setEnableLogging(true);
 
         return swerveModules;
     }

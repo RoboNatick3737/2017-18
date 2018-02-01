@@ -51,6 +51,7 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
             // Control flipper
             if (C1.x.currentState == HTButton.ButtonState.JUST_TAPPED)
                 robot.flipper.advanceStage();
+            robot.flipper.update(); // in case we're doing the timed lift thing.
 
             if (C1.y.currentState == HTButton.ButtonState.JUST_TAPPED)
                 robot.lights.toggleLights();
@@ -62,12 +63,8 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
                 robot.intake.intake();
             else if (C1.gamepad.left_trigger > .03 || C1.gamepad.right_trigger > .03)
             {
-                if (C1.gamepad.left_trigger > .03)
-                    robot.intake.leftIntake(C1.gamepad.left_trigger);
-
-                if (C1.gamepad.right_trigger > .03)
-                    robot.intake.rightIntake(C1.gamepad.right_trigger);
-
+                robot.intake.leftIntake(C1.gamepad.left_trigger);
+                robot.intake.rightIntake(C1.gamepad.right_trigger);
                 robot.intake.secondaryIntake(1);
             }
             else

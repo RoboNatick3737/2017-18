@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelD
 
 public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
 {
-    private final double[] DEPOSIT_LOCATIONS = {48.5, 55, 70};
+    private final double[] DEPOSIT_LOCATIONS = {48, 55, 70};
 
     /**
      * So here's the strat (doesn't really vary based on the autonomous).
@@ -139,6 +139,12 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
                     new Polynomial(-.25 / (desiredDriveLength), 0.3),
                     new Polynomial(getAlliance() == Alliance.RED ? 270 : 90));
             robot.swerveDrive.driveDistance(driveInstruction, desiredDriveLength, flow);
+
+            // Turn for better glyph placement
+            double desiredHeading = getAlliance() == Alliance.BLUE ? 315 : 45;
+            robot.swerveDrive.setDesiredHeading(desiredHeading);
+            while (Math.abs(robot.gyro.getHeading() - desiredHeading) > 5)
+                robot.swerveDrive.synchronousUpdate();
 
             // Flip glyph so it slides to bottom.
             robot.flipper.setGlyphHolderUpTo(true);

@@ -187,4 +187,9 @@ public class PIDController implements Function
 
         return p + i + d;
     }
+
+    public String summary()
+    {
+        return "kP: " + kP + "kD: " + kD + "kI: " + kI;
+    }
 }
