@@ -6,6 +6,7 @@ import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveDrive;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.input.HTButton;
@@ -19,6 +20,10 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
     protected final void onRun() throws InterruptedException
     {
         Robot robot = new Robot(hardware, Robot.ControlMode.TELEOP);
+
+        // Enable logging TODO remove
+        for (SwerveModule module : robot.swerveDrive.swerveModules)
+            module.setEnableLogging(true);
 
         // Synchronous teleop
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);

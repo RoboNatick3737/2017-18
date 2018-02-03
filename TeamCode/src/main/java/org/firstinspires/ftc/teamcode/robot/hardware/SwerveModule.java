@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.structs.Function;
+import org.firstinspires.ftc.teamcode.structs.ModifiedPIDController;
 import org.firstinspires.ftc.teamcode.structs.PIDController;
 
 import hankextensions.structs.Vector2D;
@@ -38,8 +39,23 @@ import hankextensions.structs.Vector2D;
  */
 public class SwerveModule extends ScheduledTask
 {
-    // Swerve wheel constants.
+    /**
+     * The orientation at which it's OK to drive the module.
+     */
     private static final double DRIVING_OK_THRESHOLD = 45;
+
+    /**
+     * So when the drive motor runs it applies a torque to the swerve module, so this tries to
+     * offset.  Sometimes unpredictable so disable/enable at will.
+     */
+    private static final boolean APPLY_DRIVE_MOTOR_TORQUE_CORRECTION = false;
+    public static double TORQUE_CORRECTION_FACTOR = .0001;
+
+    /**
+     * I'm not 100% sure but in case the absolute encoder position hasn't changed and the module
+     * is definitely turning, immediately request the next update.
+     */
+    private static final boolean ABSOLUTE_ENCODER_UPDATE_CHECK = false, DAMP_TURN_SPEED_IF_SO = false;
 
     // Swerve wheel specific components.
     public final String moduleName;
@@ -65,8 +81,6 @@ public class SwerveModule extends ScheduledTask
             wheelConsole = null;
         }
     }
-
-    private int updates = 0;
 
     // The vector components which should constitute the direction and power of this wheel.
     private Vector2D targetVector = Vector2D.polar(0, 0);
@@ -149,6 +163,10 @@ public class SwerveModule extends ScheduledTask
             driveMotor.setVelocity(0);
     }
 
+    // Required for absolute encoder position verification
+    private double currentTurnSpeed = 0, lastModulePosition = 0;
+    private int numAbsoluteEncoderSkips = 0;
+
     /**
      * Right here, we're given a vector which we have to match this wheel to as quickly as
      * possible.
@@ -156,15 +174,14 @@ public class SwerveModule extends ScheduledTask
     @Override
     public long onContinueTask() throws InterruptedException
     {
-        updates++;
-
         // If we aren't going to be driving anywhere, don't try to align.
         if (targetVector.magnitude < .00001)
         {
             turnMotor.setPosition(0.5);
+            currentTurnSpeed = 0;
 
             if (errorResponder instanceof PIDController)
-                ((PIDController) errorResponder).resetController();
+                ((PIDController) errorResponder).pauseController();
 
             if (driveMotor != null)
                 driveMotor.setVelocity(0);
@@ -172,14 +189,36 @@ public class SwerveModule extends ScheduledTask
             if (wheelConsole != null)
                 // Add console information.
                 wheelConsole.write(
-                        "Updates: " + updates,
+                        "Num skips: " + numAbsoluteEncoderSkips,
                         errorResponder instanceof PIDController ? ((PIDController) errorResponder).summary() : "Using constant method");
         }
         else
         {
+            double currentModulePosition = swerveEncoder.position();
+
+            if (ABSOLUTE_ENCODER_UPDATE_CHECK)
+            {
+                // If we're turning but the absolute encoder hasn't registered the turn position change (latency).
+                if (currentTurnSpeed > .15 && Math.abs(currentModulePosition - lastModulePosition) < .5)
+                {
+                    // Record that this happened
+                    numAbsoluteEncoderSkips++;
+
+                    if (DAMP_TURN_SPEED_IF_SO)
+                    {
+                        // Slightly damp the power of the turning
+                        currentTurnSpeed *= .95;
+                        turnMotor.setPosition(0.5 + currentTurnSpeed);
+                    }
+
+                    // Try to immediately update.
+                    return 0;
+                }
+            }
+
             // Shortest angle from current heading to desired heading.
             double desiredAngle = targetVector.angle;
-            double currentAngle = swerveEncoder.position() - physicalEncoderOffset;
+            double currentAngle = currentModulePosition - physicalEncoderOffset;
             double angleFromDesired = (Vector2D.clampAngle(desiredAngle - currentAngle) + 180) % 360 - 180;
             angleFromDesired = angleFromDesired < -180 ? angleFromDesired + 360 : angleFromDesired;
 
@@ -196,29 +235,39 @@ public class SwerveModule extends ScheduledTask
             double turnPower = 0.5;
 
             // Use PID to calculate the correction factor (error bars contained within PID).
-            double turnCorrectionFactor = errorResponder.value(angleToTurn);
+            currentTurnSpeed = errorResponder.value(angleToTurn);
 
             // Change the turn factor depending on our distance from the angle desired (180 vs 0)
             if (angleFromDesired > 90 || angleFromDesired < -90)
-                turnPower -= turnCorrectionFactor;
+                turnPower -= currentTurnSpeed;
             else
-                turnPower += turnCorrectionFactor;
-            turnMotor.setPosition(Range.clip(turnPower, 0, 1));
+                turnPower += currentTurnSpeed;
+
+            // Otherwise wait until we calculate drive power.
+            if (!APPLY_DRIVE_MOTOR_TORQUE_CORRECTION)
+                turnMotor.setPosition(Range.clip(turnPower, 0, 1));
 
             // Set swivel acceptable.
             swivelAcceptable = Math.abs(angleToTurn) < DRIVING_OK_THRESHOLD;
+
+            // For turn motor correction
+            double drivePower = 0;
 
             // Set drive power (if angle between this and desired angle is greater than 90, reverse motor).
             if (drivingEnabled)
             {
                 // Scale up/down motor power depending on how far we are from the ideal heading.
-                double drivePower = targetVector.magnitude / (5 * Math.abs(turnCorrectionFactor) + 1);
+                drivePower = targetVector.magnitude / (5 * Math.abs(currentTurnSpeed) + 1);
 
                 if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
                     drivePower *= -1;
 
                 driveMotor.setVelocity(drivePower);
             }
+
+            if (APPLY_DRIVE_MOTOR_TORQUE_CORRECTION)
+                // Try to counteract the torque applied by the driving motor.
+                turnMotor.setPosition(Range.clip(turnPower + TORQUE_CORRECTION_FACTOR * drivePower, 0, 1));
 
             if (wheelConsole != null)
                 // Add console information.
@@ -227,8 +276,10 @@ public class SwerveModule extends ScheduledTask
                         "Current vector: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                         "Angle to turn: " + angleToTurn,
                         "Driving: " + drivingEnabled,
-                        "Updates: " + updates,
+                        "Num skips: " + numAbsoluteEncoderSkips,
                         errorResponder instanceof PIDController ? ((PIDController) errorResponder).summary() : "Using constant method");
+
+            lastModulePosition = currentModulePosition;
         }
 
         // The ms to wait before updating again.

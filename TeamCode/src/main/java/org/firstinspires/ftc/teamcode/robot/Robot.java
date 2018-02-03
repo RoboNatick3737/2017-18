@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.robot.hardware.LightingSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.RelicSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
 import org.firstinspires.ftc.teamcode.structs.Function;
+import org.firstinspires.ftc.teamcode.structs.ModifiedPIDController;
 import org.firstinspires.ftc.teamcode.structs.PIDController;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.robot.hardware.Flipper;
@@ -171,7 +172,7 @@ public class Robot
                 driveMotors[0],
                 swerveModuleServos[0],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
-                new PIDController(0.006, 0, 0, .5, PIDController.TimeUnits.MILLISECONDS, 50, -.5, .5),
+                new ModifiedPIDController(0.0052, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -182,14 +183,14 @@ public class Robot
 //                    }
 //                },
 //                50,
-                57);
+                56);
 
         swerveModules[1] = new SwerveModule(
                 "Back Left",
                 driveMotors[1],
                 swerveModuleServos[1],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
-                new PIDController(0.006, 0, 0, .5, PIDController.TimeUnits.MILLISECONDS, 50, -.5, .5),
+                new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -200,14 +201,14 @@ public class Robot
 //                    }
 //                },
                 50,
-                73);
+                71);
 
         swerveModules[2] = new SwerveModule(
                 "Back Right",
                 driveMotors[2],
                 swerveModuleServos[2],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
-                new PIDController(0.007, 0, 0, .5, PIDController.TimeUnits.MILLISECONDS, 50, -.5, .5),
+                new ModifiedPIDController(0.0065, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -218,14 +219,14 @@ public class Robot
 //                    }
 //                },
 //                50,
-                137.78);
+                132);
 
         swerveModules[3] = new SwerveModule(
                 "Front Right",
                 driveMotors[3],
                 swerveModuleServos[3],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
-                new PIDController(0.006, 0, 0, .5, PIDController.TimeUnits.MILLISECONDS, 50, -.5, .5),
+                new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -236,7 +237,7 @@ public class Robot
 //                    }
 //                },
 //                50,
-                97);
+                96);
 
         return swerveModules;
     }
@@ -264,7 +265,7 @@ public class Robot
         if (controlMode == ControlMode.AUTONOMOUS)
         {
             // Get front and back sensors.
-            frontRangeSensor = new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Front Range Sensor"), 0x10);
+            frontRangeSensor = null; //new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Front Range Sensor"), 0x10);
             backRangeSensor = new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Back Range Sensor"), 0x2c);
         }
         else

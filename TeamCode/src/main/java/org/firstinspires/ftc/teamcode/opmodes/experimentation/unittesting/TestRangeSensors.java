@@ -17,7 +17,7 @@ public class TestRangeSensors extends EnhancedOpMode
     protected void onRun() throws InterruptedException
     {
         // Get front and back sensors.
-        SmarterRangeSensor frontRangeSensor = new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Front Range Sensor"), 0x10);
+//        SmarterRangeSensor frontRangeSensor = new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Front Range Sensor"), 0x10);
         SmarterRangeSensor backRangeSensor = new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Back Range Sensor"), 0x2c);
 
         // For logging the perceived distances of the sensors.
@@ -26,7 +26,7 @@ public class TestRangeSensors extends EnhancedOpMode
         while (true)
         {
             rangeConsole.write(
-                    "Front: " + frontRangeSensor.getForwardDist(),
+//                    "Front: " + frontRangeSensor.getForwardDist(),
                     "Back: " + backRangeSensor.getForwardDist());
 
             flow.yield();

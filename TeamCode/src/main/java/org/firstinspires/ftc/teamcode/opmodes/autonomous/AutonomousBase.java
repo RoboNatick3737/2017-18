@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelD
 
 public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
 {
-    private final double[] DEPOSIT_LOCATIONS = {48, 55, 70};
+    private final double[] DEPOSIT_LOCATIONS = {48.5, 48.5, 70};
 
     /**
      * So here's the strat (doesn't really vary based on the autonomous).
@@ -136,39 +136,24 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
 
             // Drive that length slowing down over time.
             VariableVector2D driveInstruction = VariableVector2D.polar(
-                    new Polynomial(-.25 / (desiredDriveLength), 0.3),
+                    new Polynomial(-.15 / (desiredDriveLength), 0.3),
                     new Polynomial(getAlliance() == Alliance.RED ? 270 : 90));
             robot.swerveDrive.driveDistance(driveInstruction, desiredDriveLength, flow);
-
-            // Turn for better glyph placement
-            double desiredHeading = getAlliance() == Alliance.BLUE ? 315 : 45;
-            robot.swerveDrive.setDesiredHeading(desiredHeading);
-            while (Math.abs(robot.gyro.getHeading() - desiredHeading) > 5)
-                robot.swerveDrive.synchronousUpdate();
 
             // Flip glyph so it slides to bottom.
             robot.flipper.setGlyphHolderUpTo(true);
 
-            // Use math to figure out flipper position over time.
-            TimedFunction flipperPosition = new TimedFunction(new Function() {
-                @Override
-                public double value(double input) {
-                    return -.2 * input + 1;
-                }
-            });
-
             // Drive back to the cryptobox.
-            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 180));
-            while (robot.backRangeSensor.getForwardDist() > 20)
-            {
-                double newFlipperPosition = flipperPosition.value();
-                // Don't accidentally drop glyph.
-                if (newFlipperPosition > .5)
-                    robot.flipper.setFlipperPositionManually(newFlipperPosition);
+            robot.swerveDrive.driveDistance(Vector2D.polar(0.3, 180), 6.6, flow);
 
+            // Stop
+            robot.swerveDrive.setDesiredMovement(Vector2D.rectangular(0, 0));
+
+            // Turn for better glyph placement
+            double desiredHeading = getAlliance() == Alliance.BLUE ? 320 : 40;
+            robot.swerveDrive.setDesiredHeading(desiredHeading);
+            while (Math.abs(robot.gyro.getHeading() - desiredHeading) > 5)
                 robot.swerveDrive.synchronousUpdate();
-                flow.yield();
-            }
 
             robot.swerveDrive.stop();
 
@@ -176,21 +161,21 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             robot.flipper.advanceStage(2);
             flow.msPause(600);
 
-            // Shove that glyph in there.
-            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 0));
-            long start = System.currentTimeMillis();
-            while (System.currentTimeMillis() - start < 900)
-            {
-                robot.swerveDrive.synchronousUpdate();
-                flow.yield();
-            }
-            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.7, 180));
-            start = System.currentTimeMillis();
-            while (System.currentTimeMillis() - start < 900)
-            {
-                robot.swerveDrive.synchronousUpdate();
-                flow.yield();
-            }
+//            // Shove that glyph in there.
+//            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 0));
+//            long start = System.currentTimeMillis();
+//            while (System.currentTimeMillis() - start < 900)
+//            {
+//                robot.swerveDrive.synchronousUpdate();
+//                flow.yield();
+//            }
+//            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.7, 180));
+//            start = System.currentTimeMillis();
+//            while (System.currentTimeMillis() - start < 900)
+//            {
+//                robot.swerveDrive.synchronousUpdate();
+//                flow.yield();
+//            }
         }
 
         // TODO Pain in the A** autonomous
@@ -202,26 +187,26 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         // region Multi-Glyph!
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
-            // Drive to the glyph pile.
-            robot.swerveDrive.setDesiredMovement(Vector2D.polar(1, 0));
-            while (robot.frontRangeSensor.getForwardDist() > 24)
-            {
-                robot.swerveDrive.synchronousUpdate();
-                flow.yield();
-            }
-            robot.swerveDrive.stop();
-
-            // Succ in dem glyphs
-            robot.intake.intake();
-            flow.msPause(5000);
-
-            // Drive back to the cryptobox.
-            robot.swerveDrive.setDesiredMovement(Vector2D.polar(1, 180));
-            while (robot.backRangeSensor.getForwardDist() > 20)
-            {
-                robot.swerveDrive.synchronousUpdate();
-                flow.yield();
-            }
+//            // Drive to the glyph pile.
+//            robot.swerveDrive.setDesiredMovement(Vector2D.polar(1, 0));
+//            while (robot.frontRangeSensor.getForwardDist() > 24)
+//            {
+//                robot.swerveDrive.synchronousUpdate();
+//                flow.yield();
+//            }
+//            robot.swerveDrive.stop();
+//
+//            // Succ in dem glyphs
+//            robot.intake.intake();
+//            flow.msPause(5000);
+//
+//            // Drive back to the cryptobox.
+//            robot.swerveDrive.setDesiredMovement(Vector2D.polar(1, 180));
+//            while (robot.backRangeSensor.getForwardDist() > 20)
+//            {
+//                robot.swerveDrive.synchronousUpdate();
+//                flow.yield();
+//            }
         }
 
         // TODO Pain in the A** multiglyph

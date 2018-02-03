@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.experimentation.hardware;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTask;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -39,6 +40,8 @@ public class TuneSwerveModulePID extends EnhancedOpMode
 
         double adjuster = .00001;
 
+        ProcessConsole adjusterConsole = log.newProcessConsole("Adjuster");
+
         long lastToggle = System.currentTimeMillis();
         while (true)
         {
@@ -54,6 +57,8 @@ public class TuneSwerveModulePID extends EnhancedOpMode
                 if (currentIndex < 0)
                     currentIndex = 3;
                 modules[currentIndex].setEnableLogging(true);
+
+                lastToggle = System.currentTimeMillis();
             }
             else if (C1.gamepad.dpad_up && (System.currentTimeMillis() - lastToggle) > 500)
             {
@@ -62,19 +67,28 @@ public class TuneSwerveModulePID extends EnhancedOpMode
                 if (currentIndex > 3)
                     currentIndex = 0;
                 modules[currentIndex].setEnableLogging(true);
+
+                lastToggle = System.currentTimeMillis();
             }
 
-            if (gamepad1.left_bumper)
+            if (gamepad1.left_bumper) {
                 adjuster = .001;
+            }
 
             if (gamepad1.left_trigger > .03)
+            {
                 adjuster = .00001;
+            }
 
             if (gamepad1.right_trigger > .03)
+            {
                 adjuster = .000001;
+            }
 
             if (gamepad1.right_bumper)
+            {
                 adjuster = .0000001;
+            }
 
             PIDController current = (PIDController) modules[currentIndex].errorResponder;
             if (gamepad1.a)
@@ -104,7 +118,14 @@ public class TuneSwerveModulePID extends EnhancedOpMode
             for (SwerveModule wheel : modules)
                 wheel.setDrivingState(drivingCanStart);
 
+            if (C2.gamepad.a)
+                SwerveModule.TORQUE_CORRECTION_FACTOR -= adjuster;
+            else if (C2.gamepad.y)
+                SwerveModule.TORQUE_CORRECTION_FACTOR += adjuster;
+
             tasks.synchronousUpdate();
+
+            adjusterConsole.write("Adjuster = " + adjuster, "TCF: " + SwerveModule.TORQUE_CORRECTION_FACTOR);
 
             flow.yield();
         }

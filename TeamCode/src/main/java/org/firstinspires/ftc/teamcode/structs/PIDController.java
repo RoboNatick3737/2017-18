@@ -56,17 +56,17 @@ public class PIDController implements Function
     /**
      * The value at which kP, kI, and kD become pointless to calculate.
      */
-    private final static double NO_CALCULATION_THRESHOLD = .000000005;
+    protected final static double NO_CALCULATION_THRESHOLD = .000000005;
 
     /**
      * Updates whenever calculatePIDCorrection called.
      */
-    private long lastCorrectionTime = -1;
+    protected long lastCorrectionTime = -1;
 
     /**
      * Required for derivative correction calculation.
      */
-    private double lastError;
+    protected double lastError;
 
     /**
      * Constructor for the controller
@@ -131,7 +131,7 @@ public class PIDController implements Function
     /**
      * Has to remember past states.
      */
-    private double i = 0;
+    protected double i = 0;
 
     /**
      * If the method-caller already knows the error value, this does the heavy lifting
@@ -190,6 +190,6 @@ public class PIDController implements Function
 
     public String summary()
     {
-        return "kP: " + kP + "kD: " + kD + "kI: " + kI;
+        return "kP: " + kP + "kD: " + kD + "kI: " + kI + "I: " + i;
     }
 }

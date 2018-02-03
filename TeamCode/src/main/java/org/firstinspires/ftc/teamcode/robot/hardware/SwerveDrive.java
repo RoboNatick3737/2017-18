@@ -340,7 +340,9 @@ public class SwerveDrive extends ScheduledTask
             {
                 setDesiredMovement(direction.getVector(avgOffset));
 
-                distanceConsole.write("Cumulative offsets are: ", "0: " + cumulativeOffsets[0], "1: " + cumulativeOffsets[1], "2: " + cumulativeOffsets[2], "3: " + cumulativeOffsets[3]);
+                distanceConsole.write(
+                        "Cumulatives are: " + cumulativeOffsets[0] + " " + cumulativeOffsets[1] + " " + cumulativeOffsets[2] + " " + cumulativeOffsets[3],
+                        "Distances are " + currentPosition[0] + " " + currentPosition[1] + " " + currentPosition[2] + " " + currentPosition[3]);
 
                 if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
                     synchronousUpdate();
