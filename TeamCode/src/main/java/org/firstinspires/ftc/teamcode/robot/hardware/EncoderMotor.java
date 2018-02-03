@@ -119,7 +119,7 @@ public class EncoderMotor extends ScheduledTask
      */
     public double currentDistanceMoved()
     {
-        return ((motor.getCurrentPosition()) / ENCODER_TICKS_PER_REVOLUTION) * WHEEL_CIRCUMFERENCE;
+        return ((motor.getCurrentPosition() * 1.0) / ENCODER_TICKS_PER_REVOLUTION) * WHEEL_CIRCUMFERENCE;
     }
 
     /**

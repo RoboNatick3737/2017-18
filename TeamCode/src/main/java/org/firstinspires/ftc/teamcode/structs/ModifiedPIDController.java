@@ -60,7 +60,7 @@ public class ModifiedPIDController extends PIDController
             i *= decayRate;
 
             // Keep track of previous error, always is positive.
-            i += Math.abs(kI * error * secondsSinceLoop);
+            i += Math.abs(kI * error * secondsSinceLoop) / (Math.abs(p) + 1); // The greater p is, the less we should scale up i.
 
             // Prevent windup (don't scale up output excessively).
             if (i > maximumOutput)
