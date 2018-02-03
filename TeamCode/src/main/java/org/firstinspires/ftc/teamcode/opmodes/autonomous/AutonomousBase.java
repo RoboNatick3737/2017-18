@@ -1,7 +1,12 @@
 package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
+import com.qualcomm.ftccommon.FtcEventLoopHandler;
+import com.qualcomm.robotcore.util.BatteryChecker;
+import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
@@ -20,8 +25,6 @@ import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelD
 
 public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
 {
-    private final double[] DEPOSIT_LOCATIONS = {48.5, 48.5, 70};
-
     /**
      * So here's the strat (doesn't really vary based on the autonomous).
      *
@@ -39,6 +42,21 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
     @Override
     protected final void onRun() throws InterruptedException
     {
+        // Slightly changes OpMode progression.
+        String voltageCheck = FtcEventLoopHandler.latestBatterySend;
+        double batteryCoefficient = 0.5; // between 1 (14.1V) and 0 (12.2V).
+        if (!voltageCheck.equals("")) // something weird happened?
+        {
+            double batteryVoltageCheck = Double.parseDouble(voltageCheck);
+
+            if (batteryVoltageCheck < 12.2)
+                AppUtil.getInstance().showToast(UILocation.BOTH, "Change the damn battery >:(");
+
+            batteryCoefficient = (batteryVoltageCheck - 12.2) / 1.9;
+            batteryCoefficient = Range.clip(batteryCoefficient, 0, 1);
+            log.lines("Battery coefficient is " + batteryCoefficient);
+        }
+
         // Init the bot.
         Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
@@ -52,6 +70,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         cam.start(initializationObserver);
 
         CVCryptoKeyDetector.DetectedKey detectedKey = CVCryptoKeyDetector.DetectedKey.LEFT;
+
         JewelDetector.JewelOrder jewelOrder = JewelDetector.JewelOrder.UNKNOWN;
         while (!isStarted()) // Runs until OpMode is started, then just goes from there.
         {
@@ -63,9 +82,16 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
 //            if (currentKey != CVCryptoKeyDetector.DetectedKey.UNKNOWN)
 //                detectedKey = currentKey;
 
+            // Until cryptokey works this is for testing
+            if (C1.gamepad.a)
+                detectedKey = CVCryptoKeyDetector.DetectedKey.CENTER;
+            else if (C1.gamepad.b)
+                detectedKey = CVCryptoKeyDetector.DetectedKey.RIGHT;
+
             flow.yield();
         }
         cam.stop();
+        log.lines("Jewels are " + jewelOrder.toString() + " and key is " + detectedKey.toString());
         // endregion
 
         // region Knock Ball
@@ -94,6 +120,8 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
 
         robot.intake.intake();
 
+        double batteryDriveCorrection = batteryCoefficient * -1;
+        double[] DEPOSIT_LOCATIONS = {58.5 + batteryDriveCorrection , 75.8 + batteryDriveCorrection, 76.8 + batteryDriveCorrection};
         // Simple Autonomous
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
@@ -135,31 +163,80 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             }
 
             // Drive that length slowing down over time.
-            VariableVector2D driveInstruction = VariableVector2D.polar(
+            robot.swerveDrive.driveDistance(VariableVector2D.polar(
                     new Polynomial(-.15 / (desiredDriveLength), 0.3),
-                    new Polynomial(getAlliance() == Alliance.RED ? 270 : 90));
-            robot.swerveDrive.driveDistance(driveInstruction, desiredDriveLength, flow);
+                    new Polynomial(getAlliance() == Alliance.RED ? 270 : 90)), desiredDriveLength, flow);
 
             // Flip glyph so it slides to bottom.
             robot.flipper.setGlyphHolderUpTo(true);
 
-            // Drive back to the cryptobox.
-            robot.swerveDrive.driveDistance(Vector2D.polar(0.3, 180), 6.6, flow);
+            // Align wheels backward.
+            robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 180), 15, flow);
 
-            // Stop
-            robot.swerveDrive.setDesiredMovement(Vector2D.rectangular(0, 0));
+            // Drive back to the cryptobox.
+            robot.swerveDrive.driveDistance(VariableVector2D.polar(
+                    new Polynomial(-.12 / (20), 0.2),
+                    new Polynomial(180)), 16, flow);
 
             // Turn for better glyph placement
-            double desiredHeading = getAlliance() == Alliance.BLUE ? 320 : 40;
+            double desiredHeading = getAlliance() == Alliance.BLUE ? 330 : 30;
             robot.swerveDrive.setDesiredHeading(desiredHeading);
-            while (Math.abs(robot.gyro.getHeading() - desiredHeading) > 5)
+            while (Math.abs(robot.gyro.getHeading() - desiredHeading) > 3)
                 robot.swerveDrive.synchronousUpdate();
-
             robot.swerveDrive.stop();
 
             // Dump glyph
+            TimedFunction flipperPos = new TimedFunction(new Function() {
+                @Override
+                public double value(double input) {
+                    return -.25 * input + .8;
+                }
+            });
+            while (true)
+            {
+                if (flipperPos.value() < .4)
+                    break;
+
+                robot.flipper.setFlipperPositionManually(flipperPos.value());
+
+                flow.yield();
+            }
             robot.flipper.advanceStage(2);
-            flow.msPause(600);
+
+            // Drive away from glyph
+            robot.swerveDrive.setDesiredHeading(0);
+            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, getAlliance() == Alliance.BLUE ? 10 : 350));
+            long start = System.currentTimeMillis();
+            while (System.currentTimeMillis() - start < 800)
+            {
+                robot.swerveDrive.synchronousUpdate();
+                flow.yield();
+            }
+
+            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.5, 180));
+            start = System.currentTimeMillis();
+            while (System.currentTimeMillis() - start < 800)
+            {
+                robot.swerveDrive.synchronousUpdate();
+                flow.yield();
+            }
+
+            // To the glyph pit!
+            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.6, 0));
+            start = System.currentTimeMillis();
+            boolean flipperDown = false;
+            while (System.currentTimeMillis() - start < 1500)
+            {
+                if (!flipperDown && System.currentTimeMillis() - start > 1000)
+                {
+                    // Put the flipper back down.
+                    robot.flipper.advanceStage(0);
+                    flipperDown = true;
+                }
+
+                robot.swerveDrive.synchronousUpdate();
+                flow.yield();
+            }
 
 //            // Shove that glyph in there.
 //            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 0));

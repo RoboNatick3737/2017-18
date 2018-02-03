@@ -31,7 +31,7 @@ public class SwerveDrive extends ScheduledTask
     private static Function FIELD_CENTRIC_TURN_CONTROLLER = new Function() {
         @Override
         public double value(double input) {
-            return .005 * input;
+            return .0062 * input;
         }
     };
     // endregion
@@ -358,14 +358,79 @@ public class SwerveDrive extends ScheduledTask
     {
         driveDistance(VariableVector2D.from(direction), distance, flow);
     }
+
+    /**
+     * Orients all SwerveModules to a given vector with some degree of certainty (for auto)
+     */
+    public void orientSwerveModules(Vector2D orientationVector, double precisionRequired, Flow flow) throws InterruptedException
+    {
+        for (int i = 0; i < swerveModules.length; i++)
+            swerveModules[i].setVectorTarget(orientationVector);
+
+        orientModules(precisionRequired, flow);
+    }
+
+    /**
+     * Orient all swivel modules for rotation.
+     */
+    public void orientSwerveModulesForRotation(double precisionRequired, Flow flow) throws InterruptedException
+    {
+        for (int i = 0; i < swerveModules.length; i++)
+            swerveModules[i].setVectorTarget(Vector2D.polar(1, WHEEL_ORIENTATIONS[i]));
+
+        orientModules(precisionRequired, flow);
+    }
+
+    /**
+     * Private method which actually takes care of the updating bit
+     */
+    private void orientModules(double precisionRequired, Flow flow) throws InterruptedException
+    {
+        // Have to make a separate package for just swiveling.
+        ScheduledTaskPackage updatePackage = new ScheduledTaskPackage(
+                flow.parent,
+                "Orienting",
+                swerveModules[0], swerveModules[1], swerveModules[2], swerveModules[3]);
+        updatePackage.setUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
+
+        while (true)
+        {
+            boolean orientationsAreGood = true;
+            for (SwerveModule module : swerveModules)
+            {
+                if (module.getAngleLeftToTurn() > precisionRequired)
+                {
+                    orientationsAreGood = false;
+                    break;
+                }
+            }
+
+            if (orientationsAreGood)
+                break;
+
+            // Otherwise update
+            updatePackage.synchronousUpdate();
+            flow.yield();
+        }
+
+        // Stop updating.
+        updatePackage.stop();
+
+        // Stop all modules.
+        stop();
+    }
     // endregion
 
     /**
-     * Stops all SwerveWheels.
+     * Stops all SwerveWheels and sets the current desired movement to zero, as well as desired
+     * heading to current heading.
      */
     public void stop()
     {
         for (SwerveModule wheel : swerveModules)
             wheel.stopWheel();
+
+        setDesiredMovement(Vector2D.ZERO);
+        setDesiredHeading(0);
     }
 }

@@ -63,6 +63,8 @@ public class FtcEventLoopHandler implements BatteryChecker.BatteryWatcher {
   // Constants
   //------------------------------------------------------------------------------------------------
 
+  public static String latestBatterySend = "";
+
   public static final String TAG = "FtcEventLoopHandler";
 
   /** This string is sent in the robot battery telemetry payload to indicate
@@ -266,6 +268,7 @@ public class FtcEventLoopHandler implements BatteryChecker.BatteryWatcher {
   public void sendBatteryInfo() {
     robotControllerBatteryChecker.pollBatteryLevel(this);
     String batteryMessage = buildRobotBatteryMsg();
+    latestBatterySend = batteryMessage; // CUSTOM
     if (batteryMessage != null) {
       sendTelemetry(EventLoopManager.ROBOT_BATTERY_LEVEL_KEY, batteryMessage);
     }

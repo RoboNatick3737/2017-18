@@ -15,7 +15,7 @@ public class BallKnocker
         this.knocker = knocker;
 
         setUpwardPosTo(true);
-        setKnockerTo(KnockerPosition.LEFT);
+        knocker.setPosition(0);
     }
 
     public void setUpwardPosTo(boolean up)
@@ -56,10 +56,10 @@ public class BallKnocker
         setKnockerTo(KnockerPosition.MIDDLE);
         setUpwardPosTo(false);
 
-        flow.msPause(1000);
+        flow.msPause(800);
 
         setKnockerTo(toKnock);
-        flow.msPause(1000);
+        flow.msPause(800);
 
         setUpwardPosTo(true);
     }

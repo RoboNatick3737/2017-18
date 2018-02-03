@@ -18,7 +18,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.structs.Function;
-import org.firstinspires.ftc.teamcode.structs.ModifiedPIDController;
 import org.firstinspires.ftc.teamcode.structs.PIDController;
 
 import hankextensions.structs.Vector2D;
@@ -58,9 +57,9 @@ public class SwerveModule extends ScheduledTask
     private static final boolean ABSOLUTE_ENCODER_UPDATE_CHECK = false, DAMP_TURN_SPEED_IF_SO = false;
 
     // Swerve wheel specific components.
-    public final String moduleName;
+    private final String moduleName;
     public final EncoderMotor driveMotor;
-    public final Servo turnMotor;
+    private final Servo turnMotor;
     private final AbsoluteEncoder swerveEncoder;
     private final double physicalEncoderOffset;
 
@@ -84,6 +83,22 @@ public class SwerveModule extends ScheduledTask
 
     // The vector components which should constitute the direction and power of this wheel.
     private Vector2D targetVector = Vector2D.polar(0, 0);
+
+    // Swiveling properties.
+    private double currentSwivelOrientation = 0;
+    public double getCurrentSwivelOrientation()
+    {
+        return currentSwivelOrientation;
+    }
+    private double angleLeftToTurn = 0;
+    public double getAngleLeftToTurn()
+    {
+        return angleLeftToTurn;
+    }
+    private double currentTurnSpeed = 0;
+
+    // Required for absolute encoder position verification
+    private int numAbsoluteEncoderSkips = 0;
 
     // The boolean which indicates to the parent swerve drive whether this wheel has swiveled to the correct position.
     private boolean swivelAcceptable = true;
@@ -163,10 +178,6 @@ public class SwerveModule extends ScheduledTask
             driveMotor.setVelocity(0);
     }
 
-    // Required for absolute encoder position verification
-    private double currentTurnSpeed = 0, lastModulePosition = 0;
-    private int numAbsoluteEncoderSkips = 0;
-
     /**
      * Right here, we're given a vector which we have to match this wheel to as quickly as
      * possible.
@@ -194,12 +205,14 @@ public class SwerveModule extends ScheduledTask
         }
         else
         {
-            double currentModulePosition = swerveEncoder.position();
-
+            // Whether or not we should check whether the current module position is different from the last one.
             if (ABSOLUTE_ENCODER_UPDATE_CHECK)
             {
+                // currentSwivelOrientation currently represents old swivel orientation.
+                double newSwivelOrientation = swerveEncoder.position();
+
                 // If we're turning but the absolute encoder hasn't registered the turn position change (latency).
-                if (currentTurnSpeed > .15 && Math.abs(currentModulePosition - lastModulePosition) < .5)
+                if (Math.abs(currentTurnSpeed) > .15 && Math.abs(newSwivelOrientation - currentSwivelOrientation) < .5)
                 {
                     // Record that this happened
                     numAbsoluteEncoderSkips++;
@@ -214,28 +227,32 @@ public class SwerveModule extends ScheduledTask
                     // Try to immediately update.
                     return 0;
                 }
+
+                currentSwivelOrientation = newSwivelOrientation;
             }
+            else
+                // Update position.
+                currentSwivelOrientation = swerveEncoder.position();
 
             // Shortest angle from current heading to desired heading.
             double desiredAngle = targetVector.angle;
-            double currentAngle = currentModulePosition - physicalEncoderOffset;
+            double currentAngle = currentSwivelOrientation - physicalEncoderOffset;
             double angleFromDesired = (Vector2D.clampAngle(desiredAngle - currentAngle) + 180) % 360 - 180;
             angleFromDesired = angleFromDesired < -180 ? angleFromDesired + 360 : angleFromDesired;
 
             // Clip this angle to 90 degree maximum turns.
-            double angleToTurn = 0;
             if (angleFromDesired > 90)
-                angleToTurn = -angleFromDesired + 180;
+                angleLeftToTurn = -angleFromDesired + 180;
             else if (angleFromDesired < -90)
-                angleToTurn = -angleFromDesired - 180;
+                angleLeftToTurn = -angleFromDesired - 180;
             else
-                angleToTurn = angleFromDesired;
+                angleLeftToTurn = angleFromDesired;
 
             // Set turn power.
             double turnPower = 0.5;
 
             // Use PID to calculate the correction factor (error bars contained within PID).
-            currentTurnSpeed = errorResponder.value(angleToTurn);
+            currentTurnSpeed = errorResponder.value(angleLeftToTurn);
 
             // Change the turn factor depending on our distance from the angle desired (180 vs 0)
             if (angleFromDesired > 90 || angleFromDesired < -90)
@@ -248,10 +265,10 @@ public class SwerveModule extends ScheduledTask
                 turnMotor.setPosition(Range.clip(turnPower, 0, 1));
 
             // Set swivel acceptable.
-            swivelAcceptable = Math.abs(angleToTurn) < DRIVING_OK_THRESHOLD;
+            swivelAcceptable = Math.abs(angleLeftToTurn) < DRIVING_OK_THRESHOLD;
 
             // For turn motor correction
-            double drivePower = 0;
+            double drivePower;
 
             // Set drive power (if angle between this and desired angle is greater than 90, reverse motor).
             if (drivingEnabled)
@@ -274,12 +291,10 @@ public class SwerveModule extends ScheduledTask
                 wheelConsole.write(
                         "Vector target: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                         "Current vector: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
-                        "Angle to turn: " + angleToTurn,
+                        "Angle to turn: " + angleLeftToTurn,
                         "Driving: " + drivingEnabled,
                         "Num skips: " + numAbsoluteEncoderSkips,
                         errorResponder instanceof PIDController ? ((PIDController) errorResponder).summary() : "Using constant method");
-
-            lastModulePosition = currentModulePosition;
         }
 
         // The ms to wait before updating again.
