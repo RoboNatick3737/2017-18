@@ -382,7 +382,9 @@ public class SwerveDrive extends ScheduledTask
     }
 
     /**
-     * Private method which actually takes care of the updating bit
+     * Private method which actually takes care of the updating bit.
+     *
+     * TODO include asynchronous mode
      */
     private void orientModules(double precisionRequired, Flow flow) throws InterruptedException
     {
@@ -395,10 +397,14 @@ public class SwerveDrive extends ScheduledTask
 
         while (true)
         {
+            // Otherwise update
+            updatePackage.synchronousUpdate();
+
+            // Whether orientations need to keep being updated.
             boolean orientationsAreGood = true;
             for (SwerveModule module : swerveModules)
             {
-                if (module.getAngleLeftToTurn() > precisionRequired)
+                if (Math.abs(module.getAngleLeftToTurn()) > precisionRequired)
                 {
                     orientationsAreGood = false;
                     break;
@@ -408,8 +414,6 @@ public class SwerveDrive extends ScheduledTask
             if (orientationsAreGood)
                 break;
 
-            // Otherwise update
-            updatePackage.synchronousUpdate();
             flow.yield();
         }
 

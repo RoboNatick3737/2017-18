@@ -42,6 +42,8 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
     @Override
     protected final void onRun() throws InterruptedException
     {
+        double optimalMinV = 12.4, optimalMaxV = 14.1;
+
         // Slightly changes OpMode progression.
         String voltageCheck = FtcEventLoopHandler.latestBatterySend;
         double batteryCoefficient = 0.5; // between 1 (14.1V) and 0 (12.2V).
@@ -49,10 +51,10 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         {
             double batteryVoltageCheck = Double.parseDouble(voltageCheck);
 
-            if (batteryVoltageCheck < 12.2)
+            if (batteryVoltageCheck < optimalMinV)
                 AppUtil.getInstance().showToast(UILocation.BOTH, "Change the damn battery >:(");
 
-            batteryCoefficient = (batteryVoltageCheck - 12.2) / 1.9;
+            batteryCoefficient = (batteryVoltageCheck - optimalMinV) / (optimalMaxV - optimalMinV);
             batteryCoefficient = Range.clip(batteryCoefficient, 0, 1);
             log.lines("Battery coefficient is " + batteryCoefficient);
         }
@@ -60,6 +62,9 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
         // Init the bot.
         Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
+
+        // Align wheels sideways to drive off the platform.
+        robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 90), 15, flow);
 
         // Put down the flipper glyph holder servo so that we can see the jewels.
         robot.flipper.setGlyphHolderUpTo(false);
@@ -120,8 +125,8 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
 
         robot.intake.intake();
 
-        double batteryDriveCorrection = batteryCoefficient * -1;
-        double[] DEPOSIT_LOCATIONS = {58.5 + batteryDriveCorrection , 75.8 + batteryDriveCorrection, 76.8 + batteryDriveCorrection};
+        double batteryDriveCorrection = batteryCoefficient * -.5;
+        double[] DEPOSIT_LOCATIONS = {58.2 + batteryDriveCorrection , 74.7 + batteryDriveCorrection, 92.3 + batteryDriveCorrection};
         // Simple Autonomous
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
@@ -207,21 +212,24 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
             robot.swerveDrive.setDesiredHeading(0);
             robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, getAlliance() == Alliance.BLUE ? 10 : 350));
             long start = System.currentTimeMillis();
-            while (System.currentTimeMillis() - start < 800)
+            while (System.currentTimeMillis() - start < 1200)
             {
                 robot.swerveDrive.synchronousUpdate();
                 flow.yield();
             }
 
+            // Shove glyph in
+            robot.swerveDrive.setDesiredHeading(getAlliance() == Alliance.BLUE ? 20 : 340);// A bit of rotation helps smush the cube in.
             robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.5, 180));
             start = System.currentTimeMillis();
-            while (System.currentTimeMillis() - start < 800)
+            while (System.currentTimeMillis() - start < 1400)
             {
                 robot.swerveDrive.synchronousUpdate();
                 flow.yield();
             }
 
             // To the glyph pit!
+            robot.swerveDrive.setDesiredHeading(0);
             robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.6, 0));
             start = System.currentTimeMillis();
             boolean flipperDown = false;
