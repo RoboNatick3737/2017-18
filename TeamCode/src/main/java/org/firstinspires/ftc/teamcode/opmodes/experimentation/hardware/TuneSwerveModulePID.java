@@ -19,7 +19,7 @@ public class TuneSwerveModulePID extends EnhancedOpMode
     @Override
     protected void onRun() throws InterruptedException
     {
-        SwerveModule[] modules = Robot.getSwerveModules(hardware, DcMotor.ZeroPowerBehavior.FLOAT);
+        SwerveModule[] modules = Robot.getSwerveModules(hardware, Robot.ControlMode.TELEOP, DcMotor.ZeroPowerBehavior.FLOAT);
 
         // All must be PIDController instances or we can't run this.
         for (SwerveModule module : modules)

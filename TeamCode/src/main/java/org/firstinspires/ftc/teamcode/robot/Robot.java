@@ -160,7 +160,7 @@ public class Robot
      * @param zeroPowerBehavior The zero power behavior for the motors.
      * @return
      */
-    public static SwerveModule[] getSwerveModules(HardwareInitializer hardware, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
+    public static SwerveModule[] getSwerveModules(HardwareInitializer hardware, ControlMode controlMode, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
     {
         Servo[] swerveModuleServos = getSwerveModuleServos(hardware);
         EncoderMotor[] driveMotors = getDriveMotors(hardware, zeroPowerBehavior);
@@ -172,7 +172,9 @@ public class Robot
                 driveMotors[0],
                 swerveModuleServos[0],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
-                new ModifiedPIDController(0.0052, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                controlMode == ControlMode.AUTONOMOUS ?
+                        new ModifiedPIDController(0.0052, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95) :
+                        new ModifiedPIDController(0.0052, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -190,7 +192,9 @@ public class Robot
                 driveMotors[1],
                 swerveModuleServos[1],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
-                new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                controlMode == ControlMode.AUTONOMOUS ?
+                        new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95) :
+                        new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -208,7 +212,9 @@ public class Robot
                 driveMotors[2],
                 swerveModuleServos[2],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
-                new ModifiedPIDController(0.0065, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                controlMode == ControlMode.AUTONOMOUS ?
+                        new ModifiedPIDController(0.0065, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95) :
+                        new ModifiedPIDController(0.0065, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -226,7 +232,9 @@ public class Robot
                 driveMotors[3],
                 swerveModuleServos[3],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
-                new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                controlMode == ControlMode.AUTONOMOUS ?
+                        new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95) :
+                        new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -257,7 +265,7 @@ public class Robot
         gyro = androidGyro;
 
         // Instantiate the swerve drive.
-        swerveDrive = new SwerveDrive(this, getSwerveModules(hardware, /*controlMode == ControlMode.AUTONOMOUS ? DcMotor.ZeroPowerBehavior.BRAKE : */DcMotor.ZeroPowerBehavior.FLOAT));
+        swerveDrive = new SwerveDrive(this, getSwerveModules(hardware, controlMode, /*controlMode == ControlMode.AUTONOMOUS ? DcMotor.ZeroPowerBehavior.BRAKE : */DcMotor.ZeroPowerBehavior.FLOAT));
 
         // Init the ADAFRUIT gyro.
 //        gyro = new HankuTankuIMU(hardware.map.get(BNO055IMU.class, "IMU"));
