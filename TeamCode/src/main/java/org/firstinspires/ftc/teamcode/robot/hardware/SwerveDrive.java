@@ -13,7 +13,7 @@ import hankextensions.input.HTGamepad;
 
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.structs.Function;
-import org.firstinspires.ftc.teamcode.structs.VariableVector2D;
+import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
 
 import hankextensions.structs.Vector2D;
 
@@ -307,9 +307,13 @@ public class SwerveDrive extends ScheduledTask
      * @param direction represents the direction and speed of movement, with current distance
      *                  moved as the parameter.
      * @param distance  the distance in inches to move.
+     * @param runnable  Optional parameter to run every loop.
      */
-    public void driveDistance(VariableVector2D direction, double distance, Flow flow) throws InterruptedException
+    public void driveDistance(ParametrizedVector direction, double distance, Runnable runnable, Flow flow) throws InterruptedException
     {
+        if (distance <= 0)
+            return;
+
         ProcessConsole distanceConsole = LoggingBase.instance.newProcessConsole("Distance Drive");
 
         // Represents distance driven by each module.
@@ -338,7 +342,7 @@ public class SwerveDrive extends ScheduledTask
             // Keep updating unless we can stop.
             if (!canStop)
             {
-                setDesiredMovement(direction.getVector(avgOffset));
+                setDesiredMovement(direction.getVector(avgOffset / distance)); // 0 and 1
 
                 distanceConsole.write(
                         "Cumulatives are: " + cumulativeOffsets[0] + " " + cumulativeOffsets[1] + " " + cumulativeOffsets[2] + " " + cumulativeOffsets[3],
@@ -346,6 +350,9 @@ public class SwerveDrive extends ScheduledTask
 
                 if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
                     synchronousUpdate();
+
+                if (runnable != null)
+                    runnable.run();
             }
 
             flow.yield();
@@ -356,7 +363,47 @@ public class SwerveDrive extends ScheduledTask
     }
     public void driveDistance(Vector2D direction, double distance, Flow flow) throws InterruptedException
     {
-        driveDistance(VariableVector2D.from(direction), distance, flow);
+        driveDistance(ParametrizedVector.from(direction), distance, null, flow);
+    }
+
+    /**
+     * Drives a certain time with a variable heading/power
+     * @param direction The direction to drive
+     * @param driveTime the ms to drive
+     * @param runnable runnable to run every loop
+     * @param flow When to exit
+     */
+    public void driveTime(ParametrizedVector direction, long driveTime, Runnable runnable, Flow flow) throws InterruptedException
+    {
+        if (driveTime <= 0)
+            return;
+
+        ProcessConsole distanceConsole = LoggingBase.instance.newProcessConsole("Timed Drive");
+
+        long startTime = System.currentTimeMillis();
+        long elapsedTime = 0;
+        while (elapsedTime < driveTime)
+        {
+            elapsedTime = System.currentTimeMillis() - startTime;
+
+            setDesiredMovement(direction.getVector(elapsedTime / driveTime));
+            distanceConsole.write("Remaining: " + (driveTime - (System.currentTimeMillis() - startTime) + "ms"));
+            if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
+                synchronousUpdate();
+
+            // Shortcut, callers can provide anonymous methods here.
+            if (runnable != null)
+                runnable.run();
+
+            flow.yield();
+        }
+
+        stop();
+        distanceConsole.destroy();
+    }
+    public void driveTime(Vector2D direction, long msDrive, Flow flow) throws InterruptedException
+    {
+        driveTime(ParametrizedVector.from(direction), msDrive, null, flow);
     }
 
     /**

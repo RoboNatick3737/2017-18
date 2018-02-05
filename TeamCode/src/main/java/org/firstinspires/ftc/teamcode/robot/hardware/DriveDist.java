@@ -4,10 +4,7 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
-import org.firstinspires.ftc.teamcode.structs.Polynomial;
-import org.firstinspires.ftc.teamcode.structs.VariableVector2D;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.structs.Vector2D;

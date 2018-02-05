@@ -1,12 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
-import com.qualcomm.ftccommon.FtcEventLoopHandler;
-import com.qualcomm.robotcore.util.BatteryChecker;
-import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
-import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
@@ -18,7 +13,7 @@ import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.structs.Function;
 import org.firstinspires.ftc.teamcode.structs.Polynomial;
 import org.firstinspires.ftc.teamcode.structs.TimedFunction;
-import org.firstinspires.ftc.teamcode.structs.VariableVector2D;
+import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CVCryptoKeyDetector;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelAndCryptoKeyTracker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
@@ -153,9 +148,20 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             }
 
             // Drive that length slowing down over time.
-            robot.swerveDrive.driveDistance(VariableVector2D.polar(
-                    new Polynomial(-.15 / (desiredDriveLength), 0.3),
-                    new Polynomial(getAlliance() == Alliance.RED ? 270 : 90)), desiredDriveLength, flow);
+            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return -.15 * input + 0.3;
+                        }
+                    },
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return getAlliance() == Alliance.RED ? 270 : 90;
+                        }
+                    }),
+                    desiredDriveLength, null, flow);
 
             // Flip glyph so it slides to bottom.
             robot.flipper.setGlyphHolderUpTo(true);
@@ -164,9 +170,20 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 180), 15, flow);
 
             // Drive back to the cryptobox.
-            robot.swerveDrive.driveDistance(VariableVector2D.polar(
-                    new Polynomial(-.12 / (20), 0.2),
-                    new Polynomial(180)), 16, flow);
+            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return -.12 * input + 0.2;
+                        }
+                    },
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 180;
+                        }
+                    }),
+                    16, null, flow);
 
             // Turn for better glyph placement
             double desiredHeading = getAlliance() == Alliance.BLUE ? 330 : 30;
@@ -195,23 +212,11 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
             // Drive away from glyph
             robot.swerveDrive.setDesiredHeading(0);
-            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, getAlliance() == Alliance.BLUE ? 10 : 350));
-            long start = System.currentTimeMillis();
-            while (System.currentTimeMillis() - start < 1200)
-            {
-                robot.swerveDrive.synchronousUpdate();
-                flow.yield();
-            }
+            robot.swerveDrive.driveTime(Vector2D.polar(0.3, getAlliance() == Alliance.BLUE ? 10 : 350), 1200, flow);
 
             // Shove glyph in
             robot.swerveDrive.setDesiredHeading(getAlliance() == Alliance.BLUE ? 20 : 340);// A bit of rotation helps smush the cube in.
-            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.5, 180));
-            start = System.currentTimeMillis();
-            while (System.currentTimeMillis() - start < 1400)
-            {
-                robot.swerveDrive.synchronousUpdate();
-                flow.yield();
-            }
+            robot.swerveDrive.driveTime(Vector2D.polar(0.5, 180), 1400, flow);
         }
 
         // TODO Pain in the A** autonomous

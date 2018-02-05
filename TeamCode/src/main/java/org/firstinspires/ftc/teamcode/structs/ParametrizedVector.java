@@ -2,11 +2,14 @@ package org.firstinspires.ftc.teamcode.structs;
 
 import hankextensions.structs.Vector2D;
 
-public class VariableVector2D
+/**
+ * Looks like multivariable calc was a useful class after all :P
+ */
+public class ParametrizedVector
 {
-    public static VariableVector2D from(final Vector2D base)
+    public static ParametrizedVector from(final Vector2D base)
     {
-        return VariableVector2D.rectangular(
+        return ParametrizedVector.rectangular(
                 new Function()
                 {
                     public double value(double input)
@@ -23,14 +26,14 @@ public class VariableVector2D
                 });
     }
 
-    public static VariableVector2D polar(Function mag, Function theta)
+    public static ParametrizedVector polar(Function mag, Function theta)
     {
-        return new VariableVector2D(VariableVectorType.POLAR, mag, theta);
+        return new ParametrizedVector(VariableVectorType.POLAR, mag, theta);
     }
 
-    public static VariableVector2D rectangular(Function x, Function y)
+    public static ParametrizedVector rectangular(Function x, Function y)
     {
-        return new VariableVector2D(VariableVectorType.RECTANGULAR, x, y);
+        return new ParametrizedVector(VariableVectorType.RECTANGULAR, x, y);
     }
 
     // Type which this was initialized as.
@@ -40,7 +43,7 @@ public class VariableVector2D
     // The components of this function.
     private final Function a, b;
 
-    private VariableVector2D(VariableVectorType type, Function a, Function b)
+    private ParametrizedVector(VariableVectorType type, Function a, Function b)
     {
         this.type = type;
 
