@@ -2,8 +2,13 @@ package hankextensions;
 
 import com.makiah.makiahsandroidlib.threading.Flow;
 import com.makiah.makiahsandroidlib.threading.TaskParent;
+import com.qualcomm.ftccommon.FtcEventLoopHandler;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
+import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
 import hankextensions.hardware.HardwareInitializer;
 import hankextensions.input.HTGamepad;
@@ -20,6 +25,30 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
 {
     // Useful for other files which require custom initialization steps or components from this op mode which they cannot otherwise obtain.
     public static EnhancedOpMode instance;
+
+    public static double getBatteryCoefficient()
+    {
+        double optimalMinV = 12.4, optimalMaxV = 14.1;
+
+        // Slightly changes OpMode progression.
+        String voltageCheck = FtcEventLoopHandler.latestBatterySend;
+        double batteryCoefficient = 0.5; // between 1 (14.1V) and 0 (12.2V).
+        if (!voltageCheck.equals("")) // something weird happened?
+        {
+            double batteryVoltageCheck = Double.parseDouble(voltageCheck);
+
+            if (batteryVoltageCheck < optimalMinV)
+                AppUtil.getInstance().showToast(UILocation.BOTH, "Change the fucking battery >:(");
+
+            batteryCoefficient = (batteryVoltageCheck - optimalMinV) / (optimalMaxV - optimalMinV);
+            batteryCoefficient = Range.clip(batteryCoefficient, 0, 1);
+
+            if (instance != null)
+                instance.log.lines("Battery coefficient is " + batteryCoefficient);
+        }
+
+        return batteryCoefficient;
+    }
 
     // Properties of the current RobotCore instance.
     public TelemetryWrapper log;

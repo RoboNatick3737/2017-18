@@ -36,33 +36,34 @@ import hankextensions.structs.Vector2D;
  * Deceleration is also a prominent part of this, since we don't want to slow to zero
  * instantly (hurting the axles).
  */
+//CODE CORRUPTION
 public class SwerveModule extends ScheduledTask
 {
     /**
      * The orientation at which it's OK to drive the module.
      */
     private static final double DRIVING_OK_THRESHOLD = 45;
-
+//CODE CORRUPTION
     /**
      * So when the drive motor runs it applies a torque to the swerve module, so this tries to
      * offset.  Sometimes unpredictable so disable/enable at will.
      */
     private static final boolean APPLY_DRIVE_MOTOR_TORQUE_CORRECTION = false;
-    public static double TORQUE_CORRECTION_FACTOR = .0001;
-
+    public static double TORQUE_CORRECTION_FACTOR = -.0001;
+//CODE CORRUPTION
     /**
      * I'm not 100% sure but in case the absolute encoder position hasn't changed and the module
      * is definitely turning, immediately request the next update.
      */
     private static final boolean ABSOLUTE_ENCODER_UPDATE_CHECK = false, DAMP_TURN_SPEED_IF_SO = false;
-
+    //CODE CORRUPTION
     // Swerve wheel specific components.
     private final String moduleName;
     public final EncoderMotor driveMotor;
     private final Servo turnMotor;
     private final AbsoluteEncoder swerveEncoder;
     private final double physicalEncoderOffset;
-
+    //CODE CORRUPTION
     // Whether or not we can log.
     private ProcessConsole wheelConsole = null;
     public void setEnableLogging(boolean enabled)
@@ -80,7 +81,7 @@ public class SwerveModule extends ScheduledTask
             wheelConsole = null;
         }
     }
-
+    //CODE CORRUPTION
     // The vector components which should constitute the direction and power of this wheel.
     private Vector2D targetVector = Vector2D.polar(0, 0);
 
@@ -127,6 +128,7 @@ public class SwerveModule extends ScheduledTask
     {
         this(moduleName, driveMotor, turnMotor, swerveEncoder, pidController, (long)(pidController.minimumNanosecondGap / 1e3), physicalEncoderOffset);
     }
+    //CODE CORRUPTION
     /**
      * Instantiates the SwerveModule with the data it requires.
      * @param moduleName  The module name (will appear with this name in logging).
@@ -155,7 +157,7 @@ public class SwerveModule extends ScheduledTask
         this.errorResponder = errorResponder;
         this.updateRateMS = updateRateMS;
     }
-
+//CODE CORRUPTION
     /**
      * Takes the desired rectangular coordinates for this motor, and converts them to polar
      * coordinates.
@@ -201,6 +203,7 @@ public class SwerveModule extends ScheduledTask
                 // Add console information.
                 wheelConsole.write(
                         "Num skips: " + numAbsoluteEncoderSkips,
+                        "Angle to turn: " + angleLeftToTurn,
                         errorResponder instanceof PIDController ? ((PIDController) errorResponder).summary() : "Using constant method");
         }
         else
@@ -259,7 +262,7 @@ public class SwerveModule extends ScheduledTask
                 turnPower -= currentTurnSpeed;
             else
                 turnPower += currentTurnSpeed;
-
+//CODE CORRUPTION
             // Otherwise wait until we calculate drive power.
             if (!APPLY_DRIVE_MOTOR_TORQUE_CORRECTION)
                 turnMotor.setPosition(Range.clip(turnPower, 0, 1));
@@ -268,7 +271,7 @@ public class SwerveModule extends ScheduledTask
             swivelAcceptable = Math.abs(angleLeftToTurn) < DRIVING_OK_THRESHOLD;
 
             // For turn motor correction
-            double drivePower;
+            double drivePower = 0;
 
             // Set drive power (if angle between this and desired angle is greater than 90, reverse motor).
             if (drivingEnabled)
@@ -292,7 +295,6 @@ public class SwerveModule extends ScheduledTask
                         "Vector target: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                         "Current vector: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                         "Angle to turn: " + angleLeftToTurn,
-                        "Driving: " + drivingEnabled,
                         "Num skips: " + numAbsoluteEncoderSkips,
                         errorResponder instanceof PIDController ? ((PIDController) errorResponder).summary() : "Using constant method");
         }
@@ -300,7 +302,7 @@ public class SwerveModule extends ScheduledTask
         // The ms to wait before updating again.
         return updateRateMS;
     }
-
+//CODE CORRUPTION
     /**
      * @return Whether or not the swivel is within the DRIVING_OK_THRESHOLD bounds.
      */

@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
 import hankextensions.EnhancedOpMode;
 import hankextensions.input.HTButton;
 
-public abstract class TeleopBase extends EnhancedOpMode implements CompetitionProgram
+public abstract class Teleop extends EnhancedOpMode implements CompetitionProgram
 {
     /**
      * The teleop controls for our swerve drive and such.
@@ -19,6 +19,9 @@ public abstract class TeleopBase extends EnhancedOpMode implements CompetitionPr
     @Override
     protected final void onRun() throws InterruptedException
     {
+        // Check the battery.
+        double batteryCoefficient = getBatteryCoefficient();
+
         Robot robot = new Robot(hardware, Robot.ControlMode.TELEOP);
 
         // Enable logging TODO remove

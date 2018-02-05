@@ -23,7 +23,7 @@ import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CVCryp
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelAndCryptoKeyTracker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
 
-public abstract class AutonomousBase extends EnhancedOpMode implements CompetitionProgram
+public abstract class Autonomous extends EnhancedOpMode implements CompetitionProgram
 {
     /**
      * So here's the strat (doesn't really vary based on the autonomous).
@@ -42,22 +42,7 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
     @Override
     protected final void onRun() throws InterruptedException
     {
-        double optimalMinV = 12.4, optimalMaxV = 14.1;
-
-        // Slightly changes OpMode progression.
-        String voltageCheck = FtcEventLoopHandler.latestBatterySend;
-        double batteryCoefficient = 0.5; // between 1 (14.1V) and 0 (12.2V).
-        if (!voltageCheck.equals("")) // something weird happened?
-        {
-            double batteryVoltageCheck = Double.parseDouble(voltageCheck);
-
-            if (batteryVoltageCheck < optimalMinV)
-                AppUtil.getInstance().showToast(UILocation.BOTH, "Change the damn battery >:(");
-
-            batteryCoefficient = (batteryVoltageCheck - optimalMinV) / (optimalMaxV - optimalMinV);
-            batteryCoefficient = Range.clip(batteryCoefficient, 0, 1);
-            log.lines("Battery coefficient is " + batteryCoefficient);
-        }
+        double batteryCoefficient = getBatteryCoefficient();
 
         // Init the bot.
         Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
@@ -227,11 +212,21 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
                 robot.swerveDrive.synchronousUpdate();
                 flow.yield();
             }
+        }
 
+        // TODO Pain in the A** autonomous
+        else if (getBalancePlate() == BalancePlate.TOP)
+        {
+        }
+        // endregion
+
+        // region Multi-Glyph!
+        if (getBalancePlate() == BalancePlate.BOTTOM)
+        {
             // To the glyph pit!
             robot.swerveDrive.setDesiredHeading(0);
             robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.6, 0));
-            start = System.currentTimeMillis();
+            long start = System.currentTimeMillis();
             boolean flipperDown = false;
             while (System.currentTimeMillis() - start < 1500)
             {
@@ -245,53 +240,6 @@ public abstract class AutonomousBase extends EnhancedOpMode implements Competiti
                 robot.swerveDrive.synchronousUpdate();
                 flow.yield();
             }
-
-//            // Shove that glyph in there.
-//            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 0));
-//            long start = System.currentTimeMillis();
-//            while (System.currentTimeMillis() - start < 900)
-//            {
-//                robot.swerveDrive.synchronousUpdate();
-//                flow.yield();
-//            }
-//            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.7, 180));
-//            start = System.currentTimeMillis();
-//            while (System.currentTimeMillis() - start < 900)
-//            {
-//                robot.swerveDrive.synchronousUpdate();
-//                flow.yield();
-//            }
-        }
-
-        // TODO Pain in the A** autonomous
-        else if (getBalancePlate() == BalancePlate.TOP)
-        {
-        }
-        // endregion
-
-        // region Multi-Glyph!
-        if (getBalancePlate() == BalancePlate.BOTTOM)
-        {
-//            // Drive to the glyph pile.
-//            robot.swerveDrive.setDesiredMovement(Vector2D.polar(1, 0));
-//            while (robot.frontRangeSensor.getForwardDist() > 24)
-//            {
-//                robot.swerveDrive.synchronousUpdate();
-//                flow.yield();
-//            }
-//            robot.swerveDrive.stop();
-//
-//            // Succ in dem glyphs
-//            robot.intake.intake();
-//            flow.msPause(5000);
-//
-//            // Drive back to the cryptobox.
-//            robot.swerveDrive.setDesiredMovement(Vector2D.polar(1, 180));
-//            while (robot.backRangeSensor.getForwardDist() > 20)
-//            {
-//                robot.swerveDrive.synchronousUpdate();
-//                flow.yield();
-//            }
         }
 
         // TODO Pain in the A** multiglyph

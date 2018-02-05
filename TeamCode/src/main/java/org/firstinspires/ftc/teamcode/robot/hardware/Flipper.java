@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.structs.TimedFunction;
  */
 public class Flipper
 {
-    private static final double FLIP_MIN = 1, FLIP_MID_START = .8, FLIP_MID_END = .45, FLIP_MAX = .35;
+    private static final double FLIP_MIN = 1, FLIP_MID_START = .8, FLIP_MID_END = .65, FLIP_MAX = .35;
     private static final double RIGHT_FLIPPER_OFFSET = .19;
     private static final double GLYPH_HOLDER_UP = 0.5, GLYPH_HOLDER_DOWN = 0;
 

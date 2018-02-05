@@ -11,8 +11,7 @@ import org.firstinspires.ftc.teamcode.robot.hardware.LightingSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.RelicSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
 import org.firstinspires.ftc.teamcode.structs.Function;
-import org.firstinspires.ftc.teamcode.structs.ModifiedPIDController;
-import org.firstinspires.ftc.teamcode.structs.PIDController;
+import org.firstinspires.ftc.teamcode.structs.SwerveModulePIDController;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.robot.hardware.Flipper;
 import org.firstinspires.ftc.teamcode.robot.hardware.Intake;
@@ -172,9 +171,7 @@ public class Robot
                 driveMotors[0],
                 swerveModuleServos[0],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
-                controlMode == ControlMode.AUTONOMOUS ?
-                        new ModifiedPIDController(0.0052, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95) :
-                        new ModifiedPIDController(0.0052, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new SwerveModulePIDController(0.0055, 6e-4, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -192,9 +189,7 @@ public class Robot
                 driveMotors[1],
                 swerveModuleServos[1],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
-                controlMode == ControlMode.AUTONOMOUS ?
-                        new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95) :
-                        new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new SwerveModulePIDController(0.007, 1e-3, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -212,9 +207,7 @@ public class Robot
                 driveMotors[2],
                 swerveModuleServos[2],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
-                controlMode == ControlMode.AUTONOMOUS ?
-                        new ModifiedPIDController(0.0065, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95) :
-                        new ModifiedPIDController(0.0065, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new SwerveModulePIDController(0.007, 1e-3, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -232,9 +225,7 @@ public class Robot
                 driveMotors[3],
                 swerveModuleServos[3],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
-                controlMode == ControlMode.AUTONOMOUS ?
-                        new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95) :
-                        new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new SwerveModulePIDController(0.0056, 6e-4, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)

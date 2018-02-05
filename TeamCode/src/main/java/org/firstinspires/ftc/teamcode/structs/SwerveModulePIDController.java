@@ -4,7 +4,7 @@ package org.firstinspires.ftc.teamcode.structs;
  * The idea for this is swerve module friction: a steady state error isn't side dependent (friction)
  * so there's no point in keeping a sign on I.  Therefore i is scaled with the sign of the error.
  */
-public class ModifiedPIDController extends PIDController
+public class SwerveModulePIDController extends PIDController
 {
     /**
      * Since I is only being scaled up, I is scaled down by some factor over time just to ensure
@@ -12,7 +12,9 @@ public class ModifiedPIDController extends PIDController
      */
     private double decayRate;
 
-    public ModifiedPIDController(double kP, double kI, double kD, double errorThreshold, TimeUnits updateRateUnits, long minimumTimeGap, double minimumOutput, double maximumOutput, double decayRate)
+    private double useIThreshold = 17;
+
+    public SwerveModulePIDController(double kP, double kI, double kD, double errorThreshold, TimeUnits updateRateUnits, long minimumTimeGap, double minimumOutput, double maximumOutput, double decayRate)
     {
         super(kP, kI, kD, errorThreshold, updateRateUnits, minimumTimeGap, minimumOutput, maximumOutput);
 
@@ -54,7 +56,7 @@ public class ModifiedPIDController extends PIDController
         double d = Math.abs(kD) > NO_CALCULATION_THRESHOLD ? kD * (error - lastError) / secondsSinceLoop : 0;
 
         // Calculate integral correction, supplies extra power to p because friction means steady state error.
-        if (Math.abs(kI) > NO_CALCULATION_THRESHOLD)
+        if (Math.abs(kI) > NO_CALCULATION_THRESHOLD && Math.abs(error) < useIThreshold)
         {
             // Slowly reduce i over time.
             i *= decayRate;

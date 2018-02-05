@@ -1,12 +1,9 @@
 package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 
-@Autonomous(name="Blue Bottom Auto", group= Constants.FINAL_BOT_OPMODES)
-public class BlueBottom extends AutonomousBase
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="Blue Bottom Auto", group= Constants.FINAL_BOT_OPMODES)
+public class BlueBottom extends Autonomous
 {
     @Override
     public Alliance getAlliance() {
