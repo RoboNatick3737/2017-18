@@ -92,7 +92,14 @@ public class Robot
                 "Front Left",
                 hardware.initialize(DcMotor.class, "Front Left"),
 //                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 40, -1, 1),
-                input -> Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2)), 50,
+                new Function()
+                {
+                    public double value(double input)
+                    {
+                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
+                    }
+                },
+                50,
                 475, 7.62, desiredZeroPowerBehavior);
 //        frontLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -101,7 +108,14 @@ public class Robot
                 "Back Left",
                 hardware.initialize(DcMotor.class, "Back Left"),
 //                new PIDController(.00065, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 40, -1, 1),
-                input -> Math.signum(input) * (.000065 * Math.pow(Math.abs(input), 2)), 50,
+                new Function()
+                {
+                    public double value(double input)
+                    {
+                        return Math.signum(input) * (.000065 * Math.pow(Math.abs(input), 2));
+                    }
+                },
+                50,
                 202, 7.62, desiredZeroPowerBehavior);
 //        backLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -110,7 +124,14 @@ public class Robot
                 "Back Right",
                 hardware.initialize(DcMotor.class, "Back Right"),
 //                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 40, -1, 1),
-                input -> Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2)),50,
+                new Function()
+                {
+                    public double value(double input)
+                    {
+                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
+                    }
+                },
+                50,
                 475, 7.62, desiredZeroPowerBehavior);
 //        backRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -119,7 +140,14 @@ public class Robot
                 "Front Right",
                 hardware.initialize(DcMotor.class, "Front Right"),
 //                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 40, -1, 1),
-                input -> Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2)), 50,
+                new Function()
+                {
+                    public double value(double input)
+                    {
+                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
+                    }
+                },
+                50,
                 202, 7.62, desiredZeroPowerBehavior);
 //        frontRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -147,11 +175,16 @@ public class Robot
                 controlMode == ControlMode.AUTONOMOUS ?
                         new ModifiedPIDController(0.0052, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95) :
                         new ModifiedPIDController(0.0052, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
-//                input -> {
-//                    if (Math.abs(input) < 1)
-//                        return 0;
-//                    return Math.signum(input) * (.05 + .003 * Math.abs(input));
-//                }, 50,
+//                new Function()
+//                {
+//                    public double value(double input)
+//                    {
+//                        if (Math.abs(input) < 1)
+//                            return 0;
+//                        return Math.signum(input) * (.05 + .003 * Math.abs(input));
+//                    }
+//                },
+//                50,
                 56);
 
         swerveModules[1] = new SwerveModule(
@@ -162,11 +195,16 @@ public class Robot
                 controlMode == ControlMode.AUTONOMOUS ?
                         new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95) :
                         new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
-//                input -> {
-//                    if (Math.abs(input) < 1)
-//                        return 0;
-//                    return Math.signum(input) * (.05 + .003 * Math.abs(input));
-//                },50,
+//                new Function()
+//                {
+//                    public double value(double input)
+//                    {
+//                        if (Math.abs(input) < 1)
+//                            return 0;
+//                        return Math.signum(input) * (.05 + .003 * Math.abs(input));
+//                    }
+//                },
+                50,
                 71);
 
         swerveModules[2] = new SwerveModule(
@@ -177,11 +215,16 @@ public class Robot
                 controlMode == ControlMode.AUTONOMOUS ?
                         new ModifiedPIDController(0.0065, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95) :
                         new ModifiedPIDController(0.0065, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
-//                input -> {
-//                    if (Math.abs(input) < 1)
-//                        return 0;
-//                    return Math.signum(input) * (.075 + .0035 * Math.abs(input));
-//                }, 50,
+//                new Function()
+//                {
+//                    public double value(double input)
+//                    {
+//                        if (Math.abs(input) < 1)
+//                            return 0;
+//                        return Math.signum(input) * (.075 + .0035 * Math.abs(input));
+//                    }
+//                },
+//                50,
                 132);
 
         swerveModules[3] = new SwerveModule(
@@ -192,11 +235,16 @@ public class Robot
                 controlMode == ControlMode.AUTONOMOUS ?
                         new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95) :
                         new ModifiedPIDController(0.0055, 6e-4, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
-//                input -> {
-//                    if (Math.abs(input) < 1)
-//                        return 0;
-//                    return Math.signum(input) * (.05 + .003 * Math.abs(input));
-//                }, 50,
+//                new Function()
+//                {
+//                    public double value(double input)
+//                    {
+//                        if (Math.abs(input) < 1)
+//                            return 0;
+//                        return Math.signum(input) * (.05 + .003 * Math.abs(input));
+//                    }
+//                },
+//                50,
                 96);
 
         return swerveModules;
