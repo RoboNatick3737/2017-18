@@ -15,7 +15,7 @@ public class Flipper
     private static final double RIGHT_FLIPPER_OFFSET = .19;
     private static final double GLYPH_HOLDER_UP = 0.5, GLYPH_HOLDER_DOWN = 0;
 
-    private int currentStage = 0;
+    private int currentStage = -1;
 
     private final Servo left, right, glyphHolder;
 
@@ -40,6 +40,9 @@ public class Flipper
 
     public void advanceStage(int stage)
     {
+        if (stage == currentStage)
+            return;
+
         switch(stage)
         {
             case 0:

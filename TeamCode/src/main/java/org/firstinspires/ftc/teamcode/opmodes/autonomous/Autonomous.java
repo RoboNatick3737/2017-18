@@ -12,6 +12,7 @@ import hankextensions.vision.opencv.OpenCVCam;
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.structs.Function;
 import org.firstinspires.ftc.teamcode.structs.Polynomial;
+import org.firstinspires.ftc.teamcode.structs.SingleParameterRunnable;
 import org.firstinspires.ftc.teamcode.structs.TimedFunction;
 import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CVCryptoKeyDetector;
@@ -40,7 +41,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         double batteryCoefficient = getBatteryCoefficient();
 
         // Init the bot.
-        Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
+        final Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         // Align wheels sideways to drive off the platform.
@@ -231,20 +232,34 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             // To the glyph pit!
             robot.swerveDrive.setDesiredHeading(0);
             robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.6, 0));
-            long start = System.currentTimeMillis();
-            boolean flipperDown = false;
-            while (System.currentTimeMillis() - start < 1500)
-            {
-                if (!flipperDown && System.currentTimeMillis() - start > 1000)
-                {
-                    // Put the flipper back down.
-                    robot.flipper.advanceStage(0);
-                    flipperDown = true;
-                }
+            final long start = System.currentTimeMillis();
 
-                robot.swerveDrive.synchronousUpdate();
-                flow.yield();
-            }
+            robot.swerveDrive.driveTime(ParametrizedVector.polar(
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 0.6;
+                        }
+                    },
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 0;
+                        }
+                    }),
+                    1500,
+                    new SingleParameterRunnable() {
+                        @Override
+                        public void run(double param) {
+                            if (param > .66)
+                            {
+                                // Put the flipper back down.
+                                robot.flipper.advanceStage(0);
+                            }
+                        }
+                    },
+                    flow
+            );
         }
 
         // TODO Pain in the A** multiglyph

@@ -14,6 +14,7 @@ import hankextensions.input.HTGamepad;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.structs.Function;
 import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
+import org.firstinspires.ftc.teamcode.structs.SingleParameterRunnable;
 
 import hankextensions.structs.Vector2D;
 
@@ -309,7 +310,7 @@ public class SwerveDrive extends ScheduledTask
      * @param distance  the distance in inches to move.
      * @param runnable  Optional parameter to run every loop.
      */
-    public void driveDistance(ParametrizedVector direction, double distance, Runnable runnable, Flow flow) throws InterruptedException
+    public void driveDistance(ParametrizedVector direction, double distance, SingleParameterRunnable runnable, Flow flow) throws InterruptedException
     {
         if (distance <= 0)
             return;
@@ -352,7 +353,7 @@ public class SwerveDrive extends ScheduledTask
                     synchronousUpdate();
 
                 if (runnable != null)
-                    runnable.run();
+                    runnable.run(avgOffset / distance);
             }
 
             flow.yield();
@@ -373,7 +374,7 @@ public class SwerveDrive extends ScheduledTask
      * @param runnable runnable to run every loop
      * @param flow When to exit
      */
-    public void driveTime(ParametrizedVector direction, long driveTime, Runnable runnable, Flow flow) throws InterruptedException
+    public void driveTime(ParametrizedVector direction, long driveTime, SingleParameterRunnable runnable, Flow flow) throws InterruptedException
     {
         if (driveTime <= 0)
             return;
@@ -393,7 +394,7 @@ public class SwerveDrive extends ScheduledTask
 
             // Shortcut, callers can provide anonymous methods here.
             if (runnable != null)
-                runnable.run();
+                runnable.run(elapsedTime / driveTime);
 
             flow.yield();
         }
