@@ -43,6 +43,8 @@ public class Flipper
         if (stage == currentStage)
             return;
 
+        currentStage = stage;
+
         switch(stage)
         {
             case 0:
@@ -92,11 +94,10 @@ public class Flipper
 
     public void advanceStage()
     {
-        currentStage++;
-        if (currentStage > 2)
-            currentStage = 0;
-
-        advanceStage(currentStage);
+        if (currentStage == 2)
+            advanceStage(0);
+        else
+            advanceStage(currentStage + 1);
     }
 
     // Used for autonomous control
