@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
@@ -55,28 +56,29 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         OpenCVCam cam = new OpenCVCam();
         cam.start(initializationObserver);
 
+        // Default location
         CVCryptoKeyDetector.DetectedKey detectedKey = CVCryptoKeyDetector.DetectedKey.LEFT;
 
+        // DON'T specify a default order, if we mess this up we lose points.
         JewelDetector.JewelOrder jewelOrder = JewelDetector.JewelOrder.UNKNOWN;
+
+        ProcessConsole observedConsole = log.newProcessConsole("Observed Init stuff");
         while (!isStarted()) // Runs until OpMode is started, then just goes from there.
         {
             JewelDetector.JewelOrder currentOrder = initializationObserver.jewelDetector.getCurrentOrder();
             if (currentOrder != JewelDetector.JewelOrder.UNKNOWN) // don't override valid value with unknown
                 jewelOrder = currentOrder;
 
-//            CVCryptoKeyDetector.DetectedKey currentKey = initializationObserver.keyDetector.getLastDetected();
-//            if (currentKey != CVCryptoKeyDetector.DetectedKey.UNKNOWN)
-//                detectedKey = currentKey;
+            CVCryptoKeyDetector.DetectedKey currentKey = initializationObserver.keyDetector.getMostLikelyKey();
+            if (currentKey != CVCryptoKeyDetector.DetectedKey.UNKNOWN)
+                detectedKey = currentKey;
 
-            // Until cryptokey works this is for testing
-            if (C1.gamepad.a)
-                detectedKey = CVCryptoKeyDetector.DetectedKey.CENTER;
-            else if (C1.gamepad.b)
-                detectedKey = CVCryptoKeyDetector.DetectedKey.RIGHT;
+            observedConsole.write("Jewels are " + jewelOrder.toString() + " and key is " + detectedKey.toString() + "/" + initializationObserver.keyDetector.getLastDetected());
 
             flow.yield();
         }
         cam.stop();
+        observedConsole.destroy();
         log.lines("Jewels are " + jewelOrder.toString() + " and key is " + detectedKey.toString());
         // endregion
 
