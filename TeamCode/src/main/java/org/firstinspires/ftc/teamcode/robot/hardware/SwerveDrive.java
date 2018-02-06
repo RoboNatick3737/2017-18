@@ -52,7 +52,17 @@ public class SwerveDrive extends ScheduledTask
 
     // region Fast/Slow Mode
     // The speed of the swerve drive.
-    public enum SwerveSpeedMode {FAST, SLOW}
+    public enum SwerveSpeedMode
+    {
+        FAST (90),
+        SLOW (40);
+
+        public final double speed;
+        SwerveSpeedMode(double speed)
+        {
+            this.speed = speed;
+        }
+    }
     private SwerveSpeedMode swerveSpeedMode = SwerveSpeedMode.FAST;
     public void setSwerveSpeedMode(SwerveSpeedMode mode)
     {
@@ -174,7 +184,7 @@ public class SwerveDrive extends ScheduledTask
         for (int i = 0; i < swerveModules.length; i++)
             swerveModules[i].setVectorTarget(
                     Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(fieldCentricTranslation)
-                            .multiply(swerveSpeedMode == SwerveSpeedMode.FAST ? 130 : 70)); // whether to be fast/slow
+                            .multiply(swerveSpeedMode.speed)); // whether to be fast/slow
 
         // Check to see whether it's okay to start moving by observing the state of all wheels.
         boolean drivingCanStart = true;
@@ -221,7 +231,7 @@ public class SwerveDrive extends ScheduledTask
         for (int i = 0; i < swerveModules.length; i++)
             swerveModules[i].setVectorTarget(
                     Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(desiredMovement)
-                            .multiply(swerveSpeedMode == SwerveSpeedMode.FAST ? 130 : 70)); // whether to be fast/slow
+                            .multiply(swerveSpeedMode.speed)); // whether to be fast/slow
 
         // Check to see whether it's okay to start moving by observing the state of all wheels.
         boolean drivingCanStart = true;

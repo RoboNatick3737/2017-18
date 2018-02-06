@@ -231,9 +231,6 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         {
             // To the glyph pit!
             robot.swerveDrive.setDesiredHeading(0);
-            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.6, 0));
-            final long start = System.currentTimeMillis();
-
             robot.swerveDrive.driveTime(ParametrizedVector.polar(
                     new Function() {
                         @Override
