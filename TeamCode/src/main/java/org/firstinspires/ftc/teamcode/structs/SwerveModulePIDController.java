@@ -12,8 +12,6 @@ public class SwerveModulePIDController extends PIDController
      */
     private double decayRate;
 
-    private double useIThreshold = 17;
-
     public SwerveModulePIDController(double kP, double kI, double kD, double errorThreshold, TimeUnits updateRateUnits, long minimumTimeGap, double minimumOutput, double maximumOutput, double decayRate)
     {
         super(kP, kI, kD, errorThreshold, updateRateUnits, minimumTimeGap, minimumOutput, maximumOutput);
@@ -56,7 +54,7 @@ public class SwerveModulePIDController extends PIDController
         double d = Math.abs(kD) > NO_CALCULATION_THRESHOLD ? kD * (error - lastError) / secondsSinceLoop : 0;
 
         // Calculate integral correction, supplies extra power to p because friction means steady state error.
-        if (Math.abs(kI) > NO_CALCULATION_THRESHOLD && Math.abs(error) < useIThreshold)
+        if (Math.abs(kI) > NO_CALCULATION_THRESHOLD)
         {
             // Slowly reduce i over time.
             i *= decayRate;

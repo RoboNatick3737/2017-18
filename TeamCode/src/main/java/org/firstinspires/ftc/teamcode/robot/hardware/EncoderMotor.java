@@ -24,7 +24,7 @@ public class EncoderMotor extends ScheduledTask
     /**
      * The PID controller which this motor uses to stabilize itself.
      */
-    private final Function errorResponder;
+    public final Function errorResponder;
     private long updateRateMS;
 
     /**
@@ -137,6 +137,7 @@ public class EncoderMotor extends ScheduledTask
     private double lastMotorPosition = 0;
     private long lastAdjustmentTime = 0;
     private double currentPower = 0;
+    private double currentVelocity = 0;
 
     /**
      * Tells this motor the number of revolutions that it should be moving per second.
@@ -144,39 +145,74 @@ public class EncoderMotor extends ScheduledTask
      */
     public void setVelocity(double velocity)
     {
+        motor.setPower(velocity / 95.0);
+
+        if (true)
+            return;
+
         // Some really quick adjustments we can make.
         if (Math.abs(velocity) < .0001)
         {
             motor.setPower(0);
             currentPower = 0;
+            desiredVelocity = 0;
+            lastAdjustmentTime = System.currentTimeMillis();
         }
+        else
+        {
+            desiredVelocity = velocity;
 
-        desiredVelocity = velocity;
+            // Dirty approximation, but hey, whatever works :P.  PID adjusts better for this than what it would be.
+            if (Math.abs(desiredVelocity - currentVelocity) > 70) // where 50 is some arbitrary threshold.
+            {
+                motor.setPower(desiredVelocity / 95.0);
+                currentPower = desiredVelocity / 95.0;
+                lastAdjustmentTime = System.currentTimeMillis();
+            }
+            else if (desiredVelocity < 0 && currentPower > 0)
+            {
+                motor.setPower(-.1);
+                currentPower = -.1;
+                lastAdjustmentTime = System.currentTimeMillis();
+            }
+            else if (desiredVelocity > 0 && currentPower < 0)
+            {
+                motor.setPower(.1);
+                currentPower = .1;
+                lastAdjustmentTime = System.currentTimeMillis();
+            }
+        }
     }
 
     /**
-     * Controls updating error correction for the motor.
+     * Controls updating error correction for the motor.  Essentially, this is the I term since
+     * we change motor acceleration.
      */
     private void updateErrorCorrection()
     {
+        if (true)
+            return;
+
         // Rare
-        if (System.nanoTime() - lastAdjustmentTime == 0)
+        if (System.nanoTime() - lastAdjustmentTime < updateRateMS)
             return;
 
         if (Math.abs(desiredVelocity) < .00001)
             return;
 
         // Calculate PID by finding the number of ticks the motor SHOULD have gone minus the amount it actually went.
-        double currentVelocity = (((motor.getCurrentPosition() - lastMotorPosition) / ENCODER_TICKS_PER_REVOLUTION) * WHEEL_CIRCUMFERENCE) / ((System.nanoTime() - lastAdjustmentTime)) * 1e9;
+        currentVelocity = (((motor.getCurrentPosition() - lastMotorPosition) / ENCODER_TICKS_PER_REVOLUTION) * WHEEL_CIRCUMFERENCE) / ((System.nanoTime() - lastAdjustmentTime)) * 1e9;
         currentPower += errorResponder.value(desiredVelocity - currentVelocity);
-        motor.setPower(Range.clip(currentPower, -1, 1));
+        currentPower = Range.clip(currentPower, -1, 1);
+        motor.setPower(currentPower);
 
         if (processConsole != null)
             processConsole.write(
                     "Current position: " + lastMotorPosition,
                     "Desired velocity: " + desiredVelocity + " cm/s",
                     "Current velocity: " + currentVelocity + " cm/s",
-                    "Current power: " + currentPower);
+                    "Current power: " + currentPower,
+                    errorResponder instanceof PIDController ? ((PIDController)errorResponder).summary() : "");
 
         lastMotorPosition = motor.getCurrentPosition();
         lastAdjustmentTime = System.nanoTime();

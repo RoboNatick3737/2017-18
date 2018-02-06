@@ -48,8 +48,8 @@ public class SwerveModule extends ScheduledTask
      * So when the drive motor runs it applies a torque to the swerve module, so this tries to
      * offset.  Sometimes unpredictable so disable/enable at will.
      */
-    private static final boolean APPLY_DRIVE_MOTOR_TORQUE_CORRECTION = false;
-    public static double TORQUE_CORRECTION_FACTOR = -.1; // otherwise with chains on outside they point toward center when going forward
+    private static final boolean APPLY_DRIVE_MOTOR_TORQUE_CORRECTION = true;
+    public static double TORQUE_CORRECTION_FACTOR = -.0001; // otherwise with chains on outside they point toward center when going forward
 
     /**
      * I'm not 100% sure but in case the absolute encoder position hasn't changed and the module
@@ -254,7 +254,7 @@ public class SwerveModule extends ScheduledTask
             // Set turn power.
             double turnPower = 0.5;
 
-            // Use PID to calculate the correction factor (error bars contained within PID).
+            // Use PID to calculate the correction factor (error bars contained within PID).  angle left ^ 1.2
             currentTurnSpeed = errorResponder.value(angleLeftToTurn);
 
             // Change the turn factor depending on our distance from the angle desired (180 vs 0)

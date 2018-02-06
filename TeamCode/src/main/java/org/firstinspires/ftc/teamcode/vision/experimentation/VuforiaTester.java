@@ -5,12 +5,12 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.vuforia.VuforiaCam;
 
-@Autonomous(name="Check Vuforia", group= Constants.VISION_TESTING)
+@Autonomous(name="Check Vuforia", group= OpModeDisplayGroups.VISION_TESTING)
 public class VuforiaTester extends EnhancedOpMode
 {
     @Override

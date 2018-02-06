@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.robot.hardware.LightingSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.RelicSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
 import org.firstinspires.ftc.teamcode.structs.Function;
+import org.firstinspires.ftc.teamcode.structs.PIDController;
 import org.firstinspires.ftc.teamcode.structs.SwerveModulePIDController;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.robot.hardware.Flipper;
@@ -90,15 +91,15 @@ public class Robot
         driveMotors[0] = new EncoderMotor(
                 "Front Left",
                 hardware.initialize(DcMotor.class, "Front Left"),
-//                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 40, -1, 1),
-                new Function()
-                {
-                    public double value(double input)
-                    {
-                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
-                    }
-                },
-                50,
+                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
+//                new Function()
+//                {
+//                    public double value(double input)
+//                    {
+//                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 1.5));
+//                    }
+//                },
+//                50,
                 475, 7.62, desiredZeroPowerBehavior);
 //        frontLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -106,15 +107,15 @@ public class Robot
         driveMotors[1] = new EncoderMotor(
                 "Back Left",
                 hardware.initialize(DcMotor.class, "Back Left"),
-//                new PIDController(.00065, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 40, -1, 1),
-                new Function()
-                {
-                    public double value(double input)
-                    {
-                        return Math.signum(input) * (.000065 * Math.pow(Math.abs(input), 2));
-                    }
-                },
-                50,
+                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
+//                new Function()
+//                {
+//                    public double value(double input)
+//                    {
+//                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 1.5));
+//                    }
+//                },
+//                50,
                 202, 7.62, desiredZeroPowerBehavior);
 //        backLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -122,15 +123,15 @@ public class Robot
         driveMotors[2] = new EncoderMotor(
                 "Back Right",
                 hardware.initialize(DcMotor.class, "Back Right"),
-//                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 40, -1, 1),
-                new Function()
-                {
-                    public double value(double input)
-                    {
-                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
-                    }
-                },
-                50,
+                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
+//                new Function()
+//                {
+//                    public double value(double input)
+//                    {
+//                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 1.5));
+//                    }
+//                },
+//                50,
                 475, 7.62, desiredZeroPowerBehavior);
 //        backRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -138,15 +139,15 @@ public class Robot
         driveMotors[3] = new EncoderMotor(
                 "Front Right",
                 hardware.initialize(DcMotor.class, "Front Right"),
-//                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 40, -1, 1),
-                new Function()
-                {
-                    public double value(double input)
-                    {
-                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
-                    }
-                },
-                50,
+                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
+//                new Function()
+//                {
+//                    public double value(double input)
+//                    {
+//                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 1.5));
+//                    }
+//                },
+//                50,
                 202, 7.62, desiredZeroPowerBehavior);
 //        frontRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -171,7 +172,7 @@ public class Robot
                 driveMotors[0],
                 swerveModuleServos[0],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
-                new SwerveModulePIDController(0.0055, 6e-4, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new SwerveModulePIDController(0.0052, 0, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -189,7 +190,7 @@ public class Robot
                 driveMotors[1],
                 swerveModuleServos[1],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
-                new SwerveModulePIDController(0.007, 1e-3, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new SwerveModulePIDController(0.0062, 0, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -207,7 +208,7 @@ public class Robot
                 driveMotors[2],
                 swerveModuleServos[2],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
-                new SwerveModulePIDController(0.007, 1e-3, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new SwerveModulePIDController(0.007, 0, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)
@@ -225,7 +226,7 @@ public class Robot
                 driveMotors[3],
                 swerveModuleServos[3],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
-                new SwerveModulePIDController(0.0056, 6e-4, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new SwerveModulePIDController(0.0056, 0, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 //                new Function()
 //                {
 //                    public double value(double input)

@@ -1,18 +1,14 @@
 package org.firstinspires.ftc.teamcode.opmodes.experimentation.hardware;
 
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
-import com.qualcomm.ftccommon.FtcEventLoop;
 import com.qualcomm.ftccommon.FtcEventLoopHandler;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
+import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 
 import hankextensions.EnhancedOpMode;
 
-@Autonomous(name="Battery Checker", group=Constants.FINAL_BOT_EXPERIMENTATION)
+@Autonomous(name="Battery Checker", group= OpModeDisplayGroups.FINAL_BOT_EXPERIMENTATION)
 public class BatteryCheckTest extends EnhancedOpMode
 {
     @Override

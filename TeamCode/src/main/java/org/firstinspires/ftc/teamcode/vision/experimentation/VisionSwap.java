@@ -2,13 +2,13 @@ package org.firstinspires.ftc.teamcode.vision.experimentation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 
 import hankextensions.vision.opencv.OpenCVCam;
 import hankextensions.vision.vuforia.VuforiaCam;
 import hankextensions.EnhancedOpMode;
 
-@Autonomous(name="Vision Swap", group=Constants.VISION_TESTING)
+@Autonomous(name="Vision Swap", group= OpModeDisplayGroups.VISION_TESTING)
 public class VisionSwap extends EnhancedOpMode
 {
     private OpenCVCam openCVCam;

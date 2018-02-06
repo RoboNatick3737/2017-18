@@ -3,13 +3,13 @@ package org.firstinspires.ftc.teamcode.robot.hardware;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.structs.Vector2D;
 
-@Autonomous(name="Drive Dists", group= Constants.FINAL_BOT_EXPERIMENTATION)
+@Autonomous(name="Drive Dists", group= OpModeDisplayGroups.FINAL_BOT_EXPERIMENTATION)
 public class DriveDist extends EnhancedOpMode
 {
     @Override

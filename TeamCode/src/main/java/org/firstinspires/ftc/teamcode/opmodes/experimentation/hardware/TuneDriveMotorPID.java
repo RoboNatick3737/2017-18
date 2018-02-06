@@ -7,21 +7,22 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 import org.firstinspires.ftc.teamcode.robot.Robot;
+import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
 import org.firstinspires.ftc.teamcode.structs.PIDController;
 
 import hankextensions.EnhancedOpMode;
 
-@TeleOp(name="Tune Swerve Module PID", group= OpModeDisplayGroups.FINAL_BOT_EXPERIMENTATION)
-public class TuneSwerveModulePID extends EnhancedOpMode
+@TeleOp(name="Tune Drive Motor PID", group= OpModeDisplayGroups.FINAL_BOT_EXPERIMENTATION)
+public class TuneDriveMotorPID extends EnhancedOpMode
 {
     @Override
     protected void onRun() throws InterruptedException
     {
-        SwerveModule[] modules = Robot.getSwerveModules(hardware, Robot.ControlMode.TELEOP, DcMotor.ZeroPowerBehavior.FLOAT);
+        EncoderMotor[] driveMotors = Robot.getDriveMotors(hardware, DcMotor.ZeroPowerBehavior.FLOAT);
 
         // All must be PIDController instances or we can't run this.
-        for (SwerveModule module : modules)
+        for (EncoderMotor module : driveMotors)
         {
             if (!(module.errorResponder instanceof PIDController))
             {
@@ -32,9 +33,9 @@ public class TuneSwerveModulePID extends EnhancedOpMode
         }
 
         int currentIndex = 0;
-        modules[0].setEnableLogging(true);
+        driveMotors[0].setEnableLogging(true);
 
-        ScheduledTaskPackage tasks = new ScheduledTaskPackage(this, "Swerve", modules[0], modules[1], modules[2], modules[3], modules[0].driveMotor, modules[1].driveMotor, modules[2].driveMotor, modules[3].driveMotor);
+        ScheduledTaskPackage tasks = new ScheduledTaskPackage(this, "Drive PID", driveMotors[0], driveMotors[1], driveMotors[2], driveMotors[3]);
         tasks.setUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         double adjuster = .00001;
@@ -44,28 +45,28 @@ public class TuneSwerveModulePID extends EnhancedOpMode
         long lastToggle = System.currentTimeMillis();
         while (true)
         {
-            for (SwerveModule module : modules)
+            for (EncoderMotor module : driveMotors)
             {
-                module.setVectorTarget(C1.leftJoystick().multiply(70));
+                module.setVelocity(gamepad1.left_stick_y * 70);
             }
 
             if (C1.gamepad.dpad_down && (System.currentTimeMillis() - lastToggle) > 500)
             {
-                modules[currentIndex].setEnableLogging(false);
+                driveMotors[currentIndex].setEnableLogging(false);
                 currentIndex--;
                 if (currentIndex < 0)
                     currentIndex = 3;
-                modules[currentIndex].setEnableLogging(true);
+                driveMotors[currentIndex].setEnableLogging(true);
 
                 lastToggle = System.currentTimeMillis();
             }
             else if (C1.gamepad.dpad_up && (System.currentTimeMillis() - lastToggle) > 500)
             {
-                modules[currentIndex].setEnableLogging(false);
+                driveMotors[currentIndex].setEnableLogging(false);
                 currentIndex++;
                 if (currentIndex > 3)
                     currentIndex = 0;
-                modules[currentIndex].setEnableLogging(true);
+                driveMotors[currentIndex].setEnableLogging(true);
 
                 lastToggle = System.currentTimeMillis();
             }
@@ -89,7 +90,7 @@ public class TuneSwerveModulePID extends EnhancedOpMode
                 adjuster = .0000001;
             }
 
-            PIDController current = (PIDController) modules[currentIndex].errorResponder;
+            PIDController current = (PIDController) driveMotors[currentIndex].errorResponder;
             if (gamepad1.a)
                 current.kP -= adjuster;
             else if (gamepad1.y)
@@ -104,18 +105,6 @@ public class TuneSwerveModulePID extends EnhancedOpMode
                 current.kI -= adjuster;
             else if (gamepad1.dpad_right)
                 current.kI += adjuster;
-
-            boolean drivingCanStart = true;
-            for (SwerveModule wheel : modules)
-            {
-                if (!wheel.atAcceptableSwivelOrientation())
-                {
-                    drivingCanStart = false;
-                    break;
-                }
-            }
-            for (SwerveModule wheel : modules)
-                wheel.setDrivingState(drivingCanStart);
 
             if (C2.gamepad.a)
                 SwerveModule.TORQUE_CORRECTION_FACTOR -= adjuster;

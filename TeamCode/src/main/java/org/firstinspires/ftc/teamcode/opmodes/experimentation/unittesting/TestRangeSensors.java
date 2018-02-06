@@ -4,13 +4,12 @@ import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.robot.Robot;
+import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.hardware.SmarterRangeSensor;
 
-@Autonomous(name="Test Range Sensors", group= Constants.FINAL_BOT_EXPERIMENTATION)
+@Autonomous(name="Test Range Sensors", group= OpModeDisplayGroups.FINAL_BOT_EXPERIMENTATION)
 public class TestRangeSensors extends EnhancedOpMode
 {
     @Override

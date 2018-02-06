@@ -38,7 +38,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
     @Override
     protected final void onRun() throws InterruptedException
     {
-        double batteryCoefficient = getBatteryCoefficient();
+        double batteryCoefficient = EnhancedOpMode.getBatteryCoefficient();
 
         // Init the bot.
         final Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
@@ -229,9 +229,9 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // region Multi-Glyph!
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
-            // To the glyph pit!
+            // Drive to where the glyph pit is but stop directly in front of it.
             robot.swerveDrive.setDesiredHeading(0);
-            robot.swerveDrive.driveTime(ParametrizedVector.polar(
+            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
                     new Function() {
                         @Override
                         public double value(double input) {
@@ -244,7 +244,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                             return 0;
                         }
                     }),
-                    1500,
+                    30,
                     new SingleParameterRunnable() {
                         @Override
                         public void run(double param) {
@@ -257,6 +257,10 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     },
                     flow
             );
+
+            // Pick up glyphs.
+            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 0));
+
         }
 
         // TODO Pain in the A** multiglyph

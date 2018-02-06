@@ -26,6 +26,7 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
     // Useful for other files which require custom initialization steps or components from this op mode which they cannot otherwise obtain.
     public static EnhancedOpMode instance;
 
+    private static boolean discontentMentioned = false;
     public static double getBatteryCoefficient()
     {
         double optimalMinV = 12.4, optimalMaxV = 14.1;
@@ -37,8 +38,10 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
         {
             double batteryVoltageCheck = Double.parseDouble(voltageCheck);
 
-            if (batteryVoltageCheck < optimalMinV)
+            if (!discontentMentioned && batteryVoltageCheck < optimalMinV) {
                 AppUtil.getInstance().showToast(UILocation.BOTH, "Change the fucking battery >:(");
+                discontentMentioned = true;
+            }
 
             batteryCoefficient = (batteryVoltageCheck - optimalMinV) / (optimalMaxV - optimalMinV);
             batteryCoefficient = Range.clip(batteryCoefficient, 0, 1);

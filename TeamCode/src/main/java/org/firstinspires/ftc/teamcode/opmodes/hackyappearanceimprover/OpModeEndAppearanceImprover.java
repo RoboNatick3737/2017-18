@@ -3,9 +3,9 @@ package org.firstinspires.ftc.teamcode.opmodes.hackyappearanceimprover;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 
-@Autonomous(name="_____________________", group= Constants.FINAL_BOT_OPMODES)
+@Autonomous(name="_____________________", group= OpModeDisplayGroups.FINAL_BOT_OPMODES)
 public class OpModeEndAppearanceImprover extends OpMode
 {
     @Override

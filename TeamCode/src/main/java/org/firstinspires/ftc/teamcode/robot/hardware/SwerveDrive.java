@@ -24,7 +24,7 @@ import hankextensions.structs.Vector2D;
  */
 public class SwerveDrive extends ScheduledTask
 {
-    // region Physical Drive Constants
+    // region Physical Drive OpModeDisplayGroups
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
