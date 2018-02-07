@@ -91,15 +91,15 @@ public class Robot
         driveMotors[0] = new EncoderMotor(
                 "Front Left",
                 hardware.initialize(DcMotor.class, "Front Left"),
-                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
-//                new Function()
-//                {
-//                    public double value(double input)
-//                    {
-//                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 1.5));
-//                    }
-//                },
-//                50,
+//                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
+                new Function()
+                {
+                    public double value(double input)
+                    {
+                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
+                    }
+                },
+                50,
                 475, 7.62, desiredZeroPowerBehavior);
 //        frontLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -107,15 +107,15 @@ public class Robot
         driveMotors[1] = new EncoderMotor(
                 "Back Left",
                 hardware.initialize(DcMotor.class, "Back Left"),
-                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
-//                new Function()
-//                {
-//                    public double value(double input)
-//                    {
-//                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 1.5));
-//                    }
-//                },
-//                50,
+//                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
+                new Function()
+                {
+                    public double value(double input)
+                    {
+                        return Math.signum(input) * (.000065 * Math.pow(Math.abs(input), 2));
+                    }
+                },
+                50,
                 202, 7.62, desiredZeroPowerBehavior);
 //        backLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -123,15 +123,15 @@ public class Robot
         driveMotors[2] = new EncoderMotor(
                 "Back Right",
                 hardware.initialize(DcMotor.class, "Back Right"),
-                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
-//                new Function()
-//                {
-//                    public double value(double input)
-//                    {
-//                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 1.5));
-//                    }
-//                },
-//                50,
+//                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
+                new Function()
+                {
+                    public double value(double input)
+                    {
+                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
+                    }
+                },
+                50,
                 475, 7.62, desiredZeroPowerBehavior);
 //        backRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -139,15 +139,15 @@ public class Robot
         driveMotors[3] = new EncoderMotor(
                 "Front Right",
                 hardware.initialize(DcMotor.class, "Front Right"),
-                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
-//                new Function()
-//                {
-//                    public double value(double input)
-//                    {
-//                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 1.5));
-//                    }
-//                },
-//                50,
+//                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
+                new Function()
+                {
+                    public double value(double input)
+                    {
+                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
+                    }
+                },
+                50,
                 202, 7.62, desiredZeroPowerBehavior);
 //        frontRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
