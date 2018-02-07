@@ -38,9 +38,12 @@ public class SwerveModule extends ScheduledTask
     /**
      * So when the drive motor runs it applies a torque to the swerve module, so this tries to
      * offset.  Sometimes unpredictable so disable/enable at will.
+     *
+     * Quick side note to self: I'm certain that the sign and magnitude is correct, -.1 exacerbates
+     * the issue.
      */
     private static final boolean APPLY_DRIVE_MOTOR_TORQUE_CORRECTION = true;
-    public static double TORQUE_CORRECTION_FACTOR = -.0001; // otherwise with chains on outside they point toward center when going forward
+    public static double TORQUE_CORRECTION_FACTOR = .001; // otherwise with chains on outside they point toward center when going forward
 
     /**
      * I'm not 100% sure but in case the absolute encoder position hasn't changed and the module

@@ -43,6 +43,9 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         final Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
+        // Init the viewers.
+        JewelAndCryptoKeyTracker initializationObserver = new JewelAndCryptoKeyTracker();
+
         // Align wheels sideways to drive off the platform.
         robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 90), 15, flow);
 
@@ -50,7 +53,6 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         robot.flipper.setGlyphHolderUpTo(false);
 
         // region Initialization Detection of the Crypto Key and the Jewel Alignment
-        JewelAndCryptoKeyTracker initializationObserver = new JewelAndCryptoKeyTracker();
         OpenCVCam cam = new OpenCVCam();
         cam.start(initializationObserver);
 
@@ -258,9 +260,11 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     flow
             );
 
+            // Initialize the viewer and wait for glyphs to show up in the harvester.
+
+
             // Pick up glyphs.
             robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 0));
-
         }
 
         // TODO Pain in the A** multiglyph
