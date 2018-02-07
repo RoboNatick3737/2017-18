@@ -19,9 +19,6 @@ public abstract class Teleop extends EnhancedOpMode implements CompetitionProgra
     @Override
     protected final void onRun() throws InterruptedException
     {
-        // Check the battery.
-        double batteryCoefficient = getBatteryCoefficient();
-
         Robot robot = new Robot(hardware, Robot.ControlMode.TELEOP);
 
         // Enable logging TODO remove

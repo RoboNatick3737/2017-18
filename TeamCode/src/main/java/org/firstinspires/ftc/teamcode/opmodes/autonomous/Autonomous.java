@@ -39,8 +39,6 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
     @Override
     protected final void onRun() throws InterruptedException
     {
-        double batteryCoefficient = EnhancedOpMode.getBatteryCoefficient();
-
         // Init the bot.
         final Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);

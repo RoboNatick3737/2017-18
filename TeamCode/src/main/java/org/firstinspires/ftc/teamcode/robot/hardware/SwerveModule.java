@@ -1,12 +1,3 @@
-/**
- * This class represents a single swerve motor, one of the four motors which are used to control the swerve drive.  It consists
- * of:
- *  1. A drive motor.  This motor powers the movement of the wheel on the swerve motor.
- *  2. A turning motor (aka a vex motor), which is technically a servo but simply controls the heading of the wheel.
- *  3. The encoder motor.  This is a dirty trick which involves us adding an external encoder to the vex motor, and plugging
- *     the encoder into a motor encoder port.  This works, although it's super gross (maybe we'll find a solution at some point).
- */
-
 package org.firstinspires.ftc.teamcode.robot.hardware;
 
 import android.support.annotation.NonNull;
@@ -97,13 +88,24 @@ public class SwerveModule extends ScheduledTask
         return angleLeftToTurn;
     }
     private double currentTurnSpeed = 0;
+    public boolean atAcceptableSwivelOrientation()
+    {
+        return Math.abs(angleLeftToTurn) < DRIVING_OK_THRESHOLD;
+    }
+
+    // Driving properties.
+    private boolean drivingEnabled = false;
+    // Set driving state.
+    public void setDrivingState(boolean drivingEnabled)
+    {
+        this.drivingEnabled = drivingEnabled;
+
+        if (!this.drivingEnabled)
+            driveMotor.motor.setPower(0);
+    }
 
     // Required for absolute encoder position verification
     private int numAbsoluteEncoderSkips = 0;
-
-    // The boolean which indicates to the parent swerve drive whether this wheel has swiveled to the correct position.
-    private boolean swivelAcceptable = true;
-    private boolean drivingEnabled = false;
 
     // Finally, the PID controller components which prevents wheel oscillation.
     public final Function errorResponder;
@@ -267,9 +269,6 @@ public class SwerveModule extends ScheduledTask
             if (!APPLY_DRIVE_MOTOR_TORQUE_CORRECTION)
                 turnMotor.setPosition(Range.clip(turnPower, 0, 1));
 
-            // Set swivel acceptable.
-            swivelAcceptable = Math.abs(angleLeftToTurn) < DRIVING_OK_THRESHOLD;
-
             // For turn motor correction
             double drivePower = 0;
 
@@ -278,10 +277,8 @@ public class SwerveModule extends ScheduledTask
             {
                 // Scale up/down motor power depending on how far we are from the ideal heading.
                 drivePower = targetVector.magnitude / (5 * Math.abs(currentTurnSpeed) + 1);
-
                 if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
                     drivePower *= -1;
-
                 driveMotor.setVelocity(drivePower);
             }
 
@@ -301,26 +298,5 @@ public class SwerveModule extends ScheduledTask
 
         // The ms to wait before updating again.
         return updateRateMS;
-    }
-
-    /**
-     * @return Whether or not the swivel is within the DRIVING_OK_THRESHOLD bounds.
-     */
-    public boolean atAcceptableSwivelOrientation()
-    {
-        return swivelAcceptable;
-    }
-
-    /**
-     * Tells us whether or not we can start driving (all SwerveModules must be within acceptable
-     * bounds).
-     * @param state  True = driving is ok, false = driving is bad.
-     */
-    public void setDrivingState(boolean state)
-    {
-        drivingEnabled = state;
-
-        if (!drivingEnabled)
-            driveMotor.motor.setPower(0);
     }
 }
