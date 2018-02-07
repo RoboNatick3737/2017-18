@@ -95,13 +95,17 @@ public class SwerveModule extends ScheduledTask
 
     // Driving properties.
     private boolean drivingEnabled = false;
-    // Set driving state.
     public void setDrivingState(boolean drivingEnabled)
     {
         this.drivingEnabled = drivingEnabled;
 
         if (!this.drivingEnabled)
             driveMotor.motor.setPower(0);
+    }
+    private boolean enableDrivePID = true;
+    public void setEnableDrivePID(boolean enableDrivePID)
+    {
+        this.enableDrivePID = enableDrivePID;
     }
 
     // Required for absolute encoder position verification
@@ -279,7 +283,12 @@ public class SwerveModule extends ScheduledTask
                 drivePower = targetVector.magnitude / (5 * Math.abs(currentTurnSpeed) + 1);
                 if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
                     drivePower *= -1;
-                driveMotor.setVelocity(drivePower);
+
+                if (enableDrivePID)
+                    driveMotor.setVelocity(drivePower);
+                else
+                    // Works for some reason, used during teleop.
+                    driveMotor.motor.setPower(drivePower / 95.0);
             }
 
             if (APPLY_DRIVE_MOTOR_TORQUE_CORRECTION)

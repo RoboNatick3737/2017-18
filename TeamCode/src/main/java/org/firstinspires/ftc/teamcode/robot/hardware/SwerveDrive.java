@@ -100,10 +100,24 @@ public class SwerveDrive extends ScheduledTask
         // The swerve wheels.
         this.swerveModules = modules;
 
-        // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
-        swerveUpdatePackage = new ScheduledTaskPackage(EnhancedOpMode.instance, "Swerve Turn Alignments",
-                this, this.swerveModules[0], this.swerveModules[1], this.swerveModules[2], this.swerveModules[3],
-                this.swerveModules[0].driveMotor, this.swerveModules[1].driveMotor, this.swerveModules[2].driveMotor, this.swerveModules[3].driveMotor);
+        if (robot.controlMode == Robot.ControlMode.AUTONOMOUS)
+        {
+            // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
+            swerveUpdatePackage = new ScheduledTaskPackage(EnhancedOpMode.instance, "Swerve Turn Alignments",
+                    this, this.swerveModules[0], this.swerveModules[1], this.swerveModules[2], this.swerveModules[3],
+                    this.swerveModules[0].driveMotor, this.swerveModules[1].driveMotor, this.swerveModules[2].driveMotor, this.swerveModules[3].driveMotor);
+        }
+
+        // Teleop mode is weird... we don't use drive PID.
+        else
+        {
+            // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
+            swerveUpdatePackage = new ScheduledTaskPackage(EnhancedOpMode.instance, "Swerve Turn Alignments",
+                    this, this.swerveModules[0], this.swerveModules[1], this.swerveModules[2], this.swerveModules[3]);
+
+            for (SwerveModule module : modules)
+                module.setEnableDrivePID(false);
+        }
 
         swerveConsole = LoggingBase.instance.newProcessConsole("Swerve Console");
     }

@@ -145,11 +145,6 @@ public class EncoderMotor extends ScheduledTask
      */
     public void setVelocity(double velocity)
     {
-        motor.setPower(velocity / 95.0);
-
-        if (true)
-            return;
-
         // Some really quick adjustments we can make.
         if (Math.abs(velocity) < .0001)
         {
@@ -163,13 +158,7 @@ public class EncoderMotor extends ScheduledTask
             desiredVelocity = velocity;
 
             // Dirty approximation, but hey, whatever works :P.  PID adjusts better for this than what it would be.
-            if (Math.abs(desiredVelocity - currentVelocity) > 70) // where 50 is some arbitrary threshold.
-            {
-                motor.setPower(desiredVelocity / 95.0);
-                currentPower = desiredVelocity / 95.0;
-                lastAdjustmentTime = System.currentTimeMillis();
-            }
-            else if (desiredVelocity < 0 && currentPower > 0)
+            if (desiredVelocity < 0 && currentPower > 0)
             {
                 motor.setPower(-.1);
                 currentPower = -.1;
@@ -190,9 +179,6 @@ public class EncoderMotor extends ScheduledTask
      */
     private void updateErrorCorrection()
     {
-        if (true)
-            return;
-
         // Rare
         if (System.nanoTime() - lastAdjustmentTime < updateRateMS)
             return;
