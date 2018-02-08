@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.structs.SingleParameterRunnable;
 import org.firstinspires.ftc.teamcode.structs.TimedFunction;
 import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CVCryptoKeyDetector;
+import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.HarvesterGlyphChecker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelAndCryptoKeyTracker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
 
@@ -45,6 +46,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         // Init the viewers.
         JewelAndCryptoKeyTracker initializationObserver = new JewelAndCryptoKeyTracker();
+        HarvesterGlyphChecker glyphChecker = new HarvesterGlyphChecker();
 
         // Align wheels sideways to drive off the platform.
         robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 90), 15, flow);
@@ -155,7 +157,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     new Function() {
                         @Override
                         public double value(double input) {
-                            return -.15 * input + 0.3;
+                            return 0.5 - .3 * input;
                         }
                     },
                     new Function() {
@@ -177,7 +179,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     new Function() {
                         @Override
                         public double value(double input) {
-                            return -.12 * input + 0.2;
+                            return 0.4 - .3 * input;
                         }
                     },
                     new Function() {
@@ -211,6 +213,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
                 flow.yield();
             }
+            robot.intake.stop();
             robot.flipper.advanceStage(2);
 
             // Drive away from glyph
@@ -231,13 +234,16 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // region Multi-Glyph!
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
+            // Start the intake.
+            robot.intake.intake();
+
             // Drive to where the glyph pit is but stop directly in front of it.
             robot.swerveDrive.setDesiredHeading(0);
             robot.swerveDrive.driveDistance(ParametrizedVector.polar(
                     new Function() {
                         @Override
                         public double value(double input) {
-                            return 0.6;
+                            return 0.6 - input * 0.3;
                         }
                     },
                     new Function() {
@@ -246,7 +252,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                             return 0;
                         }
                     }),
-                    30,
+                    40,
                     new SingleParameterRunnable() {
                         @Override
                         public void run(double param) {
@@ -261,10 +267,32 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             );
 
             // Initialize the viewer and wait for glyphs to show up in the harvester.
-
-
-            // Pick up glyphs.
+            cam.start(glyphChecker);
             robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 0));
+            while (glyphChecker.getGlyphsHarvested() < 2)
+            {
+                robot.swerveDrive.synchronousUpdate();
+                flow.yield();
+            }
+
+            // Drive back.
+            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return -0.6 + input * 0.3;
+                        }
+                    },
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 0;
+                        }
+                    }),
+                    50,
+                    null,
+                    flow
+            );
         }
 
         // TODO Pain in the A** multiglyph

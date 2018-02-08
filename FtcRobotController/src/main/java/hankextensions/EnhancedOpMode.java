@@ -39,7 +39,15 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
         double batteryCoefficient = 0.5; // between 1 (14.1V) and 0 (12.2V).
         if (!voltageCheck.equals("")) // something weird happened?
         {
-            double batteryVoltageCheck = Double.parseDouble(voltageCheck);
+            double batteryVoltageCheck = 0;
+            try
+            {
+                batteryVoltageCheck = Double.parseDouble(voltageCheck);
+            }
+            catch (Exception e)
+            {
+                return;
+            }
 
             if (batteryVoltageCheck < minVolts)
                 AppUtil.getInstance().showToast(UILocation.BOTH, "Change the fucking battery >:(");
