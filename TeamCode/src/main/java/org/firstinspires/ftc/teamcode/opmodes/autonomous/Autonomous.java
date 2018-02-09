@@ -19,9 +19,7 @@ import org.firstinspires.ftc.teamcode.structs.Polynomial;
 import org.firstinspires.ftc.teamcode.structs.SingleParameterRunnable;
 import org.firstinspires.ftc.teamcode.structs.TimedFunction;
 import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
-import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CVCryptoKeyDetector;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.HarvesterGlyphChecker;
-import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelAndCryptoKeyTracker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
 
 public abstract class Autonomous extends EnhancedOpMode implements CompetitionProgram

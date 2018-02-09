@@ -288,7 +288,7 @@ public class Robot
 
         if (controlMode == ControlMode.TELEOP)
             // Relic Arm init
-            relicSystem = null; //new RelicSystem(hardware.initialize(DcMotor.class, "Relic Arm"), hardware.initialize(Servo.class, "Relic Rotator"), hardware.initialize(Servo.class, "Relic Grabber"));
+            relicSystem = new RelicSystem(hardware.initialize(DcMotor.class, "Relic Extender"), hardware.initialize(Servo.class, "Relic Grabber"));
         else
             relicSystem = null;
 
@@ -298,10 +298,7 @@ public class Robot
         // Ball knocker init
         ballKnocker = new BallKnocker(hardware.initialize(Servo.class, "Knocker Holder"), hardware.initialize(Servo.class, "Mini Knocker"));
 
-        if (controlMode == ControlMode.AUTONOMOUS)
-            // Lights init
-            lights = new LightingSystem(hardware.initialize(DcMotor.class, "Lights"));
-        else
-            lights = null;
+        // Lights init
+        lights = new LightingSystem(hardware.initialize(DcMotor.class, "Lights"));
     }
 }

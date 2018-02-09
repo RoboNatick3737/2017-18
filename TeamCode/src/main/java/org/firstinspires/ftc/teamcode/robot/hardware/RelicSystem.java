@@ -1,22 +1,33 @@
 package org.firstinspires.ftc.teamcode.robot.hardware;
 
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class RelicSystem
 {
     private final DcMotor extender;
-    private final Servo rotator, grabber;
+    private final Servo grabber;
 
-    public RelicSystem(DcMotor extender, Servo rotator, Servo grabber)
+    public double extensionEstimate = 0;
+
+    public RelicSystem(DcMotor extender, Servo grabber)
     {
         this.extender = extender;
-        this.rotator = rotator;
         this.grabber = grabber;
 
         setGrabber(false);
-        stopRotator();
         stopExtender();
+    }
+
+    private ProcessConsole processConsole = null;
+    public void setEnableLogging(boolean enableLogging)
+    {
+        if (enableLogging)
+            processConsole = LoggingBase.instance.newProcessConsole("Relic Arm Log");
+        else
+            processConsole = null;
     }
 
     public void extend()
@@ -37,25 +48,23 @@ public class RelicSystem
     public void variableExtension(double forward, double backward)
     {
         if (Math.abs(forward - backward) < .05)
+        {
             extender.setPower(0);
+            return;
+        }
+
+        extensionEstimate += forward - backward;
+
+        if (processConsole != null)
+            processConsole.write("Extension is " + extensionEstimate);
 
         extender.setPower(forward - backward);
-    }
-
-    public void rotate(boolean forward)
-    {
-        rotator.setPosition(forward ? 0 : 1);
-    }
-
-    public void stopRotator()
-    {
-        rotator.setPosition(0.5);
     }
 
     private boolean grabbed = false;
     public void setGrabber(boolean grab)
     {
-        grabber.setPosition(grab ? 0 : 1);
+        grabber.setPosition(grab ? 1 : 0);
         grabbed = grab;
     }
     public void toggleGrabber()

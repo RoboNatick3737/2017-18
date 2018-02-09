@@ -55,7 +55,7 @@ public class SwerveDrive extends ScheduledTask
     public enum SwerveSpeedMode
     {
         FAST (75),
-        SLOW (30);
+        SLOW (22);
 
         public final double speed;
         SwerveSpeedMode(double speed)
