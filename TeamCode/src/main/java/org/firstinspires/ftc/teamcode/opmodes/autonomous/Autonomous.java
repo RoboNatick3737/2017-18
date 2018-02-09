@@ -3,12 +3,15 @@ package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
+import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.structs.Vector2D;
 import hankextensions.vision.opencv.OpenCVCam;
+import hankextensions.vision.vuforia.VuforiaCam;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.structs.Function;
@@ -45,43 +48,80 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         // Init the viewers.
-        JewelAndCryptoKeyTracker initializationObserver = new JewelAndCryptoKeyTracker();
+        JewelDetector jewelDetector = new JewelDetector();
         HarvesterGlyphChecker glyphChecker = new HarvesterGlyphChecker();
 
         // Align wheels sideways to drive off the platform.
-        robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 90), 15, flow);
+        robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 90), 15, 3000, flow);
 
         // Put down the flipper glyph holder servo so that we can see the jewels.
         robot.flipper.setGlyphHolderUpTo(false);
 
         // region Initialization Detection of the Crypto Key and the Jewel Alignment
-        OpenCVCam cam = new OpenCVCam();
-        cam.start(initializationObserver);
-
-        // Default location
-        CVCryptoKeyDetector.DetectedKey detectedKey = CVCryptoKeyDetector.DetectedKey.LEFT;
+        OpenCVCam openCVCam = new OpenCVCam();
+        VuforiaCam vuforiaCam = new VuforiaCam();
 
         // DON'T specify a default order, if we mess this up we lose points.
         JewelDetector.JewelOrder jewelOrder = JewelDetector.JewelOrder.UNKNOWN;
+        RelicRecoveryVuMark vumark = RelicRecoveryVuMark.UNKNOWN;
 
+        // Loop through
         ProcessConsole observedConsole = log.newProcessConsole("Observed Init stuff");
         while (!isStarted()) // Runs until OpMode is started, then just goes from there.
         {
-            JewelDetector.JewelOrder currentOrder = initializationObserver.jewelDetector.getCurrentOrder();
-            if (currentOrder != JewelDetector.JewelOrder.UNKNOWN) // don't override valid value with unknown
-                jewelOrder = currentOrder;
+            // Jewel detection
+            openCVCam.start(jewelDetector);
+            JewelDetector.JewelOrder newJewelOrder = JewelDetector.JewelOrder.UNKNOWN;
+            long start = System.currentTimeMillis();
+            while (System.currentTimeMillis() - start < 5000 && newJewelOrder == JewelDetector.JewelOrder.UNKNOWN)
+            {
+                newJewelOrder = jewelDetector.getCurrentOrder();
 
-            CVCryptoKeyDetector.DetectedKey currentKey = initializationObserver.keyDetector.getMostLikelyKey();
-            if (currentKey != CVCryptoKeyDetector.DetectedKey.UNKNOWN)
-                detectedKey = currentKey;
+                if (isStarted() && jewelOrder != JewelDetector.JewelOrder.UNKNOWN)
+                    break;
 
-            observedConsole.write("Jewels are " + jewelOrder.toString() + " and key is " + detectedKey.toString() + "/" + initializationObserver.keyDetector.getLastDetected());
+                flow.yield();
+            }
+            openCVCam.stop();
+
+            if (newJewelOrder != JewelDetector.JewelOrder.UNKNOWN)
+                jewelOrder = newJewelOrder;
+
+            observedConsole.write("Currently seeing jewels: " + jewelOrder.toString() + " and vumark: " + vumark.toString());
+
+            start = System.currentTimeMillis();
+
+            if (isStarted() && vumark != RelicRecoveryVuMark.UNKNOWN)
+                break;
+
+            // VuMark detection.
+            RelicRecoveryVuMark newVuMark = RelicRecoveryVuMark.UNKNOWN;
+            vuforiaCam.start(true);
+            VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
+            vuforiaCam.getTrackables().activate();
+            while (System.currentTimeMillis() - start < 10000 && newVuMark == RelicRecoveryVuMark.UNKNOWN)
+            {
+                newVuMark = RelicRecoveryVuMark.from(relicTemplate);
+
+                if (isStarted() && vumark != RelicRecoveryVuMark.UNKNOWN)
+                    break;
+
+                flow.yield();
+            }
+            vuforiaCam.stop();
+
+            if (newVuMark != RelicRecoveryVuMark.UNKNOWN)
+                vumark = newVuMark;
+
+            observedConsole.write("Currently seeing jewels: " + jewelOrder.toString() + " and vumark: " + vumark.toString());
 
             flow.yield();
         }
-        cam.stop();
         observedConsole.destroy();
-        log.lines("Jewels are " + jewelOrder.toString() + " and key is " + detectedKey.toString());
+
+        if (vumark == RelicRecoveryVuMark.UNKNOWN)
+            vumark = RelicRecoveryVuMark.LEFT;
+
         // endregion
 
         // region Knock Ball
@@ -110,16 +150,17 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         robot.intake.intake();
 
-        double batteryDriveCorrection = batteryCoefficient * -.5;
-        double[] DEPOSIT_LOCATIONS = {58.2 + batteryDriveCorrection , 74.7 + batteryDriveCorrection, 92.3 + batteryDriveCorrection};
         // Simple Autonomous
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
+            double batteryDriveCorrection = batteryCoefficient * -.5;
+            double[] DEPOSIT_LOCATIONS = {58.2 + batteryDriveCorrection , 74.7 + batteryDriveCorrection, 92.3 + batteryDriveCorrection};
+
             // Choose the length to drive.
             double desiredDriveLength = 0;
             if (getAlliance() == Alliance.BLUE)
             {
-                switch (detectedKey)
+                switch (vumark)
                 {
                     case LEFT:
                         desiredDriveLength = DEPOSIT_LOCATIONS[0];
@@ -136,7 +177,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             }
             else
             {
-                switch (detectedKey)
+                switch (vumark)
                 {
                     case LEFT:
                         desiredDriveLength = DEPOSIT_LOCATIONS[2];
@@ -172,7 +213,149 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             robot.flipper.setGlyphHolderUpTo(true);
 
             // Align wheels backward.
-            robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 180), 15, flow);
+            robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 180), 10, 1500, flow);
+
+            // Drive back to the cryptobox.
+            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 0.4 - .3 * input;
+                        }
+                    },
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 180;
+                        }
+                    }),
+                    15.5, null, flow);
+
+            // Turn for better glyph placement
+            double desiredHeading = getAlliance() == Alliance.BLUE ? 330 : 30;
+            robot.swerveDrive.setDesiredHeading(desiredHeading);
+            while (Math.abs(robot.gyro.getHeading() - desiredHeading) > 3)
+                robot.swerveDrive.synchronousUpdate();
+            robot.swerveDrive.stop();
+
+            // Dump glyph
+            TimedFunction flipperPos = new TimedFunction(new Function() {
+                @Override
+                public double value(double input) {
+                    return -.25 * input + .8;
+                }
+            });
+            while (true)
+            {
+                if (flipperPos.value() < .4)
+                    break;
+
+                robot.flipper.setFlipperPositionManually(flipperPos.value());
+
+                flow.yield();
+            }
+            robot.intake.stop();
+            robot.flipper.advanceStage(2);
+
+            // Drive away from glyph
+            robot.swerveDrive.setDesiredHeading(0);
+            robot.swerveDrive.driveTime(Vector2D.polar(0.3, getAlliance() == Alliance.BLUE ? 10 : 350), 1200, flow);
+
+            // Shove glyph in
+            robot.swerveDrive.setDesiredHeading(getAlliance() == Alliance.BLUE ? 20 : 340);// A bit of rotation helps smush the cube in.
+            robot.swerveDrive.driveTime(Vector2D.polar(0.5, 180), 1400, flow);
+        }
+
+        // TODO Pain in the A** autonomous
+        else if (getBalancePlate() == BalancePlate.TOP)
+        {
+            // First drive off the platform and turn right.
+            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 0.5 - .3 * input;
+                        }
+                    },
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return getAlliance() == Alliance.RED ? 270 : 90;
+                        }
+                    }),
+                    30, null, flow);
+
+            // Turn so depositor faces cryptobox.
+            double headingToTurn = getAlliance() == Alliance.RED ? 90 : 270;
+            robot.swerveDrive.setDesiredHeading(headingToTurn);
+            while (Math.abs(robot.gyro.getHeading() - headingToTurn) > 5)
+            {
+                robot.swerveDrive.synchronousUpdate();
+                flow.yield();
+            }
+
+            // Dump glyph
+            double batteryDriveCorrection = batteryCoefficient * -.5;
+            double[] DEPOSIT_LOCATIONS = {18.2 + batteryDriveCorrection , 34.7 + batteryDriveCorrection, 42.3 + batteryDriveCorrection};
+
+            // Choose the length to drive.
+            double desiredDriveLength = 0;
+            if (getAlliance() == Alliance.BLUE)
+            {
+                switch (vumark)
+                {
+                    case LEFT:
+                        desiredDriveLength = DEPOSIT_LOCATIONS[0];
+                        break;
+
+                    case CENTER:
+                        desiredDriveLength = DEPOSIT_LOCATIONS[1];
+                        break;
+
+                    case RIGHT:
+                        desiredDriveLength = DEPOSIT_LOCATIONS[2];
+                        break;
+                }
+            }
+            else
+            {
+                switch (vumark)
+                {
+                    case LEFT:
+                        desiredDriveLength = DEPOSIT_LOCATIONS[2];
+                        break;
+
+                    case CENTER:
+                        desiredDriveLength = DEPOSIT_LOCATIONS[1];
+                        break;
+
+                    case RIGHT:
+                        desiredDriveLength = DEPOSIT_LOCATIONS[0];
+                        break;
+                }
+            }
+
+            // Drive that length slowing down over time.
+            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 0.5 - .3 * input;
+                        }
+                    },
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return getAlliance() == Alliance.RED ? 270 : 90;
+                        }
+                    }),
+                    desiredDriveLength, null, flow);
+
+            // Flip glyph so it slides to bottom.
+            robot.flipper.setGlyphHolderUpTo(true);
+
+            // Align wheels backward.
+            robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 180), 15, 5000, flow);
 
             // Drive back to the cryptobox.
             robot.swerveDrive.driveDistance(ParametrizedVector.polar(
@@ -224,14 +407,13 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             robot.swerveDrive.setDesiredHeading(getAlliance() == Alliance.BLUE ? 20 : 340);// A bit of rotation helps smush the cube in.
             robot.swerveDrive.driveTime(Vector2D.polar(0.5, 180), 1400, flow);
         }
-
-        // TODO Pain in the A** autonomous
-        else if (getBalancePlate() == BalancePlate.TOP)
-        {
-        }
         // endregion
 
-        // region Multi-Glyph!
+        // Multiglyph is unreliable atm
+        if (true)
+            return;
+
+        // region TODO Multi-Glyph!
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
             // Start the intake.
@@ -267,7 +449,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             );
 
             // Initialize the viewer and wait for glyphs to show up in the harvester.
-            cam.start(glyphChecker);
+            openCVCam.start(glyphChecker);
             robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 0));
             while (glyphChecker.getGlyphsHarvested() < 2)
             {

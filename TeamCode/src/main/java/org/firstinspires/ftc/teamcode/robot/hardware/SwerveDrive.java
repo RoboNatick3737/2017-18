@@ -54,8 +54,8 @@ public class SwerveDrive extends ScheduledTask
     // The speed of the swerve drive.
     public enum SwerveSpeedMode
     {
-        FAST (90),
-        SLOW (40);
+        FAST (75),
+        SLOW (30);
 
         public final double speed;
         SwerveSpeedMode(double speed)
@@ -434,23 +434,23 @@ public class SwerveDrive extends ScheduledTask
     /**
      * Orients all SwerveModules to a given vector with some degree of certainty (for auto)
      */
-    public void orientSwerveModules(Vector2D orientationVector, double precisionRequired, Flow flow) throws InterruptedException
+    public void orientSwerveModules(Vector2D orientationVector, double precisionRequired, long msMax, Flow flow) throws InterruptedException
     {
         for (int i = 0; i < swerveModules.length; i++)
             swerveModules[i].setVectorTarget(orientationVector);
 
-        orientModules(precisionRequired, flow);
+        orientModules(precisionRequired, msMax, flow);
     }
 
     /**
      * Orient all swivel modules for rotation.
      */
-    public void orientSwerveModulesForRotation(double precisionRequired, Flow flow) throws InterruptedException
+    public void orientSwerveModulesForRotation(double precisionRequired, long msMax, Flow flow) throws InterruptedException
     {
         for (int i = 0; i < swerveModules.length; i++)
             swerveModules[i].setVectorTarget(Vector2D.polar(1, WHEEL_ORIENTATIONS[i]));
 
-        orientModules(precisionRequired, flow);
+        orientModules(precisionRequired, msMax, flow);
     }
 
     /**
@@ -458,7 +458,7 @@ public class SwerveDrive extends ScheduledTask
      *
      * TODO include asynchronous mode
      */
-    private void orientModules(double precisionRequired, Flow flow) throws InterruptedException
+    private void orientModules(double precisionRequired, long msMax, Flow flow) throws InterruptedException
     {
         // Have to make a separate package for just swiveling.
         ScheduledTaskPackage updatePackage = new ScheduledTaskPackage(
@@ -467,7 +467,8 @@ public class SwerveDrive extends ScheduledTask
                 swerveModules[0], swerveModules[1], swerveModules[2], swerveModules[3]);
         updatePackage.setUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
-        while (true)
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < msMax)
         {
             // Otherwise update
             updatePackage.synchronousUpdate();

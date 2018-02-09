@@ -106,14 +106,9 @@ public class TuneDriveMotorPID extends EnhancedOpMode
             else if (gamepad1.dpad_right)
                 current.kI += adjuster;
 
-            if (C2.gamepad.a)
-                SwerveModule.TORQUE_CORRECTION_FACTOR -= adjuster;
-            else if (C2.gamepad.y)
-                SwerveModule.TORQUE_CORRECTION_FACTOR += adjuster;
-
             tasks.synchronousUpdate();
 
-            adjusterConsole.write("Adjuster = " + adjuster, "TCF: " + SwerveModule.TORQUE_CORRECTION_FACTOR);
+            adjusterConsole.write("Adjuster = " + adjuster);
 
             flow.yield();
         }

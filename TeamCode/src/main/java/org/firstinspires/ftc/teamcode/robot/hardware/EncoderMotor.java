@@ -177,14 +177,19 @@ public class EncoderMotor extends ScheduledTask
      * Controls updating error correction for the motor.  Essentially, this is the I term since
      * we change motor acceleration.
      */
-    private void updateErrorCorrection()
+    private long updateErrorCorrection()
     {
         // Rare
-        if (System.nanoTime() - lastAdjustmentTime < updateRateMS)
-            return;
+        if (errorResponder instanceof PIDController)
+        {
+            if (!((PIDController) errorResponder).canUpdate())
+                return 1;
+        }
+        else if (System.nanoTime() - lastAdjustmentTime < updateRateMS)
+            return 1;
 
         if (Math.abs(desiredVelocity) < .00001)
-            return;
+            return updateRateMS;
 
         // Calculate PID by finding the number of ticks the motor SHOULD have gone minus the amount it actually went.
         currentVelocity = (((motor.getCurrentPosition() - lastMotorPosition) / ENCODER_TICKS_PER_REVOLUTION) * WHEEL_CIRCUMFERENCE) / ((System.nanoTime() - lastAdjustmentTime)) * 1e9;
@@ -202,13 +207,13 @@ public class EncoderMotor extends ScheduledTask
 
         lastMotorPosition = motor.getCurrentPosition();
         lastAdjustmentTime = System.nanoTime();
+
+        return updateRateMS;
     }
 
     @Override
     protected long onContinueTask() throws InterruptedException
     {
-        updateErrorCorrection();
-
-        return updateRateMS;
+        return updateErrorCorrection();
     }
 }

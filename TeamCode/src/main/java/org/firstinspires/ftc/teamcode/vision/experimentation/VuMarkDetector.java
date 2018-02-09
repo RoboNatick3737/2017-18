@@ -10,9 +10,15 @@ import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.vuforia.VuforiaCam;
 
-@Autonomous(name="Check Vuforia", group= OpModeDisplayGroups.VISION_TESTING)
-public class VuforiaTester extends EnhancedOpMode
+@Autonomous(name="VuMark Detector", group= OpModeDisplayGroups.VISION_TESTING)
+public class VuMarkDetector extends EnhancedOpMode
 {
+    private RelicRecoveryVuMark detectedVuMark = RelicRecoveryVuMark.UNKNOWN;
+    public RelicRecoveryVuMark getDetectedVuMark()
+    {
+        return detectedVuMark;
+    }
+
     @Override
     protected void onRun() throws InterruptedException
     {
@@ -25,8 +31,10 @@ public class VuforiaTester extends EnhancedOpMode
 
         while (true)
         {
+            detectedVuMark = RelicRecoveryVuMark.from(relicTemplate);
+
             console.write(
-                    "Vuforia template = " + RelicRecoveryVuMark.from(relicTemplate).toString()
+                    "Detected: " + detectedVuMark.toString()
             );
             flow.yield();
         }

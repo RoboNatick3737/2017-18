@@ -183,7 +183,8 @@ public class Robot
 //                    }
 //                },
 //                50,
-                56);
+                56,
+                .0005);
 
         swerveModules[1] = new SwerveModule(
                 "Back Left",
@@ -201,7 +202,8 @@ public class Robot
 //                    }
 //                },
 //                50,
-                71);
+                71,
+                .001);
 
         swerveModules[2] = new SwerveModule(
                 "Back Right",
@@ -219,7 +221,8 @@ public class Robot
 //                    }
 //                },
 //                50,
-                132);
+                132,
+                .001);
 
         swerveModules[3] = new SwerveModule(
                 "Front Right",
@@ -237,7 +240,8 @@ public class Robot
 //                    }
 //                },
 //                50,
-                96);
+                96,
+                .0005);
 
         return swerveModules;
     }

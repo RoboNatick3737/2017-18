@@ -117,14 +117,9 @@ public class TuneSwerveModulePID extends EnhancedOpMode
             for (SwerveModule wheel : modules)
                 wheel.setDrivingState(drivingCanStart);
 
-            if (C2.gamepad.a)
-                SwerveModule.TORQUE_CORRECTION_FACTOR -= adjuster;
-            else if (C2.gamepad.y)
-                SwerveModule.TORQUE_CORRECTION_FACTOR += adjuster;
-
             tasks.synchronousUpdate();
 
-            adjusterConsole.write("Adjuster = " + adjuster, "TCF: " + SwerveModule.TORQUE_CORRECTION_FACTOR);
+            adjusterConsole.write("Adjuster = " + adjuster);
 
             flow.yield();
         }
