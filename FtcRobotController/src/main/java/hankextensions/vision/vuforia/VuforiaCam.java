@@ -1,5 +1,6 @@
 package hankextensions.vision.vuforia;
 
+import com.makiah.makiahsandroidlib.threading.Flow;
 import com.qualcomm.ftcrobotcontroller.R;
 
 import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
@@ -71,8 +72,11 @@ public class VuforiaCam
         return null;
     }
 
-    public void stop()
+    public void stop(Flow flow) throws InterruptedException
     {
+        if (currentlyActive)
+            flow.msPause(500);
+
         currentlyActive = false;
 
         if (vuforia != null)

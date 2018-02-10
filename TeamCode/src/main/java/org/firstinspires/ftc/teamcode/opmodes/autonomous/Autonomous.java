@@ -106,7 +106,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
                 flow.yield();
             }
-            vuforiaCam.stop();
+            vuforiaCam.stop(flow);
 
             if (newVuMark != RelicRecoveryVuMark.UNKNOWN)
                 vumark = newVuMark;
@@ -117,8 +117,9 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         }
         observedConsole.destroy();
 
+        // default vumark if none detected.
         if (vumark == RelicRecoveryVuMark.UNKNOWN)
-            vumark = RelicRecoveryVuMark.LEFT;
+            vumark = RelicRecoveryVuMark.CENTER;
 
         // endregion
 
@@ -151,8 +152,17 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // Simple Autonomous
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
-            double batteryDriveCorrection = batteryCoefficient * -.5;
-            double[] DEPOSIT_LOCATIONS = {58.2 + batteryDriveCorrection , 74.7 + batteryDriveCorrection, 92.3 + batteryDriveCorrection};
+            double[] DEPOSIT_LOCATIONS = {58.2 , 75.2, 92.8};
+
+            // battery adjustment
+            double batteryDriveCorrection = batteryCoefficient * -.2;
+            for (int i = 0; i < DEPOSIT_LOCATIONS.length; i++)
+                DEPOSIT_LOCATIONS[i] += batteryDriveCorrection;
+
+            // Adjust them for the alliance
+            double adjust = getAlliance() == Alliance.BLUE ? .9 : -.9; // offset on balance board
+            for (int i = 0; i < DEPOSIT_LOCATIONS.length; i++)
+                DEPOSIT_LOCATIONS[i] += adjust;
 
             // Choose the length to drive.
             double desiredDriveLength = 0;
@@ -267,144 +277,24 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // TODO Pain in the A** autonomous
         else if (getBalancePlate() == BalancePlate.TOP)
         {
-            // First drive off the platform and turn right.
-            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
-                    new Function() {
-                        @Override
-                        public double value(double input) {
-                            return 0.5 - .3 * input;
-                        }
-                    },
-                    new Function() {
-                        @Override
-                        public double value(double input) {
-                            return getAlliance() == Alliance.RED ? 270 : 90;
-                        }
-                    }),
-                    30, null, flow);
-
-            // Turn so depositor faces cryptobox.
-            double headingToTurn = getAlliance() == Alliance.RED ? 90 : 270;
-            robot.swerveDrive.setDesiredHeading(headingToTurn);
-            while (Math.abs(robot.gyro.getHeading() - headingToTurn) > 5)
-            {
-                robot.swerveDrive.synchronousUpdate();
-                flow.yield();
-            }
-
-            // Dump glyph
-            double batteryDriveCorrection = batteryCoefficient * -.5;
-            double[] DEPOSIT_LOCATIONS = {18.2 + batteryDriveCorrection , 34.7 + batteryDriveCorrection, 42.3 + batteryDriveCorrection};
-
-            // Choose the length to drive.
-            double desiredDriveLength = 0;
-            if (getAlliance() == Alliance.BLUE)
-            {
-                switch (vumark)
-                {
-                    case LEFT:
-                        desiredDriveLength = DEPOSIT_LOCATIONS[0];
-                        break;
-
-                    case CENTER:
-                        desiredDriveLength = DEPOSIT_LOCATIONS[1];
-                        break;
-
-                    case RIGHT:
-                        desiredDriveLength = DEPOSIT_LOCATIONS[2];
-                        break;
-                }
-            }
-            else
-            {
-                switch (vumark)
-                {
-                    case LEFT:
-                        desiredDriveLength = DEPOSIT_LOCATIONS[2];
-                        break;
-
-                    case CENTER:
-                        desiredDriveLength = DEPOSIT_LOCATIONS[1];
-                        break;
-
-                    case RIGHT:
-                        desiredDriveLength = DEPOSIT_LOCATIONS[0];
-                        break;
-                }
-            }
-
-            // Drive that length slowing down over time.
-            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
-                    new Function() {
-                        @Override
-                        public double value(double input) {
-                            return 0.5 - .3 * input;
-                        }
-                    },
-                    new Function() {
-                        @Override
-                        public double value(double input) {
-                            return getAlliance() == Alliance.RED ? 270 : 90;
-                        }
-                    }),
-                    desiredDriveLength, null, flow);
-
-            // Flip glyph so it slides to bottom.
-            robot.flipper.setGlyphHolderUpTo(true);
-
-            // Align wheels backward.
-            robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 180), 15, 5000, flow);
-
-            // Drive back to the cryptobox.
-            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
-                    new Function() {
-                        @Override
-                        public double value(double input) {
-                            return 0.4 - .3 * input;
-                        }
-                    },
-                    new Function() {
-                        @Override
-                        public double value(double input) {
-                            return 180;
-                        }
-                    }),
-                    16, null, flow);
-
-            // Turn for better glyph placement
-            double desiredHeading = getAlliance() == Alliance.BLUE ? 330 : 30;
-            robot.swerveDrive.setDesiredHeading(desiredHeading);
-            while (Math.abs(robot.gyro.getHeading() - desiredHeading) > 3)
-                robot.swerveDrive.synchronousUpdate();
-            robot.swerveDrive.stop();
-
-            // Dump glyph
-            TimedFunction flipperPos = new TimedFunction(new Function() {
-                @Override
-                public double value(double input) {
-                    return -.25 * input + .8;
-                }
-            });
-            while (true)
-            {
-                if (flipperPos.value() < .4)
-                    break;
-
-                robot.flipper.setFlipperPositionManually(flipperPos.value());
-
-                flow.yield();
-            }
-            robot.intake.stop();
-            robot.flipper.advanceStage(2);
-
-            // Drive away from glyph
-            robot.swerveDrive.setDesiredHeading(0);
-            robot.swerveDrive.driveTime(Vector2D.polar(0.3, getAlliance() == Alliance.BLUE ? 10 : 350), 1200, flow);
-
-            // Shove glyph in
-            robot.swerveDrive.setDesiredHeading(getAlliance() == Alliance.BLUE ? 20 : 340);// A bit of rotation helps smush the cube in.
-            robot.swerveDrive.driveTime(Vector2D.polar(0.5, 180), 1400, flow);
         }
+
+        // Make sure we aren't touching the glyph
+        robot.swerveDrive.driveDistance(ParametrizedVector.polar(
+                new Function() {
+                    @Override
+                    public double value(double input) {
+                        return 0.3;
+                    }
+                },
+                new Function() {
+                    @Override
+                    public double value(double input) {
+                        return 0;
+                    }
+                }),
+                7, null, flow);
+
         // endregion
 
         // Multiglyph is unreliable atm

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.robot.hardware;
 
 import com.makiah.makiahsandroidlib.threading.Flow;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
 public class BallKnocker
 {
@@ -35,7 +36,7 @@ public class BallKnocker
         switch (pos)
         {
             case LEFT:
-                knocker.setPosition(.1);
+                knocker.setPosition(.35);
                 break;
 
             case MIDDLE:
@@ -43,9 +44,14 @@ public class BallKnocker
                 break;
 
             case RIGHT:
-                knocker.setPosition(1);
+                knocker.setPosition(.85);
                 break;
         }
+    }
+
+    public void setKnockerManual(double pos)
+    {
+        knocker.setPosition(Range.clip(pos, -1, 1));
     }
 
     /**

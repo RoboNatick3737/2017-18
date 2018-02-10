@@ -62,6 +62,8 @@ public class Teleop extends EnhancedOpMode
             higherFrontLeftkP = originalFrontLeftkP * 1.2;
         }
 
+        double knockerState = 0.5;
+
         while (true)
         {
             // Update controllers
@@ -152,7 +154,7 @@ public class Teleop extends EnhancedOpMode
             }
             //endregion
 
-            // region Driver 2: Lift Control
+            // region Driver 2 Control
             // Control the lift.
             if (C2.gamepad.dpad_up)
                 robot.lift.up();
@@ -160,6 +162,16 @@ public class Teleop extends EnhancedOpMode
                 robot.lift.down();
             else
                 robot.lift.stop();
+
+            if (C2.x.currentState == HTButton.ButtonState.JUST_TAPPED)
+                robot.ballKnocker.toggleDescender();
+
+            if (gamepad2.left_trigger > .02 || gamepad2.right_trigger > .02)
+            {
+                knockerState += (gamepad2.right_trigger * .006 - gamepad2.left_trigger * .006);
+                robot.ballKnocker.setKnockerManual(knockerState);
+            }
+
             // endregion
 
             teleopConsole.write(

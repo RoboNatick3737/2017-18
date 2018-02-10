@@ -134,7 +134,7 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
             if (OpenCVCam.instance != null)
                 OpenCVCam.instance.stop();
             if (VuforiaCam.instance != null)
-                VuforiaCam.instance.stop();
+                VuforiaCam.instance.stop(flow);
 
             // Disable the Android gyro (in case the op mode didn't turn it off).
             if (AndroidGyro.instance != null)
