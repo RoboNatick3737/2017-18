@@ -36,7 +36,7 @@ public class BallKnocker
         switch (pos)
         {
             case LEFT:
-                knocker.setPosition(.35);
+                knocker.setPosition(.1);
                 break;
 
             case MIDDLE:
@@ -44,14 +44,14 @@ public class BallKnocker
                 break;
 
             case RIGHT:
-                knocker.setPosition(.85);
+                knocker.setPosition(1);
                 break;
         }
     }
 
     public void setKnockerManual(double pos)
     {
-        knocker.setPosition(Range.clip(pos, -1, 1));
+        knocker.setPosition(Range.clip(pos, 0, 1));
     }
 
     /**

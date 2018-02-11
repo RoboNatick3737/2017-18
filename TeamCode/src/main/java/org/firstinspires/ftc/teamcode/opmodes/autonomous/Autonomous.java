@@ -63,65 +63,22 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         JewelDetector.JewelOrder jewelOrder = JewelDetector.JewelOrder.UNKNOWN;
         RelicRecoveryVuMark vumark = RelicRecoveryVuMark.UNKNOWN;
 
-        // Loop through
-        ProcessConsole observedConsole = log.newProcessConsole("Observed Init stuff");
-        while (!isStarted()) // Runs until OpMode is started, then just goes from there.
+        while (!isStarted())
+            flow.yield();
+
+        // Jewel detection
+        openCVCam.start(jewelDetector);
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < 5000)
         {
-            // Jewel detection
-            openCVCam.start(jewelDetector);
-            JewelDetector.JewelOrder newJewelOrder = JewelDetector.JewelOrder.UNKNOWN;
-            long start = System.currentTimeMillis();
-            while (System.currentTimeMillis() - start < 5000 && newJewelOrder == JewelDetector.JewelOrder.UNKNOWN)
-            {
-                newJewelOrder = jewelDetector.getCurrentOrder();
+            jewelOrder = jewelDetector.getCurrentOrder();
 
-                if (isStarted() && jewelOrder != JewelDetector.JewelOrder.UNKNOWN)
-                    break;
-
-                flow.yield();
-            }
-            openCVCam.stop();
-
-            if (newJewelOrder != JewelDetector.JewelOrder.UNKNOWN)
-                jewelOrder = newJewelOrder;
-
-            observedConsole.write("Currently seeing jewels: " + jewelOrder.toString() + " and vumark: " + vumark.toString());
-
-            start = System.currentTimeMillis();
-
-            if (isStarted() && vumark != RelicRecoveryVuMark.UNKNOWN)
+            if (jewelOrder != JewelDetector.JewelOrder.UNKNOWN)
                 break;
-
-            // VuMark detection.
-            RelicRecoveryVuMark newVuMark = RelicRecoveryVuMark.UNKNOWN;
-            vuforiaCam.start(true);
-            VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
-            vuforiaCam.getTrackables().activate();
-            while (System.currentTimeMillis() - start < 10000 && newVuMark == RelicRecoveryVuMark.UNKNOWN)
-            {
-                newVuMark = RelicRecoveryVuMark.from(relicTemplate);
-
-                if (isStarted() && vumark != RelicRecoveryVuMark.UNKNOWN)
-                    break;
-
-                flow.yield();
-            }
-            vuforiaCam.stop(flow);
-
-            if (newVuMark != RelicRecoveryVuMark.UNKNOWN)
-                vumark = newVuMark;
-
-            observedConsole.write("Currently seeing jewels: " + jewelOrder.toString() + " and vumark: " + vumark.toString());
 
             flow.yield();
         }
-        observedConsole.destroy();
-
-        // default vumark if none detected.
-        if (vumark == RelicRecoveryVuMark.UNKNOWN)
-            vumark = RelicRecoveryVuMark.CENTER;
-
-        // endregion
+        openCVCam.stop();
 
         // region Knock Ball
         if (jewelOrder != JewelDetector.JewelOrder.UNKNOWN)
@@ -145,6 +102,49 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         }
         // endregion
 
+        // VuMark positioning
+        robot.swerveDrive.setDesiredHeading(20);
+        while (Math.abs(robot.gyro.getHeading() - 20) > 5)
+        {
+            robot.swerveDrive.synchronousUpdate();
+            flow.yield();
+        }
+        robot.swerveDrive.stop();
+
+        start = System.currentTimeMillis();
+
+        // VuMark detection.
+        vuforiaCam.start(true);
+        VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
+        vuforiaCam.getTrackables().activate();
+        while (System.currentTimeMillis() - start < 8000)
+        {
+            vumark = RelicRecoveryVuMark.from(relicTemplate);
+
+            if (vumark != RelicRecoveryVuMark.UNKNOWN)
+                break;
+
+            flow.yield();
+        }
+        vuforiaCam.stop(flow);
+
+        flow.yield();
+
+        // default vumark if none detected.
+        if (vumark == RelicRecoveryVuMark.UNKNOWN)
+            vumark = RelicRecoveryVuMark.CENTER;
+
+        // Rotate to original heading
+        robot.swerveDrive.setDesiredHeading(0);
+        while (Math.abs(robot.gyro.getHeading()) > 5)
+        {
+            robot.swerveDrive.synchronousUpdate();
+            flow.yield();
+        }
+        robot.swerveDrive.stop();
+
+        // endregion
+
         // region Place Pre-Loaded Glyph
 
         robot.intake.intake();
@@ -152,17 +152,12 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // Simple Autonomous
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
-            double[] DEPOSIT_LOCATIONS = {58.2 , 75.2, 92.8};
+            double[] DEPOSIT_LOCATIONS = {65.2, 81.2, 89.8};
 
             // battery adjustment
             double batteryDriveCorrection = batteryCoefficient * -.2;
             for (int i = 0; i < DEPOSIT_LOCATIONS.length; i++)
                 DEPOSIT_LOCATIONS[i] += batteryDriveCorrection;
-
-            // Adjust them for the alliance
-            double adjust = getAlliance() == Alliance.BLUE ? .9 : -.9; // offset on balance board
-            for (int i = 0; i < DEPOSIT_LOCATIONS.length; i++)
-                DEPOSIT_LOCATIONS[i] += adjust;
 
             // Choose the length to drive.
             double desiredDriveLength = 0;
@@ -237,7 +232,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                             return 180;
                         }
                     }),
-                    15.5, null, flow);
+                    12.5, null, flow);
 
             // Turn for better glyph placement
             double desiredHeading = getAlliance() == Alliance.BLUE ? 330 : 30;
@@ -277,6 +272,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // TODO Pain in the A** autonomous
         else if (getBalancePlate() == BalancePlate.TOP)
         {
+
         }
 
         // Make sure we aren't touching the glyph

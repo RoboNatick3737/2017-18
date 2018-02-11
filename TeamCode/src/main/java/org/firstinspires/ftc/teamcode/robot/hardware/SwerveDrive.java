@@ -32,7 +32,7 @@ public class SwerveDrive extends ScheduledTask
     private static Function FIELD_CENTRIC_TURN_CONTROLLER = new Function() {
         @Override
         public double value(double input) {
-            return .007 * input;
+            return .008 * input;
         }
     };
     // endregion
