@@ -11,96 +11,63 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import hankextensions.EnhancedOpMode;
 import hankextensions.input.HTGamepad;
 
-import org.firstinspires.ftc.teamcode.robot.Robot;
-import org.firstinspires.ftc.teamcode.structs.Function;
+import org.firstinspires.ftc.teamcode.structs.PIDController;
 import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
 import org.firstinspires.ftc.teamcode.structs.SingleParameterRunnable;
 
+import hankextensions.phonesensors.Gyro;
 import hankextensions.structs.Vector2D;
 
 /**
- * The SwerveDrive contains 4 SwerveModule instances to which a number of vectors are specified
+ * The SwomniDrive contains 4 SwerveModule instances to which a number of vectors are specified
  * in order to determine the direction in which movement will occur.
  */
-public class SwerveDrive extends ScheduledTask
+public class SwomniDrive extends ScheduledTask
 {
-    // region Physical Drive OpModeDisplayGroups
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
-//    private static final PIDController FIELD_CENTRIC_TURN_CONTROLLER = new PIDController(.005, 0, 0, 5, PIDController.TimeUnits.MILLISECONDS, 40, -1000, 1000);
-    private static Function FIELD_CENTRIC_TURN_CONTROLLER = new Function() {
-        @Override
-        public double value(double input) {
-            return .008 * input;
-        }
-    };
-    // endregion
+    private static final PIDController FIELD_CENTRIC_TURN_CONTROLLER = new PIDController(.008, 0, 0, 5, PIDController.TimeUnits.MILLISECONDS, 40, -1000, 1000);
 
-    // region Initialization
+    // Robot reference (for gyro and such).
+    private final Gyro gyro;
+    private final EnhancedOpMode.AutoOrTeleop opModeSituation;
+
     // The SwerveModule instances which constitute the swerve drive: frontLeft, backLeft, backRight, frontRight respectively.
     public final SwerveModule[] swerveModules;
 
-    // Robot reference (for gyro and such.
-    private final Robot robot;
-
     // Required for operation of the driving tasks.
     private final ScheduledTaskPackage swerveUpdatePackage;
+    public void setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode updateMode)
+    {
+        swerveUpdatePackage.setUpdateMode(updateMode);
+
+        if (updateMode == ScheduledTaskPackage.ScheduledUpdateMode.ASYNCHRONOUS)
+            swerveUpdatePackage.run();
+    }
+    public void synchronousUpdate() throws InterruptedException
+    {
+        // Only updates if the control system has been set to synchronous.
+        swerveUpdatePackage.synchronousUpdate();
+    }
 
     // The logger for when data needs to be displayed to the drivers.
     private final ProcessConsole swerveConsole;
 
-    // region Fast/Slow Mode
-    // The speed of the swerve drive.
-    public enum SwerveSpeedMode
-    {
-        FAST (75),
-        SLOW (22);
-
-        public final double speed;
-        SwerveSpeedMode(double speed)
-        {
-            this.speed = speed;
-        }
-    }
-    private SwerveSpeedMode swerveSpeedMode = SwerveSpeedMode.FAST;
-    public void setSwerveSpeedMode(SwerveSpeedMode mode)
-    {
-        this.swerveSpeedMode = mode;
-    }
-    public SwerveSpeedMode getSwerveSpeedMode()
-    {
-        return swerveSpeedMode;
-    }
-    //endregion
-
     /**
      * Constructor, starts the alignment threads and such.
-     * @param robot        Contains a gyro and the control method for the bot.
-     * @param frontLeft    The front left swerve module
-     * @param frontRight   The front right swerve module
-     * @param backLeft     The back left swerve module.
-     * @param backRight    The back right swerve module.
-     */
-    public SwerveDrive(Robot robot, SwerveModule frontLeft, SwerveModule frontRight, SwerveModule backLeft, SwerveModule backRight)
-    {
-        this(robot, new SwerveModule[]{frontLeft, backLeft, backRight, frontRight});
-    }
-
-    /**
-     * Constructor, starts the alignment threads and such.
-     * @param robot        Contains a gyro and the control method for the bot.
+     * @param opModeSituation        The part of the program where this occurs.
      * @param modules      The swerve modules (in an array duh)
      */
-    public SwerveDrive(Robot robot, SwerveModule[] modules)
+    public SwomniDrive(EnhancedOpMode.AutoOrTeleop opModeSituation, Gyro gyro, SwerveModule[] modules)
     {
-        // Robot reference
-        this.robot = robot;
+        this.opModeSituation = opModeSituation;
+        this.gyro = gyro;
 
         // The swerve wheels.
         this.swerveModules = modules;
 
-        if (robot.controlMode == Robot.ControlMode.AUTONOMOUS)
+        if (opModeSituation == EnhancedOpMode.AutoOrTeleop.AUTONOMOUS)
         {
             // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
             swerveUpdatePackage = new ScheduledTaskPackage(EnhancedOpMode.instance, "Swerve Turn Alignments",
@@ -123,163 +90,85 @@ public class SwerveDrive extends ScheduledTask
     }
     // endregion
 
-    // region Control Methods
+    // region Fast/Slow Mode
+    // The speed of the swerve drive.
+    public enum SpeedControl
+    {
+        FAST (75, 75),
+        SLOW (22, 22);
+
+        public final double driveSpeed;
+        public final double turnSpeed;
+        SpeedControl(double driveSpeed, double turnSpeed)
+        {
+            this.driveSpeed = driveSpeed;
+            this.turnSpeed = turnSpeed;
+        }
+    }
+    private SpeedControl speedControl = SpeedControl.FAST;
+    public void setSpeedControl(SpeedControl mode)
+    {
+        this.speedControl = mode;
+    }
+    public SpeedControl getSpeedControl()
+    {
+        return speedControl;
+    }
+    //endregion
+
+    // region Joystick Drive Methods
     private Vector2D desiredMovement = Vector2D.ZERO;
     private double desiredHeading = 0;
 
-    public enum ControlMethod { FIELD_CENTRIC, TANK_DRIVE }
-    private ControlMethod controlMethod = ControlMethod.FIELD_CENTRIC;
-    public void setControlMethod(ControlMethod controlMethod)
+    public enum JoystickDriveMethod { FIELD_CENTRIC, ROBOT_CENTRIC}
+    private JoystickDriveMethod joystickDriveMethod = JoystickDriveMethod.FIELD_CENTRIC;
+    public void setJoystickDriveMethod(JoystickDriveMethod joystickDriveMethod)
     {
-        this.controlMethod = controlMethod;
+        this.joystickDriveMethod = joystickDriveMethod;
     }
-    public ControlMethod getControlMethod()
+    public JoystickDriveMethod getJoystickDriveMethod()
     {
-        return controlMethod;
-    }
-
-    /**
-     * This is where pretty much all the work for the swerve DRIVE calculations take place
-     * (calculating the vectors to which the wheels should align), but the wheels have their own
-     * update methods to actually change their orientation.
-     */
-    private void updateSwerveDriveFieldCentric() throws InterruptedException
-    {
-        if (robot.controlMode == Robot.ControlMode.TELEOP)
-        {
-            // Rotate by -90 in order to make forward facing zero.
-            Vector2D joystickDesiredRotation = HTGamepad.CONTROLLER1.rightJoystick();
-            Vector2D joystickDesiredMovement = HTGamepad.CONTROLLER1.leftJoystick();
-
-            // Use the left joystick for rotation unless nothing is supplied, in which case check the DPAD.
-            if (joystickDesiredRotation.magnitude > .0005)
-                setDesiredHeading(joystickDesiredRotation.angle);
-
-            if (joystickDesiredMovement.magnitude > .0005)
-                setDesiredMovement(joystickDesiredMovement);
-            else
-                setDesiredMovement(Vector2D.ZERO);
-
-            // Upon tapping white, calibrate the gyro
-            if (HTGamepad.CONTROLLER1.gamepad.y)
-            {
-                try
-                {
-                    robot.gyro.zero();
-                }
-                catch (InterruptedException e)
-                {
-                    return;
-                }
-            }
-
-            // Fine tuned adjustments.
-            if (HTGamepad.CONTROLLER1.gamepad.left_trigger > 0.1 || HTGamepad.CONTROLLER1.gamepad.right_trigger > 0.1)
-            {
-                this.desiredHeading += 5 * (HTGamepad.CONTROLLER1.gamepad.left_trigger - HTGamepad.CONTROLLER1.gamepad.right_trigger);
-                this.desiredHeading = Vector2D.clampAngle(this.desiredHeading);
-            }
-        }
-
-        // Get current gyro val.
-        double gyroHeading = robot.gyro.getHeading();
-
-        // Find the least heading between the gyro and the current heading.
-        double angleOff = (Vector2D.clampAngle(desiredHeading - gyroHeading) + 180) % 360 - 180;
-        angleOff = angleOff < -180 ? angleOff + 360 : angleOff;
-
-        // Figure out the actual translation vector for swerve wheels based on gyro value.
-        Vector2D fieldCentricTranslation = desiredMovement.rotateBy(-gyroHeading);
-
-        // Don't bother trying to be more accurate than 8 degrees while turning.
-        double rotationSpeed = FIELD_CENTRIC_TURN_CONTROLLER.value(-angleOff);
-
-        // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
-        for (int i = 0; i < swerveModules.length; i++)
-            swerveModules[i].setVectorTarget(
-                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(fieldCentricTranslation)
-                            .multiply(swerveSpeedMode.speed)); // whether to be fast/slow
-
-        // Check to see whether it's okay to start moving by observing the state of all wheels.
-        boolean drivingCanStart = true;
-        for (SwerveModule wheel : swerveModules)
-        {
-            if (!wheel.atAcceptableSwivelOrientation())
-            {
-                drivingCanStart = false;
-                break;
-            }
-        }
-        for (SwerveModule wheel : swerveModules)
-            wheel.setDrivingState(drivingCanStart);
-
-        // Write some information to the telemetry console.
-        swerveConsole.write(
-                "Current Heading: " + gyroHeading,
-                "Desired Angle: " + desiredHeading,
-                "Rotation Speed: " + rotationSpeed,
-                "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
-                "Magnitude: " + fieldCentricTranslation.magnitude,
-                "Driving acceptable: " + drivingCanStart
-        );
-    }
-
-    /**
-     * Simple swerve drive control which doesn't include any sort of gyroscope adjustment.
-     */
-    private void updateSwerveDriveTankDrive() throws InterruptedException
-    {
-        double rotationSpeed = 0;
-
-        // Receive controller input.
-        if (robot.controlMode == Robot.ControlMode.TELEOP)
-        {
-            desiredMovement = HTGamepad.CONTROLLER1.leftJoystick();
-            if (desiredMovement.magnitude < .0005)
-                desiredMovement = Vector2D.ZERO;
-
-            rotationSpeed = HTGamepad.CONTROLLER1.gamepad.right_stick_x;
-        }
-
-        // Set vector targets for wheels.
-        for (int i = 0; i < swerveModules.length; i++)
-            swerveModules[i].setVectorTarget(
-                    Vector2D.polar(rotationSpeed, WHEEL_ORIENTATIONS[i]).add(desiredMovement)
-                            .multiply(swerveSpeedMode.speed)); // whether to be fast/slow
-
-        // Check to see whether it's okay to start moving by observing the state of all wheels.
-        boolean drivingCanStart = true;
-        for (SwerveModule wheel : swerveModules)
-        {
-            if (!wheel.atAcceptableSwivelOrientation())
-            {
-                drivingCanStart = false;
-                break;
-            }
-        }
-        for (SwerveModule wheel : swerveModules)
-            wheel.setDrivingState(drivingCanStart);
+        return joystickDriveMethod;
     }
     // endregion
 
-    /**
-     * Shifts the current swerve control system between synchronous and asynchronous.
-     */
-    public void setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode updateMode)
+    // region Control Modes
+    public enum SwomniControlMode
     {
-        swerveUpdatePackage.setUpdateMode(updateMode);
+        /**
+         * A versatile mode of driving which is quick, but the swiveling involved makes it difficult
+         * to make close adjustments near the cryptobox.
+         */
+        SWERVE_DRIVE,
 
-        if (updateMode == ScheduledTaskPackage.ScheduledUpdateMode.ASYNCHRONOUS)
-            swerveUpdatePackage.run();
+        /**
+         * With swomni drive, omni wheels on each module give us the ability to instantly strafe in
+         * holonomic mode instead of waiting for 90 degree module swivels.
+         */
+        HOLONOMIC,
+
+        /**
+         * Sean is a dumpu trucku who actually likes this mode for some weird reason.
+         */
+        TANK_DRIVE
     }
+    private SwomniControlMode swomniControlMode = SwomniControlMode.SWERVE_DRIVE;
+    // endregion
 
-    /**
-     * Synchronous version of the async task thread.
-     */
-    public void synchronousUpdate() throws InterruptedException
+    private void updateCanDrive()
     {
-        // Only updates if the control system has been set to synchronous.
-        swerveUpdatePackage.synchronousUpdate();
+        // Updates the swerve modules on whether we can drive.
+        boolean drivingCanStart = true;
+        for (SwerveModule wheel : swerveModules)
+        {
+            if (!wheel.atAcceptableSwivelOrientation())
+            {
+                drivingCanStart = false;
+                break;
+            }
+        }
+        for (SwerveModule wheel : swerveModules)
+            wheel.setDrivingState(drivingCanStart);
     }
 
     /**
@@ -288,12 +177,128 @@ public class SwerveDrive extends ScheduledTask
     @Override
     protected long onContinueTask() throws InterruptedException
     {
-        if (controlMethod == ControlMethod.FIELD_CENTRIC)
-            updateSwerveDriveFieldCentric();
-        else if (controlMethod == ControlMethod.TANK_DRIVE)
-            updateSwerveDriveTankDrive();
+        // Simple code for tank drive.
+        if (swomniControlMode == SwomniControlMode.TANK_DRIVE)
+        {
+            if (opModeSituation == EnhancedOpMode.AutoOrTeleop.TELEOP)
+            {
+                for (int i = 0 ; i <= 1; i++)
+                    swerveModules[i].setVectorTarget(Vector2D.rectangular(HTGamepad.CONTROLLER1.leftJoystick().y, 0));
 
-        return 40;
+                for (int i = 2 ; i <= 3; i++)
+                    swerveModules[i].setVectorTarget(Vector2D.rectangular(HTGamepad.CONTROLLER1.rightJoystick().y, 0));
+            }
+
+            updateCanDrive();
+
+            return 80;
+        }
+
+        // Determined based on Field Centric/Robot Centric control mode.
+        Vector2D driveVector = Vector2D.ZERO;
+        double rotationSpeed = 0;
+
+        // Field centric control
+        if (joystickDriveMethod == JoystickDriveMethod.FIELD_CENTRIC)
+        {
+            if (opModeSituation == EnhancedOpMode.AutoOrTeleop.TELEOP)
+            {
+                Vector2D joystickDesiredRotation = HTGamepad.CONTROLLER1.rightJoystick();
+                Vector2D joystickDesiredMovement = HTGamepad.CONTROLLER1.leftJoystick();
+
+                // Use the left joystick for rotation unless nothing is supplied, in which case check the DPAD.
+                if (joystickDesiredRotation.magnitude > .0005)
+                    setDesiredHeading(joystickDesiredRotation.angle);
+
+                if (joystickDesiredMovement.magnitude > .0005)
+                    setDesiredMovement(joystickDesiredMovement);
+                else
+                    setDesiredMovement(Vector2D.ZERO);
+
+                // Upon tapping white, calibrate the gyro
+                if (HTGamepad.CONTROLLER1.gamepad.y) {
+                    try {
+                        gyro.zero();
+                    } catch (InterruptedException e) {
+                        return 100;
+                    }
+                }
+
+                // Fine tuned adjustments.
+                if (HTGamepad.CONTROLLER1.gamepad.left_trigger > 0.1 || HTGamepad.CONTROLLER1.gamepad.right_trigger > 0.1) {
+                    this.desiredHeading += 5 * (HTGamepad.CONTROLLER1.gamepad.left_trigger - HTGamepad.CONTROLLER1.gamepad.right_trigger);
+                    this.desiredHeading = Vector2D.clampAngle(this.desiredHeading);
+                }
+            }
+
+            // Get current gyro val.
+            double gyroHeading = gyro.getHeading();
+
+            // Find the least heading between the gyro and the current heading.
+            double angleOff = (Vector2D.clampAngle(desiredHeading - gyroHeading) + 180) % 360 - 180;
+            angleOff = angleOff < -180 ? angleOff + 360 : angleOff;
+
+            // Figure out the actual translation vector for swerve wheels based on gyro value.
+            Vector2D fieldCentricTranslation = desiredMovement.rotateBy(-gyroHeading);
+
+            // Don't bother trying to be more accurate than 8 degrees while turning.
+            rotationSpeed = FIELD_CENTRIC_TURN_CONTROLLER.value(-angleOff);
+
+            // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
+            driveVector = fieldCentricTranslation.multiply(speedControl.driveSpeed);
+
+            // Write some information to the telemetry console.
+            if (swerveConsole != null)
+                swerveConsole.write(
+                        "Current Heading: " + gyroHeading,
+                        "Desired Angle: " + desiredHeading,
+                        "Rotation Speed: " + rotationSpeed,
+                        "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
+                        "Magnitude: " + fieldCentricTranslation.magnitude);
+        }
+
+        // Robot centric control.
+        else if (joystickDriveMethod == JoystickDriveMethod.ROBOT_CENTRIC)
+        {
+            // Receive controller input.
+            if (opModeSituation == EnhancedOpMode.AutoOrTeleop.TELEOP)
+            {
+                desiredMovement = HTGamepad.CONTROLLER1.leftJoystick();
+                if (desiredMovement.magnitude < .0005)
+                    desiredMovement = Vector2D.ZERO;
+
+                rotationSpeed = HTGamepad.CONTROLLER1.gamepad.right_stick_x;
+            }
+
+            // Set vector targets for wheels.
+            driveVector = desiredMovement.multiply(speedControl.driveSpeed);
+
+            // Write some information to the telemetry console.
+            if (swerveConsole != null)
+                swerveConsole.write(
+                        "Desired Angle: " + desiredHeading,
+                        "Rotation Speed: " + rotationSpeed,
+                        "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR));
+        }
+
+        // By setting vector targets, SwerveModules will take care of their own orientation.
+        if (swomniControlMode == SwomniControlMode.SWERVE_DRIVE)
+        {
+            for (int i = 0; i < swerveModules.length; i++)
+                Vector2D.polar(rotationSpeed * speedControl.turnSpeed, WHEEL_ORIENTATIONS[i]).add(driveVector);
+        }
+        else if (swomniControlMode == SwomniControlMode.HOLONOMIC)
+        {
+            for (int i = 0; i < swerveModules.length; i++)
+                swerveModules[i].setVectorTarget(Vector2D.polar(
+                        rotationSpeed * speedControl.turnSpeed + driveVector.magnitude * speedControl.driveSpeed * Math.cos(Math.toDegrees(Math.abs(WHEEL_ORIENTATIONS[i] - driveVector.angle))),
+                        WHEEL_ORIENTATIONS[i]));
+        }
+
+        updateCanDrive();
+
+        // A bit of latency before update.
+        return 100;
     }
 
     /**

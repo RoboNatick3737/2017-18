@@ -18,8 +18,8 @@ public class DumpGlyphToNearest extends EnhancedOpMode
     @Override
     protected void onRun() throws InterruptedException
     {
-        Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
-        robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
+        Robot robot = new Robot(hardware, Robot.OpModeSituation.AUTONOMOUS);
+        robot.swomniDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         CryptoboxTracker tracker = new CryptoboxTracker();
         tracker.setAlliance(CompetitionProgram.Alliance.BLUE);
@@ -60,7 +60,7 @@ public class DumpGlyphToNearest extends EnhancedOpMode
                 offFromHorizontalIdeal = -1;
             }
 
-            robot.swerveDrive.setDesiredMovement(Vector2D.rectangular(forwardSpeed, horizontalSpeed));
+            robot.swomniDrive.setDesiredMovement(Vector2D.rectangular(forwardSpeed, horizontalSpeed));
 
             // Wait until we have a new reading (frames can take a while to process)
             double currentOffFromForward = offFromForwardIdeal, currentOffFromHorizontal = offFromHorizontalIdeal; // use other vals as anchor points
@@ -69,7 +69,7 @@ public class DumpGlyphToNearest extends EnhancedOpMode
                 currentOffFromForward = -(tracker.estimatedForwardDistance - .26);
                 currentOffFromHorizontal = -tracker.closestPlacementLocationOffset;
 
-                robot.swerveDrive.synchronousUpdate();
+                robot.swomniDrive.synchronousUpdate();
 
                 flow.yield();
             }
@@ -79,7 +79,7 @@ public class DumpGlyphToNearest extends EnhancedOpMode
             offFromHorizontalIdeal = currentOffFromHorizontal;
         }
 
-        robot.swerveDrive.stop();
+        robot.swomniDrive.stop();
 
         robot.intake.intake();
 

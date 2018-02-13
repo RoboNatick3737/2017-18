@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
@@ -15,7 +14,6 @@ import hankextensions.vision.vuforia.VuforiaCam;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.structs.Function;
-import org.firstinspires.ftc.teamcode.structs.Polynomial;
 import org.firstinspires.ftc.teamcode.structs.SingleParameterRunnable;
 import org.firstinspires.ftc.teamcode.structs.TimedFunction;
 import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
@@ -42,15 +40,15 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
     protected final void onRun() throws InterruptedException
     {
         // Init the bot.
-        final Robot robot = new Robot(hardware, Robot.ControlMode.AUTONOMOUS);
-        robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
+        final Robot robot = new Robot(hardware, Robot.OpModeSituation.AUTONOMOUS);
+        robot.swomniDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         // Init the viewers.
         JewelDetector jewelDetector = new JewelDetector();
         HarvesterGlyphChecker glyphChecker = new HarvesterGlyphChecker();
 
         // Align wheels sideways to drive off the platform.
-        robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 90), 15, 3000, flow);
+        robot.swomniDrive.orientSwerveModules(Vector2D.polar(1, 90), 15, 3000, flow);
 
         // Put down the flipper glyph holder servo so that we can see the jewels.
         robot.flipper.setGlyphHolderUpTo(false);
@@ -103,13 +101,13 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // endregion
 
         // VuMark positioning
-        robot.swerveDrive.setDesiredHeading(20);
+        robot.swomniDrive.setDesiredHeading(20);
         while (Math.abs(robot.gyro.getHeading() - 20) > 5)
         {
-            robot.swerveDrive.synchronousUpdate();
+            robot.swomniDrive.synchronousUpdate();
             flow.yield();
         }
-        robot.swerveDrive.stop();
+        robot.swomniDrive.stop();
 
         start = System.currentTimeMillis();
 
@@ -135,13 +133,13 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             vumark = RelicRecoveryVuMark.CENTER;
 
         // Rotate to original heading
-        robot.swerveDrive.setDesiredHeading(0);
+        robot.swomniDrive.setDesiredHeading(0);
         while (Math.abs(robot.gyro.getHeading()) > 5)
         {
-            robot.swerveDrive.synchronousUpdate();
+            robot.swomniDrive.synchronousUpdate();
             flow.yield();
         }
-        robot.swerveDrive.stop();
+        robot.swomniDrive.stop();
 
         // endregion
 
@@ -197,7 +195,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             }
 
             // Drive that length slowing down over time.
-            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
+            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
                     new Function() {
                         @Override
                         public double value(double input) {
@@ -216,10 +214,10 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             robot.flipper.setGlyphHolderUpTo(true);
 
             // Align wheels backward.
-            robot.swerveDrive.orientSwerveModules(Vector2D.polar(1, 180), 10, 1500, flow);
+            robot.swomniDrive.orientSwerveModules(Vector2D.polar(1, 180), 10, 1500, flow);
 
             // Drive back to the cryptobox.
-            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
+            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
                     new Function() {
                         @Override
                         public double value(double input) {
@@ -236,10 +234,10 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
             // Turn for better glyph placement
             double desiredHeading = getAlliance() == Alliance.BLUE ? 330 : 30;
-            robot.swerveDrive.setDesiredHeading(desiredHeading);
+            robot.swomniDrive.setDesiredHeading(desiredHeading);
             while (Math.abs(robot.gyro.getHeading() - desiredHeading) > 3)
-                robot.swerveDrive.synchronousUpdate();
-            robot.swerveDrive.stop();
+                robot.swomniDrive.synchronousUpdate();
+            robot.swomniDrive.stop();
 
             // Dump glyph
             TimedFunction flipperPos = new TimedFunction(new Function() {
@@ -261,12 +259,12 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             robot.flipper.advanceStage(2);
 
             // Drive away from glyph
-            robot.swerveDrive.setDesiredHeading(0);
-            robot.swerveDrive.driveTime(Vector2D.polar(0.3, getAlliance() == Alliance.BLUE ? 10 : 350), 1200, flow);
+            robot.swomniDrive.setDesiredHeading(0);
+            robot.swomniDrive.driveTime(Vector2D.polar(0.3, getAlliance() == Alliance.BLUE ? 10 : 350), 1200, flow);
 
             // Shove glyph in
-            robot.swerveDrive.setDesiredHeading(getAlliance() == Alliance.BLUE ? 20 : 340);// A bit of rotation helps smush the cube in.
-            robot.swerveDrive.driveTime(Vector2D.polar(0.5, 180), 1400, flow);
+            robot.swomniDrive.setDesiredHeading(getAlliance() == Alliance.BLUE ? 20 : 340);// A bit of rotation helps smush the cube in.
+            robot.swomniDrive.driveTime(Vector2D.polar(0.5, 180), 1400, flow);
         }
 
         // TODO Pain in the A** autonomous
@@ -276,7 +274,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         }
 
         // Make sure we aren't touching the glyph
-        robot.swerveDrive.driveDistance(ParametrizedVector.polar(
+        robot.swomniDrive.driveDistance(ParametrizedVector.polar(
                 new Function() {
                     @Override
                     public double value(double input) {
@@ -304,8 +302,8 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             robot.intake.intake();
 
             // Drive to where the glyph pit is but stop directly in front of it.
-            robot.swerveDrive.setDesiredHeading(0);
-            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
+            robot.swomniDrive.setDesiredHeading(0);
+            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
                     new Function() {
                         @Override
                         public double value(double input) {
@@ -334,15 +332,15 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
             // Initialize the viewer and wait for glyphs to show up in the harvester.
             openCVCam.start(glyphChecker);
-            robot.swerveDrive.setDesiredMovement(Vector2D.polar(0.3, 0));
+            robot.swomniDrive.setDesiredMovement(Vector2D.polar(0.3, 0));
             while (glyphChecker.getGlyphsHarvested() < 2)
             {
-                robot.swerveDrive.synchronousUpdate();
+                robot.swomniDrive.synchronousUpdate();
                 flow.yield();
             }
 
             // Drive back.
-            robot.swerveDrive.driveDistance(ParametrizedVector.polar(
+            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
                     new Function() {
                         @Override
                         public double value(double input) {

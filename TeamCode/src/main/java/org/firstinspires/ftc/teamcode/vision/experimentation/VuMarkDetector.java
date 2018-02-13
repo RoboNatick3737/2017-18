@@ -7,6 +7,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 
+import hankextensions.AutoOrTeleop;
 import hankextensions.EnhancedOpMode;
 import hankextensions.vision.vuforia.VuforiaCam;
 
@@ -23,7 +24,7 @@ public class VuMarkDetector extends EnhancedOpMode
     protected void onRun() throws InterruptedException
     {
         VuforiaCam vuforiaCam = new VuforiaCam();
-        vuforiaCam.start(true);
+        vuforiaCam.start();
         VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
         vuforiaCam.getTrackables().activate();
 

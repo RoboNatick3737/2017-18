@@ -4,7 +4,6 @@ import com.makiah.makiahsandroidlib.threading.Flow;
 import com.makiah.makiahsandroidlib.threading.TaskParent;
 import com.qualcomm.ftccommon.FtcEventLoopHandler;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -25,6 +24,9 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
 {
     // Useful for other files which require custom initialization steps or components from this op mode which they cannot otherwise obtain.
     public static EnhancedOpMode instance;
+
+    // Auto or teleop.
+    public enum AutoOrTeleop { AUTONOMOUS, TELEOP }
 
     /**
      * Returns the current battery voltage as a coefficient between 0 and 1, defined by a minimum

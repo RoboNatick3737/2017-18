@@ -19,7 +19,7 @@ import hankextensions.structs.Vector2D;
  * continually update the speed of the vex motor.
  *
  * Since there are four of these, they are placed into a ScheduledTaskPackage in the
- * SwerveDrive motor to run them.
+ * SwomniDrive motor to run them.
  *
  * Since rotating the vex motor around once causes the wheel to turn 135 degrees, that
  * also has to be corrected for.

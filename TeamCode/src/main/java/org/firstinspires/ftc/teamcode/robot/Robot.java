@@ -10,17 +10,17 @@ import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.LightingSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.RelicSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwomniDrive;
 import org.firstinspires.ftc.teamcode.structs.Function;
-import org.firstinspires.ftc.teamcode.structs.PIDController;
 import org.firstinspires.ftc.teamcode.structs.SwerveModulePIDController;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.robot.hardware.Flipper;
 import org.firstinspires.ftc.teamcode.robot.hardware.Intake;
 import org.firstinspires.ftc.teamcode.robot.hardware.Lift;
-import org.firstinspires.ftc.teamcode.robot.hardware.SwerveDrive;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
 
+import hankextensions.AutoOrTeleop;
 import hankextensions.hardware.HardwareInitializer;
 import hankextensions.hardware.SmarterRangeSensor;
 import hankextensions.phonesensors.AndroidGyro;
@@ -31,14 +31,8 @@ import hankextensions.phonesensors.Gyro;
  */
 public class Robot
 {
-    public enum ControlMode {
-        TELEOP, // no point in including sensors
-        AUTONOMOUS // no point in including relic arm
-    }
-    public final ControlMode controlMode;
-
     // The drive system (wrapper for all complex swervey methods)
-    public final SwerveDrive swerveDrive;
+    public final SwomniDrive swomniDrive;
 
     // All other robot components (modular)
     public Gyro gyro; // Set by one class for straight drive testing.
@@ -160,7 +154,7 @@ public class Robot
      * @param zeroPowerBehavior The zero power behavior for the motors.
      * @return
      */
-    public static SwerveModule[] getSwerveModules(HardwareInitializer hardware, ControlMode controlMode, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
+    public static SwerveModule[] getSwerveModules(HardwareInitializer hardware, AutoOrTeleop.Mode opModeSituation, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
     {
         Servo[] swerveModuleServos = getSwerveModuleServos(hardware);
         EncoderMotor[] driveMotors = getDriveMotors(hardware, zeroPowerBehavior);
@@ -249,11 +243,8 @@ public class Robot
     /**
      * Initializes the whole robot.
      */
-    public Robot(HardwareInitializer hardware, ControlMode controlMode) throws InterruptedException
+    public Robot(HardwareInitializer hardware, AutoOrTeleop.Mode opModeSituation) throws InterruptedException
     {
-        // Swerve drive needs to know this as well.
-        this.controlMode = controlMode;
-
         // Init the android gyro (make sure to call start()).
         AndroidGyro androidGyro = new AndroidGyro();
         androidGyro.start();
@@ -261,12 +252,12 @@ public class Robot
         gyro = androidGyro;
 
         // Instantiate the swerve drive.
-        swerveDrive = new SwerveDrive(this, getSwerveModules(hardware, controlMode, /*controlMode == ControlMode.AUTONOMOUS ? DcMotor.ZeroPowerBehavior.BRAKE : */DcMotor.ZeroPowerBehavior.FLOAT));
+        swomniDrive = new SwomniDrive(this, getSwerveModules(hardware, opModeSituation, /*opModeSituation == Mode.AUTONOMOUS ? DcMotor.ZeroPowerBehavior.BRAKE : */DcMotor.ZeroPowerBehavior.FLOAT));
 
         // Init the ADAFRUIT gyro.
 //        gyro = new HankuTankuIMU(hardware.map.get(BNO055IMU.class, "IMU"));
 
-        if (controlMode == ControlMode.AUTONOMOUS)
+        if (opModeSituation == AutoOrTeleop.Mode.AUTONOMOUS)
         {
             // Get front and back sensors.
             frontRangeSensor = null; //new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Front Range Sensor"), 0x10);
@@ -286,7 +277,7 @@ public class Robot
         liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         lift = new Lift(liftMotor);
 
-        if (controlMode == ControlMode.TELEOP)
+        if (opModeSituation == AutoOrTeleop.Mode.TELEOP)
             // Relic Arm init
             relicSystem = new RelicSystem(hardware.initialize(DcMotor.class, "Relic Extender"), hardware.initialize(Servo.class, "Relic Grabber"));
         else

@@ -6,9 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 import org.firstinspires.ftc.teamcode.robot.Robot;
-import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
-import org.firstinspires.ftc.teamcode.robot.hardware.SwerveDrive;
-import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwomniDrive;
 import org.firstinspires.ftc.teamcode.structs.PIDController;
 
 import hankextensions.EnhancedOpMode;
@@ -23,18 +21,18 @@ public class Teleop extends EnhancedOpMode
     @Override
     protected final void onRun() throws InterruptedException
     {
-        Robot robot = new Robot(hardware, Robot.ControlMode.TELEOP);
+        Robot robot = new Robot(hardware, Robot.OpModeSituation.TELEOP);
 
         // Enable logging TODO remove
-//        for (SwerveModule module : robot.swerveDrive.swerveModules)
+//        for (SwerveModule module : robot.swomniDrive.swerveModules)
 //            module.setEnableLogging(true);
 
         // Set enable logging for relic arm.
         robot.relicSystem.setEnableLogging(true);
 
         // Synchronous teleop
-        robot.swerveDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
-        robot.swerveDrive.setControlMethod(SwerveDrive.ControlMethod.TANK_DRIVE);
+        robot.swomniDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
+        robot.swomniDrive.setJoystickDriveMethod(SwomniDrive.JoystickDriveMethod.ROBOT_CENTRIC);
 
         // Init robot hardware.
         robot.flipper.advanceStage(0);
@@ -50,7 +48,7 @@ public class Teleop extends EnhancedOpMode
         boolean seanInIntakeMode = true;
 
         // The front left swerve module has a hard time dealing with the torque on it.
-        PIDController frontLeftkPController = robot.swerveDrive.swerveModules[0].errorResponder instanceof PIDController ? (PIDController)(robot.swerveDrive.swerveModules[0].errorResponder) : null;
+        PIDController frontLeftkPController = robot.swomniDrive.swerveModules[0].errorResponder instanceof PIDController ? (PIDController)(robot.swomniDrive.swerveModules[0].errorResponder) : null;
 
         double originalFrontLeftkP = 0;
         double higherFrontLeftkP = 0;
@@ -84,12 +82,12 @@ public class Teleop extends EnhancedOpMode
             // region Driver 1 Swerve Control
             // Update swerve drive
             if (C1.b.currentState == HTButton.ButtonState.JUST_TAPPED) {
-                if (robot.swerveDrive.getSwerveSpeedMode() == SwerveDrive.SwerveSpeedMode.FAST)
-                    robot.swerveDrive.setSwerveSpeedMode(SwerveDrive.SwerveSpeedMode.SLOW);
+                if (robot.swomniDrive.getSpeedControl() == SwomniDrive.SpeedControl.FAST)
+                    robot.swomniDrive.setSpeedControl(SwomniDrive.SpeedControl.SLOW);
                 else
-                    robot.swerveDrive.setSwerveSpeedMode(SwerveDrive.SwerveSpeedMode.FAST);
+                    robot.swomniDrive.setSpeedControl(SwomniDrive.SpeedControl.FAST);
             }
-            robot.swerveDrive.synchronousUpdate();
+            robot.swomniDrive.synchronousUpdate();
             //endregion
 
             // region Driver 1: Intake Mode
