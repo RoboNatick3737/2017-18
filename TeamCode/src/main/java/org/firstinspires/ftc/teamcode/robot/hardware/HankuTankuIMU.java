@@ -54,6 +54,10 @@ public class HankuTankuIMU implements Gyro
     }
 
     @Override
+    public void applyOffset(double offset) {
+    }
+
+    @Override
     public void zero() throws InterruptedException
     {
          resetOffset = Vector2D.clampAngle(imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle);

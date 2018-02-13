@@ -17,6 +17,12 @@ public interface Gyro
     void startAntiDrift() throws InterruptedException;
 
     /**
+     * Tells the gyro to offset their internal count by some degree (used at OpMode start sometimes)
+     * @param offset the offset to correct for
+     */
+    void applyOffset(double offset);
+
+    /**
      * Should just zero the gyroscope, over however much time it requires.
      */
     void zero() throws InterruptedException;

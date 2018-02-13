@@ -19,6 +19,14 @@ public class BallKnocker
         knocker.setPosition(0);
     }
 
+    private double currentPos = 0;
+    public void updatePosition(double increment)
+    {
+        currentPos += increment;
+        currentPos = Range.clip(currentPos, 0, 1);
+        knocker.setPosition(currentPos);
+    }
+
     public void setUpwardPosTo(boolean up)
     {
         this.up = up;

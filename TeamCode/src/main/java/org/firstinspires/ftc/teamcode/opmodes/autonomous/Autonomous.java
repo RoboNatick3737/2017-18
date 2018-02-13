@@ -1,9 +1,16 @@
 package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
+import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 
+import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
@@ -40,29 +47,75 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
     protected final void onRun() throws InterruptedException
     {
         // Init the bot.
-        final Robot robot = new Robot(hardware, Robot.OpModeSituation.AUTONOMOUS);
+        final Robot robot = new Robot(hardware, AutoOrTeleop.AUTONOMOUS);
         robot.swomniDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         // Init the viewers.
         JewelDetector jewelDetector = new JewelDetector();
         HarvesterGlyphChecker glyphChecker = new HarvesterGlyphChecker();
 
-        // Align wheels sideways to drive off the platform.
-        robot.swomniDrive.orientSwerveModules(Vector2D.polar(1, 90), 15, 3000, flow);
-
         // Put down the flipper glyph holder servo so that we can see the jewels.
         robot.flipper.setGlyphHolderUpTo(false);
 
-        // region Initialization Detection of the Crypto Key and the Jewel Alignment
-        OpenCVCam openCVCam = new OpenCVCam();
+        // Orient for turning
+        robot.swomniDrive.orientSwerveModulesForRotation(10, 3000, flow);
+
+        // region Detect cryptokey pose during initialization
+        RelicRecoveryVuMark detectedVuMark = RelicRecoveryVuMark.UNKNOWN;
+        double angleOffset = 0;
+
         VuforiaCam vuforiaCam = new VuforiaCam();
+        vuforiaCam.start();
+        VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
+        vuforiaCam.getTrackables().activate();
+        ProcessConsole vuforiaConsole = log.newProcessConsole("Vuforia");
+        while (!isStarted())
+        {
+            detectedVuMark = RelicRecoveryVuMark.from(relicTemplate);
+
+            if (detectedVuMark != RelicRecoveryVuMark.UNKNOWN)
+            {
+                OpenGLMatrix pose = ((VuforiaTrackableDefaultListener)relicTemplate.getListener()).getPose();
+
+                if (pose != null) {
+//                    VectorF trans = pose.getTranslation();
+                    Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
+
+//                    // Extract the X, Y, and Z components of the offset of the target relative to the robot
+//                    double tX = trans.get(0);
+//                    double tY = trans.get(1);
+//                    double tZ = trans.get(2);
+//
+//                    // Extract the rotational components of the target relative to the robot
+//                    double rX = rot.firstAngle;
+//                    double rY = rot.secondAngle;
+//                    double rZ = rot.thirdAngle;
+
+
+                    vuforiaConsole.write(
+                            "Detected: " + detectedVuMark.toString(),
+                            "Rotation: <" + rot.firstAngle + ", " + rot.secondAngle + ", " + rot.thirdAngle + ">");
+
+                    angleOffset = rot.secondAngle;
+                }
+                else
+                {
+                    vuforiaConsole.write("Detected: " + detectedVuMark.toString());
+                }
+            }
+
+            flow.yield();
+        }
+        vuforiaConsole.destroy();
+        // endregion
+
+        // Turn for angle offset.
+        robot.gyro.applyOffset(angleOffset);
+        robot.swomniDrive.turnRobotToHeading(0, 2, 5000, flow);
 
         // DON'T specify a default order, if we mess this up we lose points.
+        OpenCVCam openCVCam = new OpenCVCam();
         JewelDetector.JewelOrder jewelOrder = JewelDetector.JewelOrder.UNKNOWN;
-        RelicRecoveryVuMark vumark = RelicRecoveryVuMark.UNKNOWN;
-
-        while (!isStarted())
-            flow.yield();
 
         // Jewel detection
         openCVCam.start(jewelDetector);
@@ -100,51 +153,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         }
         // endregion
 
-        // VuMark positioning
-        robot.swomniDrive.setDesiredHeading(20);
-        while (Math.abs(robot.gyro.getHeading() - 20) > 5)
-        {
-            robot.swomniDrive.synchronousUpdate();
-            flow.yield();
-        }
-        robot.swomniDrive.stop();
-
-        start = System.currentTimeMillis();
-
-        // VuMark detection.
-        vuforiaCam.start(true);
-        VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
-        vuforiaCam.getTrackables().activate();
-        while (System.currentTimeMillis() - start < 8000)
-        {
-            vumark = RelicRecoveryVuMark.from(relicTemplate);
-
-            if (vumark != RelicRecoveryVuMark.UNKNOWN)
-                break;
-
-            flow.yield();
-        }
-        vuforiaCam.stop(flow);
-
-        flow.yield();
-
-        // default vumark if none detected.
-        if (vumark == RelicRecoveryVuMark.UNKNOWN)
-            vumark = RelicRecoveryVuMark.CENTER;
-
-        // Rotate to original heading
-        robot.swomniDrive.setDesiredHeading(0);
-        while (Math.abs(robot.gyro.getHeading()) > 5)
-        {
-            robot.swomniDrive.synchronousUpdate();
-            flow.yield();
-        }
-        robot.swomniDrive.stop();
-
-        // endregion
-
         // region Place Pre-Loaded Glyph
-
         robot.intake.intake();
 
         // Simple Autonomous
@@ -161,7 +170,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             double desiredDriveLength = 0;
             if (getAlliance() == Alliance.BLUE)
             {
-                switch (vumark)
+                switch (detectedVuMark)
                 {
                     case LEFT:
                         desiredDriveLength = DEPOSIT_LOCATIONS[0];
@@ -178,7 +187,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             }
             else
             {
-                switch (vumark)
+                switch (detectedVuMark)
                 {
                     case LEFT:
                         desiredDriveLength = DEPOSIT_LOCATIONS[2];
@@ -269,9 +278,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         // TODO Pain in the A** autonomous
         else if (getBalancePlate() == BalancePlate.TOP)
-        {
-
-        }
+        {}
 
         // Make sure we aren't touching the glyph
         robot.swomniDrive.driveDistance(ParametrizedVector.polar(

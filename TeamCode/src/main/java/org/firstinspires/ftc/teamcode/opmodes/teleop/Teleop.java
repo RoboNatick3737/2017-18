@@ -21,7 +21,7 @@ public class Teleop extends EnhancedOpMode
     @Override
     protected final void onRun() throws InterruptedException
     {
-        Robot robot = new Robot(hardware, Robot.OpModeSituation.TELEOP);
+        Robot robot = new Robot(hardware, AutoOrTeleop.TELEOP);
 
         // Enable logging TODO remove
 //        for (SwerveModule module : robot.swomniDrive.swerveModules)
@@ -32,14 +32,17 @@ public class Teleop extends EnhancedOpMode
 
         // Synchronous teleop
         robot.swomniDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
-        robot.swomniDrive.setJoystickDriveMethod(SwomniDrive.JoystickDriveMethod.ROBOT_CENTRIC);
+        robot.swomniDrive.setJoystickControlMethod(SwomniDrive.JoystickControlMethod.ROBOT_CENTRIC);
 
         // Init robot hardware.
         robot.flipper.advanceStage(0);
         robot.intake.stop();
 
-        waitForStart();
+        // Wait until we press start.
+        while (!isStarted())
+            flow.yield();
 
+        // Start gyro anti-drift.
         robot.gyro.startAntiDrift();
 
         ProcessConsole teleopConsole = log.newProcessConsole("Teleop Console");
@@ -60,8 +63,6 @@ public class Teleop extends EnhancedOpMode
             higherFrontLeftkP = originalFrontLeftkP * 1.2;
         }
 
-        double knockerState = 0.5;
-
         while (true)
         {
             // Update controllers
@@ -80,8 +81,17 @@ public class Teleop extends EnhancedOpMode
             }
 
             // region Driver 1 Swerve Control
+            // Potentially change control mode.
+            if (C1.a.currentState == HTButton.ButtonState.JUST_TAPPED)
+                robot.swomniDrive.setSwomniControlMode(SwomniDrive.SwomniControlMode.TANK_DRIVE);
+            else if (C1.gamepad.dpad_left)
+                robot.swomniDrive.setSwomniControlMode(SwomniDrive.SwomniControlMode.SWERVE_DRIVE);
+            else if (C1.gamepad.dpad_right)
+                robot.swomniDrive.setSwomniControlMode(SwomniDrive.SwomniControlMode.HOLONOMIC);
+
             // Update swerve drive
-            if (C1.b.currentState == HTButton.ButtonState.JUST_TAPPED) {
+            if (C1.b.currentState == HTButton.ButtonState.JUST_TAPPED)
+            {
                 if (robot.swomniDrive.getSpeedControl() == SwomniDrive.SpeedControl.FAST)
                     robot.swomniDrive.setSpeedControl(SwomniDrive.SpeedControl.SLOW);
                 else
@@ -165,10 +175,7 @@ public class Teleop extends EnhancedOpMode
                 robot.ballKnocker.toggleDescender();
 
             if (gamepad2.left_trigger > .02 || gamepad2.right_trigger > .02)
-            {
-                knockerState += (gamepad2.right_trigger * .006 - gamepad2.left_trigger * .006);
-                robot.ballKnocker.setKnockerManual(knockerState);
-            }
+                robot.ballKnocker.updatePosition(gamepad2.right_trigger * .006 - gamepad2.left_trigger * .006);
 
             // endregion
 

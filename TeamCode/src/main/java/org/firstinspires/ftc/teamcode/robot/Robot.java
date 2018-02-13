@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.robot.hardware.Lift;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
 
-import hankextensions.AutoOrTeleop;
+import hankextensions.EnhancedOpMode;
 import hankextensions.hardware.HardwareInitializer;
 import hankextensions.hardware.SmarterRangeSensor;
 import hankextensions.phonesensors.AndroidGyro;
@@ -44,7 +44,7 @@ public class Robot
     public final LightingSystem lights;
 
     // Autonomous sensors
-    public final SmarterRangeSensor frontRangeSensor, backRangeSensor;
+    private final SmarterRangeSensor frontRangeSensor, backRangeSensor;
 
     /**
      * A separate method so that their positions can be set ASAP (thus doesn't set off alignment if
@@ -154,7 +154,7 @@ public class Robot
      * @param zeroPowerBehavior The zero power behavior for the motors.
      * @return
      */
-    public static SwerveModule[] getSwerveModules(HardwareInitializer hardware, AutoOrTeleop.Mode opModeSituation, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
+    public static SwerveModule[] getSwerveModules(HardwareInitializer hardware, EnhancedOpMode.AutoOrTeleop opModeSituation, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
     {
         Servo[] swerveModuleServos = getSwerveModuleServos(hardware);
         EncoderMotor[] driveMotors = getDriveMotors(hardware, zeroPowerBehavior);
@@ -243,7 +243,7 @@ public class Robot
     /**
      * Initializes the whole robot.
      */
-    public Robot(HardwareInitializer hardware, AutoOrTeleop.Mode opModeSituation) throws InterruptedException
+    public Robot(HardwareInitializer hardware, EnhancedOpMode.AutoOrTeleop opModeSituation) throws InterruptedException
     {
         // Init the android gyro (make sure to call start()).
         AndroidGyro androidGyro = new AndroidGyro();
@@ -251,13 +251,13 @@ public class Robot
         androidGyro.initAntiDrift();
         gyro = androidGyro;
 
-        // Instantiate the swerve drive.
-        swomniDrive = new SwomniDrive(this, getSwerveModules(hardware, opModeSituation, /*opModeSituation == Mode.AUTONOMOUS ? DcMotor.ZeroPowerBehavior.BRAKE : */DcMotor.ZeroPowerBehavior.FLOAT));
-
         // Init the ADAFRUIT gyro.
 //        gyro = new HankuTankuIMU(hardware.map.get(BNO055IMU.class, "IMU"));
 
-        if (opModeSituation == AutoOrTeleop.Mode.AUTONOMOUS)
+        // Instantiate the swerve drive.
+        swomniDrive = new SwomniDrive(opModeSituation, gyro, getSwerveModules(hardware, opModeSituation, DcMotor.ZeroPowerBehavior.FLOAT));
+
+        if (opModeSituation == EnhancedOpMode.AutoOrTeleop.AUTONOMOUS)
         {
             // Get front and back sensors.
             frontRangeSensor = null; //new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Front Range Sensor"), 0x10);
@@ -277,7 +277,7 @@ public class Robot
         liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         lift = new Lift(liftMotor);
 
-        if (opModeSituation == AutoOrTeleop.Mode.TELEOP)
+        if (opModeSituation == EnhancedOpMode.AutoOrTeleop.TELEOP)
             // Relic Arm init
             relicSystem = new RelicSystem(hardware.initialize(DcMotor.class, "Relic Extender"), hardware.initialize(Servo.class, "Relic Grabber"));
         else

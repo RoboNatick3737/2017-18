@@ -114,21 +114,21 @@ public class SwomniDrive extends ScheduledTask
     {
         return speedControl;
     }
-    //endregion
+    // endregion
 
     // region Joystick Drive Methods
     private Vector2D desiredMovement = Vector2D.ZERO;
     private double desiredHeading = 0;
 
-    public enum JoystickDriveMethod { FIELD_CENTRIC, ROBOT_CENTRIC}
-    private JoystickDriveMethod joystickDriveMethod = JoystickDriveMethod.FIELD_CENTRIC;
-    public void setJoystickDriveMethod(JoystickDriveMethod joystickDriveMethod)
+    public enum JoystickControlMethod { FIELD_CENTRIC, ROBOT_CENTRIC}
+    private JoystickControlMethod joystickControlMethod = JoystickControlMethod.FIELD_CENTRIC;
+    public void setJoystickControlMethod(JoystickControlMethod joystickControlMethod)
     {
-        this.joystickDriveMethod = joystickDriveMethod;
+        this.joystickControlMethod = joystickControlMethod;
     }
-    public JoystickDriveMethod getJoystickDriveMethod()
+    public JoystickControlMethod getJoystickControlMethod()
     {
-        return joystickDriveMethod;
+        return joystickControlMethod;
     }
     // endregion
 
@@ -153,6 +153,10 @@ public class SwomniDrive extends ScheduledTask
         TANK_DRIVE
     }
     private SwomniControlMode swomniControlMode = SwomniControlMode.SWERVE_DRIVE;
+    public void setSwomniControlMode(SwomniControlMode swomniControlMode)
+    {
+        this.swomniControlMode = swomniControlMode;
+    }
     // endregion
 
     private void updateCanDrive()
@@ -191,7 +195,7 @@ public class SwomniDrive extends ScheduledTask
 
             updateCanDrive();
 
-            return 80;
+            return 100;
         }
 
         // Determined based on Field Centric/Robot Centric control mode.
@@ -199,7 +203,7 @@ public class SwomniDrive extends ScheduledTask
         double rotationSpeed = 0;
 
         // Field centric control
-        if (joystickDriveMethod == JoystickDriveMethod.FIELD_CENTRIC)
+        if (joystickControlMethod == JoystickControlMethod.FIELD_CENTRIC)
         {
             if (opModeSituation == EnhancedOpMode.AutoOrTeleop.TELEOP)
             {
@@ -258,7 +262,7 @@ public class SwomniDrive extends ScheduledTask
         }
 
         // Robot centric control.
-        else if (joystickDriveMethod == JoystickDriveMethod.ROBOT_CENTRIC)
+        else if (joystickControlMethod == JoystickControlMethod.ROBOT_CENTRIC)
         {
             // Receive controller input.
             if (opModeSituation == EnhancedOpMode.AutoOrTeleop.TELEOP)
@@ -499,6 +503,25 @@ public class SwomniDrive extends ScheduledTask
         updatePackage.stop();
 
         // Stop all modules.
+        stop();
+    }
+
+    /**
+     * Turns the robot to some pre-specified heading according to the gyro
+     */
+    public void turnRobotToHeading(double heading, double precisionRequired, long msMax, Flow flow) throws InterruptedException
+    {
+        setDesiredHeading(heading);
+
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < msMax && Math.abs(gyro.getHeading() - heading) > precisionRequired)
+        {
+            if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
+                synchronousUpdate();
+
+            flow.yield();
+        }
+
         stop();
     }
     // endregion

@@ -55,6 +55,11 @@ public class MRGyro implements Gyro
     @Override
     public void startAntiDrift() throws InterruptedException {}
 
+    @Override
+    public void applyOffset(double offset) {
+
+    }
+
     //Just resets the gyro.
     public void zero() throws InterruptedException
     {

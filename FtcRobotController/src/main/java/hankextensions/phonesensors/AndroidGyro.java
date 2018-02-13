@@ -131,13 +131,21 @@ public class AndroidGyro implements Gyro
         reset = true;
     }
 
+    private double offset = 0;
+    public void applyOffset(double offset)
+    {
+        this.offset = offset;
+    }
+
     /**
      * Returns the current heading of the bot.
      * @return the heading of the bot.
      */
     public double getHeading()
     {
-        return Vector2D.clampAngle(Vector2D.clampAngle(360 - y) - driftRate * ((System.currentTimeMillis() - startCalibrateTime) / 1000.0));
+        return Vector2D.clampAngle(Vector2D.clampAngle(360 - y)
+                - driftRate * ((System.currentTimeMillis() - startCalibrateTime) / 1000.0)
+                - offset);
     }
 
     /**
