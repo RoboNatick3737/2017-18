@@ -28,7 +28,7 @@ import hankextensions.structs.Vector2D;
  * instantly (hurting the axles).
  */
 
-public class SwerveModule extends ScheduledTask
+public class SwomniModule extends ScheduledTask
 {
     /**
      * The orientation at which it's OK to drive the module.
@@ -44,7 +44,17 @@ public class SwerveModule extends ScheduledTask
     // Swerve wheel specific components.
     private final String moduleName;
     private final double physicalEncoderOffset;
+    private boolean driveMotorTorqueCorrectionEnabled = true;
+    public void setDriveMotorTorqueCorrectionEnabled(boolean enabled)
+    {
+        this.driveMotorTorqueCorrectionEnabled = enabled;
+    }
     private final double driveMotorTorqueCorrection;
+    private boolean enablePassiveAlignmentCorrection = false;
+    public void setEnablePassiveAlignmentCorrection(boolean enabled)
+    {
+        this.enablePassiveAlignmentCorrection = enabled;
+    }
 
     // Queried and set for updates.
     public final EncoderMotor driveMotor;
@@ -112,7 +122,7 @@ public class SwerveModule extends ScheduledTask
     private int numAbsoluteEncoderSkips = 0;
 
     /**
-     * Instantiates the SwerveModule with the data it requires.
+     * Instantiates the SwomniModule with the data it requires.
      * @param moduleName  The module name (will appear with this name in logging).
      * @param driveMotor  The drive motor for the module.
      * @param turnMotor   The turning vex motor for the module.
@@ -120,7 +130,7 @@ public class SwerveModule extends ScheduledTask
      * @param pidController   The PID constants for aligning the vex motor.
      * @param physicalEncoderOffset  The degree offset of the absolute encoder from zero.
      */
-    public SwerveModule(
+    public SwomniModule(
             String moduleName,
             EncoderMotor driveMotor,
             Servo turnMotor,
@@ -133,7 +143,7 @@ public class SwerveModule extends ScheduledTask
     }
     
     /**
-     * Instantiates the SwerveModule with the data it requires.
+     * Instantiates the SwomniModule with the data it requires.
      * @param moduleName  The module name (will appear with this name in logging).
      * @param driveMotor  The drive motor for the module.
      * @param turnMotor   The turning vex motor for the module.
@@ -141,7 +151,7 @@ public class SwerveModule extends ScheduledTask
      * @param errorResponder   The error responder for aligning the vex motor.
      * @param physicalEncoderOffset  The degree offset of the absolute encoder from zero.
      */
-    public SwerveModule(
+    public SwomniModule(
             String moduleName,
             EncoderMotor driveMotor,
             Servo turnMotor,
@@ -193,7 +203,7 @@ public class SwerveModule extends ScheduledTask
     public long onContinueTask() throws InterruptedException
     {
         // If we aren't going to be driving anywhere, don't try to align.
-        if (targetVector.magnitude < .00001)
+        if (targetVector.magnitude < .00001 && !enablePassiveAlignmentCorrection)
         {
             turnMotor.setPosition(0.5);
             currentTurnSpeed = 0;
@@ -279,15 +289,23 @@ public class SwerveModule extends ScheduledTask
                 if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
                     drivePower *= -1;
 
-                if (enableDrivePID)
-                    driveMotor.setVelocity(drivePower);
+                if (targetVector.magnitude < .00001)
+                {
+                    driveMotor.setVelocity(0);
+                    driveMotor.motor.setPower(0);
+                }
                 else
-                    // Works for some reason, used during teleop.
-                    driveMotor.motor.setPower(drivePower / 95.0);
+                {
+                    if (enableDrivePID)
+                        driveMotor.setVelocity(drivePower);
+                    else
+                        // Works for some reason, used during teleop.
+                        driveMotor.motor.setPower(drivePower / 95.0);
+                }
             }
 
             // Try to counteract the torque applied by the driving motor.
-            turnMotor.setPosition(Range.clip(turnPower + driveMotorTorqueCorrection * drivePower, 0, 1));
+            turnMotor.setPosition(Range.clip(turnPower + (driveMotorTorqueCorrectionEnabled ? driveMotorTorqueCorrection * drivePower : 0), 0, 1));
 
             if (wheelConsole != null)
                 // Add console information.

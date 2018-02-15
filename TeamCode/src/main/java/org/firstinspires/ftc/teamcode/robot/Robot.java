@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.LightingSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.RelicSystem;
-import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwomniModule;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwomniDrive;
 import org.firstinspires.ftc.teamcode.structs.Function;
 import org.firstinspires.ftc.teamcode.structs.SwerveModulePIDController;
@@ -154,14 +154,14 @@ public class Robot
      * @param zeroPowerBehavior The zero power behavior for the motors.
      * @return
      */
-    public static SwerveModule[] getSwerveModules(HardwareInitializer hardware, EnhancedOpMode.AutoOrTeleop opModeSituation, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
+    public static SwomniModule[] getSwerveModules(HardwareInitializer hardware, EnhancedOpMode.AutoOrTeleop opModeSituation, DcMotor.ZeroPowerBehavior zeroPowerBehavior)
     {
         Servo[] swerveModuleServos = getSwerveModuleServos(hardware);
         EncoderMotor[] driveMotors = getDriveMotors(hardware, zeroPowerBehavior);
 
-        SwerveModule[] swerveModules = new SwerveModule[4];
+        SwomniModule[] swomniModules = new SwomniModule[4];
 
-        swerveModules[0] = new SwerveModule(
+        swomniModules[0] = new SwomniModule(
                 "Front Left",
                 driveMotors[0],
                 swerveModuleServos[0],
@@ -180,7 +180,7 @@ public class Robot
                 56,
                 .0005);
 
-        swerveModules[1] = new SwerveModule(
+        swomniModules[1] = new SwomniModule(
                 "Back Left",
                 driveMotors[1],
                 swerveModuleServos[1],
@@ -199,7 +199,7 @@ public class Robot
                 71,
                 .001);
 
-        swerveModules[2] = new SwerveModule(
+        swomniModules[2] = new SwomniModule(
                 "Back Right",
                 driveMotors[2],
                 swerveModuleServos[2],
@@ -218,7 +218,7 @@ public class Robot
                 132,
                 .001);
 
-        swerveModules[3] = new SwerveModule(
+        swomniModules[3] = new SwomniModule(
                 "Front Right",
                 driveMotors[3],
                 swerveModuleServos[3],
@@ -237,7 +237,7 @@ public class Robot
                 96,
                 .0005);
 
-        return swerveModules;
+        return swomniModules;
     }
 
     /**
@@ -284,7 +284,7 @@ public class Robot
             relicSystem = null;
 
         // Flipper init
-        flipper = new Flipper(hardware.initialize(Servo.class, "Left Flipper"), hardware.initialize(Servo.class, "Right Flipper"), hardware.initialize(Servo.class, "Glyph Holder"));
+        flipper = new Flipper(hardware.initialize(Servo.class, "Left Flipper"), hardware.initialize(Servo.class, "Right Flipper"), hardware.initialize(Servo.class, "Glyph Clamp"));
 
         // Ball knocker init
         ballKnocker = new BallKnocker(hardware.initialize(Servo.class, "Knocker Holder"), hardware.initialize(Servo.class, "Mini Knocker"));

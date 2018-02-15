@@ -55,7 +55,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         HarvesterGlyphChecker glyphChecker = new HarvesterGlyphChecker();
 
         // Put down the flipper glyph holder servo so that we can see the jewels.
-        robot.flipper.setGlyphHolderUpTo(false);
+//        robot.flipper.setGlyphHolderUpTo(false);
 
         // Orient for turning
         robot.swomniDrive.orientSwerveModulesForRotation(10, 3000, flow);
@@ -220,7 +220,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     desiredDriveLength, null, flow);
 
             // Flip glyph so it slides to bottom.
-            robot.flipper.setGlyphHolderUpTo(true);
+//            robot.flipper.setGlyphHolderUpTo(true);
 
             // Align wheels backward.
             robot.swomniDrive.orientSwerveModules(Vector2D.polar(1, 180), 10, 1500, flow);

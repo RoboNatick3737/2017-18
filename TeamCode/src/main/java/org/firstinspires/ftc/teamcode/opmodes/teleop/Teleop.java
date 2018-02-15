@@ -24,7 +24,7 @@ public class Teleop extends EnhancedOpMode
         Robot robot = new Robot(hardware, AutoOrTeleop.TELEOP);
 
         // Enable logging TODO remove
-//        for (SwerveModule module : robot.swomniDrive.swerveModules)
+//        for (SwomniModule module : robot.swomniDrive.swomniModules)
 //            module.setEnableLogging(true);
 
         // Set enable logging for relic arm.
@@ -51,7 +51,7 @@ public class Teleop extends EnhancedOpMode
         boolean seanInIntakeMode = true;
 
         // The front left swerve module has a hard time dealing with the torque on it.
-        PIDController frontLeftkPController = robot.swomniDrive.swerveModules[0].errorResponder instanceof PIDController ? (PIDController)(robot.swomniDrive.swerveModules[0].errorResponder) : null;
+        PIDController frontLeftkPController = robot.swomniDrive.swomniModules[0].errorResponder instanceof PIDController ? (PIDController)(robot.swomniDrive.swomniModules[0].errorResponder) : null;
 
         double originalFrontLeftkP = 0;
         double higherFrontLeftkP = 0;

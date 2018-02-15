@@ -10,7 +10,7 @@
       android:id="@+id/aboutOpenFTC"
       android:layout_alignParentBottom="true"
       android:text="About OpenFTC"
-      android:layout_height="wrap_content"/>
+      android:layout_height="0dp"/>
 
   <ListView
     android:id="@+id/aboutList"

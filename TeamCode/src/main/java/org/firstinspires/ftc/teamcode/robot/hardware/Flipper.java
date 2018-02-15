@@ -11,23 +11,49 @@ import org.firstinspires.ftc.teamcode.structs.TimedFunction;
  */
 public class Flipper
 {
-    private static final double FLIP_MIN = 1, FLIP_MID_START = .8, FLIP_MID_END = .65, FLIP_MAX = .35;
-    private static final double RIGHT_FLIPPER_OFFSET = .19;
-    private static final double GLYPH_HOLDER_UP = 0.5, GLYPH_HOLDER_DOWN = 0;
-
+    // region Flipper Servos
+    private final Servo left, right;
     private int currentStage = -1;
+    private static final double RIGHT_FLIPPER_OFFSET = .19;
+    private enum FlipPosition
+    {
+        MIN(1),
+        MID_START(.65),
+        MID_END(.42),
+        MAX(.35);
 
-    private final Servo left, right, glyphHolder;
+        public final double position;
+        FlipPosition(double position)
+        {
+            this.position = position;
+        }
+    }
+    // endregion
+
+    // region Glyph Clamper
+    private final Servo glyphClamp;
+    private enum GlyphClamp
+    {
+        CLAMP(0.8),
+        FREE(0.5);
+
+        public final double position;
+        GlyphClamp(double position)
+        {
+            this.position = position;
+        }
+    }
+    // endregion
 
     // The current servo position (getPosition() doesn't seem to work).
-    private double position = FLIP_MIN;
+    private double position = FlipPosition.MIN.position;
     private TimedFunction liftFunc = null;
 
-    public Flipper(Servo left, Servo right, Servo glyphHolder)
+    public Flipper(Servo left, Servo right, Servo glyphClamp)
     {
         this.left = left;
         this.right = right;
-        this.glyphHolder = glyphHolder;
+        this.glyphClamp = glyphClamp;
 
         advanceStage(0);
     }
@@ -48,25 +74,25 @@ public class Flipper
         switch(stage)
         {
             case 0:
-                position = FLIP_MIN;
-                glyphHolder.setPosition(GLYPH_HOLDER_UP);
+                position = FlipPosition.MIN.position;
+                glyphClamp.setPosition(GlyphClamp.FREE.position);
                 liftFunc = null;
                 break;
 
             case 1:
-                position = FLIP_MID_START;
-                glyphHolder.setPosition(GLYPH_HOLDER_UP);
+                position = FlipPosition.MID_START.position;
+                glyphClamp.setPosition(GlyphClamp.CLAMP.position);
                 liftFunc = new TimedFunction(new Function() {
                     @Override
                     public double value(double input) {
-                        return -.25 * input + FLIP_MID_START; // gradient lift
+                        return -.25 * input + FlipPosition.MID_START.position; // gradient lift
                     }
                 });
                 break;
 
             case 2:
-                position = FLIP_MAX;
-                glyphHolder.setPosition(GLYPH_HOLDER_DOWN);
+                position = FlipPosition.MAX.position;
+                glyphClamp.setPosition(GlyphClamp.FREE.position);
                 liftFunc = null;
                 break;
         }
@@ -83,7 +109,7 @@ public class Flipper
             return;
 
         position = liftFunc.value();
-        if (position < FLIP_MID_END)
+        if (position < FlipPosition.MID_END.position)
         {
             liftFunc = null;
             return;
@@ -105,10 +131,5 @@ public class Flipper
     {
         this.position = position;
         updateFlipperPositions();
-    }
-
-    public void setGlyphHolderUpTo(boolean up)
-    {
-        glyphHolder.setPosition(up ? GLYPH_HOLDER_UP : GLYPH_HOLDER_DOWN);
     }
 }

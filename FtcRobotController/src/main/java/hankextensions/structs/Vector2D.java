@@ -54,8 +54,12 @@ public class Vector2D
                 break;
 
             case POLAR:
-                this.magnitude = val1;
-                this.angle = clampAngle(val2);
+                this.magnitude = Math.abs(val1);
+
+                if (val1 < 0)
+                    this.angle = clampAngle(val2 - 180);
+                else
+                    this.angle = clampAngle(val2);
 
                 this.x = magnitude * Math.cos(Math.toRadians(angle));
                 this.y = magnitude * Math.sin(Math.toRadians(angle));

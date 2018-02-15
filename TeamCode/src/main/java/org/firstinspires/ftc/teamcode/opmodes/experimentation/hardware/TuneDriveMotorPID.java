@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
-import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
 import org.firstinspires.ftc.teamcode.structs.PIDController;
 
 import hankextensions.EnhancedOpMode;

@@ -19,7 +19,7 @@ import hankextensions.phonesensors.Gyro;
 import hankextensions.structs.Vector2D;
 
 /**
- * The SwomniDrive contains 4 SwerveModule instances to which a number of vectors are specified
+ * The SwomniDrive contains 4 SwomniModule instances to which a number of vectors are specified
  * in order to determine the direction in which movement will occur.
  */
 public class SwomniDrive extends ScheduledTask
@@ -33,8 +33,8 @@ public class SwomniDrive extends ScheduledTask
     private final Gyro gyro;
     private final EnhancedOpMode.AutoOrTeleop opModeSituation;
 
-    // The SwerveModule instances which constitute the swerve drive: frontLeft, backLeft, backRight, frontRight respectively.
-    public final SwerveModule[] swerveModules;
+    // The SwomniModule instances which constitute the swerve drive: frontLeft, backLeft, backRight, frontRight respectively.
+    public final SwomniModule[] swomniModules;
 
     // Required for operation of the driving tasks.
     private final ScheduledTaskPackage swerveUpdatePackage;
@@ -59,20 +59,20 @@ public class SwomniDrive extends ScheduledTask
      * @param opModeSituation        The part of the program where this occurs.
      * @param modules      The swerve modules (in an array duh)
      */
-    public SwomniDrive(EnhancedOpMode.AutoOrTeleop opModeSituation, Gyro gyro, SwerveModule[] modules)
+    public SwomniDrive(EnhancedOpMode.AutoOrTeleop opModeSituation, Gyro gyro, SwomniModule[] modules)
     {
         this.opModeSituation = opModeSituation;
         this.gyro = gyro;
 
         // The swerve wheels.
-        this.swerveModules = modules;
+        this.swomniModules = modules;
 
         if (opModeSituation == EnhancedOpMode.AutoOrTeleop.AUTONOMOUS)
         {
             // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
             swerveUpdatePackage = new ScheduledTaskPackage(EnhancedOpMode.instance, "Swerve Turn Alignments",
-                    this, this.swerveModules[0], this.swerveModules[1], this.swerveModules[2], this.swerveModules[3],
-                    this.swerveModules[0].driveMotor, this.swerveModules[1].driveMotor, this.swerveModules[2].driveMotor, this.swerveModules[3].driveMotor);
+                    this, this.swomniModules[0], this.swomniModules[1], this.swomniModules[2], this.swomniModules[3],
+                    this.swomniModules[0].driveMotor, this.swomniModules[1].driveMotor, this.swomniModules[2].driveMotor, this.swomniModules[3].driveMotor);
         }
 
         // Teleop mode is weird... we don't use drive PID.
@@ -80,11 +80,13 @@ public class SwomniDrive extends ScheduledTask
         {
             // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
             swerveUpdatePackage = new ScheduledTaskPackage(EnhancedOpMode.instance, "Swerve Turn Alignments",
-                    this, this.swerveModules[0], this.swerveModules[1], this.swerveModules[2], this.swerveModules[3]);
+                    this, this.swomniModules[0], this.swomniModules[1], this.swomniModules[2], this.swomniModules[3]);
 
-            for (SwerveModule module : modules)
+            for (SwomniModule module : modules)
                 module.setEnableDrivePID(false);
         }
+
+        setSwomniControlMode(SwomniControlMode.SWERVE_DRIVE);
 
         swerveConsole = LoggingBase.instance.newProcessConsole("Swerve Console");
     }
@@ -156,6 +158,23 @@ public class SwomniDrive extends ScheduledTask
     public void setSwomniControlMode(SwomniControlMode swomniControlMode)
     {
         this.swomniControlMode = swomniControlMode;
+
+        if (swomniControlMode == SwomniControlMode.SWERVE_DRIVE)
+        {
+            for (SwomniModule swomniModule : swomniModules)
+            {
+                swomniModule.setDriveMotorTorqueCorrectionEnabled(true);
+                swomniModule.setEnablePassiveAlignmentCorrection(false);
+            }
+        }
+        else
+        {
+            for (SwomniModule swomniModule : swomniModules)
+            {
+                swomniModule.setDriveMotorTorqueCorrectionEnabled(false);
+                swomniModule.setEnablePassiveAlignmentCorrection(true);
+            }
+        }
     }
     // endregion
 
@@ -163,7 +182,7 @@ public class SwomniDrive extends ScheduledTask
     {
         // Updates the swerve modules on whether we can drive.
         boolean drivingCanStart = true;
-        for (SwerveModule wheel : swerveModules)
+        for (SwomniModule wheel : swomniModules)
         {
             if (!wheel.atAcceptableSwivelOrientation())
             {
@@ -171,7 +190,7 @@ public class SwomniDrive extends ScheduledTask
                 break;
             }
         }
-        for (SwerveModule wheel : swerveModules)
+        for (SwomniModule wheel : swomniModules)
             wheel.setDrivingState(drivingCanStart);
     }
 
@@ -187,10 +206,10 @@ public class SwomniDrive extends ScheduledTask
             if (opModeSituation == EnhancedOpMode.AutoOrTeleop.TELEOP)
             {
                 for (int i = 0 ; i <= 1; i++)
-                    swerveModules[i].setVectorTarget(Vector2D.rectangular(HTGamepad.CONTROLLER1.leftJoystick().y, 0));
+                    swomniModules[i].setVectorTarget(Vector2D.rectangular(HTGamepad.CONTROLLER1.leftJoystick().y, 0));
 
                 for (int i = 2 ; i <= 3; i++)
-                    swerveModules[i].setVectorTarget(Vector2D.rectangular(HTGamepad.CONTROLLER1.rightJoystick().y, 0));
+                    swomniModules[i].setVectorTarget(Vector2D.rectangular(HTGamepad.CONTROLLER1.rightJoystick().y, 0));
             }
 
             updateCanDrive();
@@ -271,7 +290,7 @@ public class SwomniDrive extends ScheduledTask
                 if (desiredMovement.magnitude < .0005)
                     desiredMovement = Vector2D.ZERO;
 
-                rotationSpeed = HTGamepad.CONTROLLER1.gamepad.right_stick_x;
+                rotationSpeed = -HTGamepad.CONTROLLER1.rightJoystick().y;
             }
 
             // Set vector targets for wheels.
@@ -288,15 +307,23 @@ public class SwomniDrive extends ScheduledTask
         // By setting vector targets, SwerveModules will take care of their own orientation.
         if (swomniControlMode == SwomniControlMode.SWERVE_DRIVE)
         {
-            for (int i = 0; i < swerveModules.length; i++)
-                Vector2D.polar(rotationSpeed * speedControl.turnSpeed, WHEEL_ORIENTATIONS[i]).add(driveVector);
+            for (int i = 0; i < swomniModules.length; i++)
+                swomniModules[i].setVectorTarget(
+                        Vector2D.polar(rotationSpeed * speedControl.turnSpeed, WHEEL_ORIENTATIONS[i])
+                                .add(driveVector));
         }
         else if (swomniControlMode == SwomniControlMode.HOLONOMIC)
         {
-            for (int i = 0; i < swerveModules.length; i++)
-                swerveModules[i].setVectorTarget(Vector2D.polar(
-                        rotationSpeed * speedControl.turnSpeed + driveVector.magnitude * speedControl.driveSpeed * Math.cos(Math.toDegrees(Math.abs(WHEEL_ORIENTATIONS[i] - driveVector.angle))),
-                        WHEEL_ORIENTATIONS[i]));
+            for (int i = 0; i < swomniModules.length; i++)
+            {
+                double angleOff = (Vector2D.clampAngle(WHEEL_ORIENTATIONS[i] - driveVector.angle) + 180) % 360 - 180;
+                angleOff = angleOff < -180 ? angleOff + 360 : angleOff;
+
+                swomniModules[i].setVectorTarget(
+                        Vector2D.polar(
+                                rotationSpeed * speedControl.turnSpeed + driveVector.magnitude * speedControl.driveSpeed * Math.cos(Math.toRadians(angleOff)),
+                                WHEEL_ORIENTATIONS[i]));
+            }
         }
 
         updateCanDrive();
@@ -330,9 +357,9 @@ public class SwomniDrive extends ScheduledTask
      */
     public double[] currentDrivePosition()
     {
-        double[] toReturn = new double[swerveModules.length];
+        double[] toReturn = new double[swomniModules.length];
         for (int i = 0; i < toReturn.length; i++)
-            toReturn[i] = swerveModules[i].driveMotor.currentDistanceMoved();
+            toReturn[i] = swomniModules[i].driveMotor.currentDistanceMoved();
         return toReturn;
     }
 
@@ -351,7 +378,7 @@ public class SwomniDrive extends ScheduledTask
         ProcessConsole distanceConsole = LoggingBase.instance.newProcessConsole("Distance Drive");
 
         // Represents distance driven by each module.
-        double[] cumulativeOffsets = new double[swerveModules.length];
+        double[] cumulativeOffsets = new double[swomniModules.length];
 
         double[] lastPosition = currentDrivePosition();
         boolean canStop = false; // becomes true once the average offset reaches the requested distance.
@@ -445,8 +472,8 @@ public class SwomniDrive extends ScheduledTask
      */
     public void orientSwerveModules(Vector2D orientationVector, double precisionRequired, long msMax, Flow flow) throws InterruptedException
     {
-        for (int i = 0; i < swerveModules.length; i++)
-            swerveModules[i].setVectorTarget(orientationVector);
+        for (int i = 0; i < swomniModules.length; i++)
+            swomniModules[i].setVectorTarget(orientationVector);
 
         orientModules(precisionRequired, msMax, flow);
     }
@@ -456,8 +483,8 @@ public class SwomniDrive extends ScheduledTask
      */
     public void orientSwerveModulesForRotation(double precisionRequired, long msMax, Flow flow) throws InterruptedException
     {
-        for (int i = 0; i < swerveModules.length; i++)
-            swerveModules[i].setVectorTarget(Vector2D.polar(1, WHEEL_ORIENTATIONS[i]));
+        for (int i = 0; i < swomniModules.length; i++)
+            swomniModules[i].setVectorTarget(Vector2D.polar(1, WHEEL_ORIENTATIONS[i]));
 
         orientModules(precisionRequired, msMax, flow);
     }
@@ -473,7 +500,7 @@ public class SwomniDrive extends ScheduledTask
         ScheduledTaskPackage updatePackage = new ScheduledTaskPackage(
                 flow.parent,
                 "Orienting",
-                swerveModules[0], swerveModules[1], swerveModules[2], swerveModules[3]);
+                swomniModules[0], swomniModules[1], swomniModules[2], swomniModules[3]);
         updatePackage.setUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         long start = System.currentTimeMillis();
@@ -484,7 +511,7 @@ public class SwomniDrive extends ScheduledTask
 
             // Whether orientations need to keep being updated.
             boolean orientationsAreGood = true;
-            for (SwerveModule module : swerveModules)
+            for (SwomniModule module : swomniModules)
             {
                 if (Math.abs(module.getAngleLeftToTurn()) > precisionRequired)
                 {
@@ -532,7 +559,7 @@ public class SwomniDrive extends ScheduledTask
      */
     public void stop()
     {
-        for (SwerveModule wheel : swerveModules)
+        for (SwomniModule wheel : swomniModules)
             wheel.stopWheel();
 
         setDesiredMovement(Vector2D.ZERO);

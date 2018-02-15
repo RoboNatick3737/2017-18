@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 import org.firstinspires.ftc.teamcode.robot.Robot;
-import org.firstinspires.ftc.teamcode.robot.hardware.SwerveModule;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwomniModule;
 import org.firstinspires.ftc.teamcode.structs.PIDController;
 
 import hankextensions.EnhancedOpMode;
@@ -18,10 +18,10 @@ public class TuneSwerveModulePID extends EnhancedOpMode
     @Override
     protected void onRun() throws InterruptedException
     {
-        SwerveModule[] modules = Robot.getSwerveModules(hardware, AutoOrTeleop.TELEOP, DcMotor.ZeroPowerBehavior.FLOAT);
+        SwomniModule[] modules = Robot.getSwerveModules(hardware, AutoOrTeleop.TELEOP, DcMotor.ZeroPowerBehavior.FLOAT);
 
         // All must be PIDController instances or we can't run this.
-        for (SwerveModule module : modules)
+        for (SwomniModule module : modules)
         {
             if (!(module.errorResponder instanceof PIDController))
             {
@@ -44,7 +44,7 @@ public class TuneSwerveModulePID extends EnhancedOpMode
         long lastToggle = System.currentTimeMillis();
         while (true)
         {
-            for (SwerveModule module : modules)
+            for (SwomniModule module : modules)
             {
                 module.setVectorTarget(C1.leftJoystick().multiply(70));
             }
@@ -106,7 +106,7 @@ public class TuneSwerveModulePID extends EnhancedOpMode
                 current.kI += adjuster;
 
             boolean drivingCanStart = true;
-            for (SwerveModule wheel : modules)
+            for (SwomniModule wheel : modules)
             {
                 if (!wheel.atAcceptableSwivelOrientation())
                 {
@@ -114,7 +114,7 @@ public class TuneSwerveModulePID extends EnhancedOpMode
                     break;
                 }
             }
-            for (SwerveModule wheel : modules)
+            for (SwomniModule wheel : modules)
                 wheel.setDrivingState(drivingCanStart);
 
             tasks.synchronousUpdate();

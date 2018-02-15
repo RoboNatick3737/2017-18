@@ -53,7 +53,7 @@ public class EncoderMotor extends ScheduledTask
     private final int ENCODER_TICKS_PER_REVOLUTION;
 
     /**
-     * The wheel circumference which this motor drives (public so that SwerveModule
+     * The wheel circumference which this motor drives (public so that SwomniModule
      * can look at this to know how much to correct by)
      */
     public final double WHEEL_CIRCUMFERENCE;
