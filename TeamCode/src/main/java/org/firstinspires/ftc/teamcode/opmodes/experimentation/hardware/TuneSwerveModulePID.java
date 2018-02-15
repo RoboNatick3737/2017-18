@@ -23,7 +23,7 @@ public class TuneSwerveModulePID extends EnhancedOpMode
         // All must be PIDController instances or we can't run this.
         for (SwomniModule module : modules)
         {
-            if (!(module.errorResponder instanceof PIDController))
+            if (!(module.swerveErrorResponder instanceof PIDController))
             {
                 log.lines("Can't continue");
                 flow.msPause(5000);
@@ -89,7 +89,7 @@ public class TuneSwerveModulePID extends EnhancedOpMode
                 adjuster = .0000001;
             }
 
-            PIDController current = (PIDController) modules[currentIndex].errorResponder;
+            PIDController current = (PIDController) modules[currentIndex].swerveErrorResponder;
             if (gamepad1.a)
                 current.kP -= adjuster;
             else if (gamepad1.y)

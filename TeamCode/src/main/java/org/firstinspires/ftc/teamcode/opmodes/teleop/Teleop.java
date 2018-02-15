@@ -50,19 +50,6 @@ public class Teleop extends EnhancedOpMode
         // Constant driver mode stuff.
         boolean seanInIntakeMode = true;
 
-        // The front left swerve module has a hard time dealing with the torque on it.
-        PIDController frontLeftkPController = robot.swomniDrive.swomniModules[0].errorResponder instanceof PIDController ? (PIDController)(robot.swomniDrive.swomniModules[0].errorResponder) : null;
-
-        double originalFrontLeftkP = 0;
-        double higherFrontLeftkP = 0;
-        boolean atHigherkP = false;
-
-        if (frontLeftkPController != null)
-        {
-            originalFrontLeftkP = frontLeftkPController.kP;
-            higherFrontLeftkP = originalFrontLeftkP * 1.2;
-        }
-
         while (true)
         {
             // Update controllers
@@ -83,11 +70,19 @@ public class Teleop extends EnhancedOpMode
             // region Driver 1 Swerve Control
             // Potentially change control mode.
             if (C1.a.currentState == HTButton.ButtonState.JUST_TAPPED)
-                robot.swomniDrive.setSwomniControlMode(SwomniDrive.SwomniControlMode.TANK_DRIVE);
-            else if (C1.gamepad.dpad_left)
-                robot.swomniDrive.setSwomniControlMode(SwomniDrive.SwomniControlMode.SWERVE_DRIVE);
-            else if (C1.gamepad.dpad_right)
-                robot.swomniDrive.setSwomniControlMode(SwomniDrive.SwomniControlMode.HOLONOMIC);
+            {
+                if (robot.swomniDrive.getSwomniControlMode() == SwomniDrive.SwomniControlMode.TANK_DRIVE)
+                    robot.swomniDrive.setSwomniControlMode(SwomniDrive.SwomniControlMode.SWERVE_DRIVE);
+                else
+                    robot.swomniDrive.setSwomniControlMode(SwomniDrive.SwomniControlMode.TANK_DRIVE);
+            }
+            else if (C1.y.currentState == HTButton.ButtonState.JUST_TAPPED)
+            {
+                if (robot.swomniDrive.getSwomniControlMode() == SwomniDrive.SwomniControlMode.HOLONOMIC)
+                    robot.swomniDrive.setSwomniControlMode(SwomniDrive.SwomniControlMode.SWERVE_DRIVE);
+                else
+                    robot.swomniDrive.setSwomniControlMode(SwomniDrive.SwomniControlMode.HOLONOMIC);
+            }
 
             // Update swerve drive
             if (C1.b.currentState == HTButton.ButtonState.JUST_TAPPED)
@@ -103,16 +98,6 @@ public class Teleop extends EnhancedOpMode
             // region Driver 1: Intake Mode
             if (seanInIntakeMode)
             {
-                if (atHigherkP)
-                {
-                    if (frontLeftkPController != null)
-                        frontLeftkPController.kP = originalFrontLeftkP;
-
-                    atHigherkP = false;
-
-                    robot.relicSystem.extensionEstimate = 0;
-                }
-
                 // Control flipper
                 if (C1.x.currentState == HTButton.ButtonState.JUST_TAPPED)
                     robot.flipper.advanceStage();
@@ -141,24 +126,6 @@ public class Teleop extends EnhancedOpMode
                     robot.relicSystem.toggleGrabber();
 
                 robot.relicSystem.variableExtension(C1.gamepad.right_trigger, C1.gamepad.left_trigger);
-
-                if (!atHigherkP && robot.relicSystem.extensionEstimate > 5000)
-                {
-                    if (frontLeftkPController != null)
-                    {
-                        frontLeftkPController.kP = higherFrontLeftkP;
-                        atHigherkP = true;
-                    }
-                }
-
-                if (atHigherkP && robot.relicSystem.extensionEstimate < 5000)
-                {
-                    if (frontLeftkPController != null)
-                    {
-                        frontLeftkPController.kP = originalFrontLeftkP;
-                        atHigherkP = false;
-                    }
-                }
             }
             //endregion
 
@@ -179,9 +146,7 @@ public class Teleop extends EnhancedOpMode
 
             // endregion
 
-            teleopConsole.write(
-                    "In " + (seanInIntakeMode ? "intake mode" : "relic arm mode"),
-                    "At higher kp = " + atHigherkP);
+            teleopConsole.write("In " + (seanInIntakeMode ? "intake mode" : "relic arm mode"));
 
             flow.yield();
         }

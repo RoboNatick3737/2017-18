@@ -19,8 +19,8 @@ public class Flipper
     {
         MIN(1),
         MID_START(.65),
-        MID_END(.42),
-        MAX(.35);
+        MID_END(.45),
+        MAX(.3);
 
         public final double position;
         FlipPosition(double position)

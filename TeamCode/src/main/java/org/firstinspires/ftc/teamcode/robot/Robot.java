@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.robot.hardware.RelicSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwomniModule;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwomniDrive;
 import org.firstinspires.ftc.teamcode.structs.Function;
-import org.firstinspires.ftc.teamcode.structs.SwerveModulePIDController;
+import org.firstinspires.ftc.teamcode.structs.ModifiedPIDController;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.robot.hardware.Flipper;
 import org.firstinspires.ftc.teamcode.robot.hardware.Intake;
@@ -166,17 +166,17 @@ public class Robot
                 driveMotors[0],
                 swerveModuleServos[0],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
-                new SwerveModulePIDController(0.0052, 0, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
-//                new Function()
-//                {
-//                    public double value(double input)
-//                    {
-//                        if (Math.abs(input) < 1)
-//                            return 0;
-//                        return Math.signum(input) * (.05 + .003 * Math.abs(input));
-//                    }
-//                },
-//                50,
+
+                // For swerve drive mode.
+                new ModifiedPIDController(0.0052, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+
+                // For holonomic mode
+                new ModifiedPIDController(0.0062, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+
+                // For tank drive mode
+                new ModifiedPIDController(0.0062, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+
+                50,
                 56,
                 .0005);
 
@@ -185,17 +185,17 @@ public class Robot
                 driveMotors[1],
                 swerveModuleServos[1],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
-                new SwerveModulePIDController(0.0062, 0, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
-//                new Function()
-//                {
-//                    public double value(double input)
-//                    {
-//                        if (Math.abs(input) < 1)
-//                            return 0;
-//                        return Math.signum(input) * (.05 + .003 * Math.abs(input));
-//                    }
-//                },
-//                50,
+
+                // For swerve drive mode.
+                new ModifiedPIDController(0.0062, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+
+                // For holonomic mode
+                new ModifiedPIDController(0.0062, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+
+                // For tank drive mode
+                new ModifiedPIDController(0.0062, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+
+                50,
                 71,
                 .001);
 
@@ -204,17 +204,17 @@ public class Robot
                 driveMotors[2],
                 swerveModuleServos[2],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
-                new SwerveModulePIDController(0.007, 0, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
-//                new Function()
-//                {
-//                    public double value(double input)
-//                    {
-//                        if (Math.abs(input) < 1)
-//                            return 0;
-//                        return Math.signum(input) * (.075 + .0035 * Math.abs(input));
-//                    }
-//                },
-//                50,
+
+                // For swerve drive mode.
+                new ModifiedPIDController(0.007, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+
+                // For holonomic mode
+                new ModifiedPIDController(0.007, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+
+                // For tank drive mode
+                new ModifiedPIDController(0.007, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+
+                50,
                 132,
                 .001);
 
@@ -223,17 +223,17 @@ public class Robot
                 driveMotors[3],
                 swerveModuleServos[3],
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
-                new SwerveModulePIDController(0.0056, 0, 0, .5, SwerveModulePIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
-//                new Function()
-//                {
-//                    public double value(double input)
-//                    {
-//                        if (Math.abs(input) < 1)
-//                            return 0;
-//                        return Math.signum(input) * (.05 + .003 * Math.abs(input));
-//                    }
-//                },
-//                50,
+
+                // For swerve drive mode.
+                new ModifiedPIDController(0.0056, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+
+                // For holonomic mode
+                new ModifiedPIDController(0.0056, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+
+                // For tank drive mode
+                new ModifiedPIDController(0.0056, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+
+                50,
                 96,
                 .0005);
 

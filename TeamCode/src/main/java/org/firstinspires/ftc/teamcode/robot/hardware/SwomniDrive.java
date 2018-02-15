@@ -11,6 +11,8 @@ import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
 import hankextensions.EnhancedOpMode;
 import hankextensions.input.HTGamepad;
 
+import org.firstinspires.ftc.teamcode.structs.Function;
+import org.firstinspires.ftc.teamcode.structs.ModifiedPIDController;
 import org.firstinspires.ftc.teamcode.structs.PIDController;
 import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
 import org.firstinspires.ftc.teamcode.structs.SingleParameterRunnable;
@@ -27,7 +29,7 @@ public class SwomniDrive extends ScheduledTask
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
-    private static final PIDController FIELD_CENTRIC_TURN_CONTROLLER = new PIDController(.008, 0, 0, 5, PIDController.TimeUnits.MILLISECONDS, 40, -1000, 1000);
+    private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.009, 0, 0, 5, PIDController.TimeUnits.MILLISECONDS, 40, -1000, 1000, .95);
 
     // Robot reference (for gyro and such).
     private final Gyro gyro;
@@ -176,6 +178,10 @@ public class SwomniDrive extends ScheduledTask
             }
         }
     }
+    public SwomniControlMode getSwomniControlMode()
+    {
+        return swomniControlMode;
+    }
     // endregion
 
     private void updateCanDrive()
@@ -195,7 +201,7 @@ public class SwomniDrive extends ScheduledTask
     }
 
     /**
-     * A scheduled task to ensure swerve consistency.
+     * Runs every update, just does a lot of vector algebra depending on the drive mode we're in.
      */
     @Override
     protected long onContinueTask() throws InterruptedException
@@ -205,11 +211,13 @@ public class SwomniDrive extends ScheduledTask
         {
             if (opModeSituation == EnhancedOpMode.AutoOrTeleop.TELEOP)
             {
-                for (int i = 0 ; i <= 1; i++)
-                    swomniModules[i].setVectorTarget(Vector2D.rectangular(HTGamepad.CONTROLLER1.leftJoystick().y, 0));
+                double rotationSpeed = HTGamepad.CONTROLLER1.leftJoystick().x - HTGamepad.CONTROLLER1.rightJoystick().x;
+                double driveSpeed = (HTGamepad.CONTROLLER1.leftJoystick().x + HTGamepad.CONTROLLER1.rightJoystick().x) / 2.0;
 
-                for (int i = 2 ; i <= 3; i++)
-                    swomniModules[i].setVectorTarget(Vector2D.rectangular(HTGamepad.CONTROLLER1.rightJoystick().y, 0));
+                for (int i = 0; i < swomniModules.length; i++)
+                    swomniModules[i].setVectorTarget(
+                            Vector2D.polar(0.25 * rotationSpeed * speedControl.turnSpeed, WHEEL_ORIENTATIONS[i])
+                                    .add(Vector2D.polar(driveSpeed * speedControl.driveSpeed, 0)));
             }
 
             updateCanDrive();
@@ -321,7 +329,7 @@ public class SwomniDrive extends ScheduledTask
 
                 swomniModules[i].setVectorTarget(
                         Vector2D.polar(
-                                rotationSpeed * speedControl.turnSpeed + driveVector.magnitude * speedControl.driveSpeed * Math.cos(Math.toRadians(angleOff)),
+                                rotationSpeed * speedControl.turnSpeed + 2 * driveVector.magnitude * Math.cos(Math.toRadians(angleOff)),
                                 WHEEL_ORIENTATIONS[i]));
             }
         }

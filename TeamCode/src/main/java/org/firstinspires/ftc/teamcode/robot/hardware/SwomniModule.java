@@ -40,7 +40,37 @@ public class SwomniModule extends ScheduledTask
      * is definitely turning, immediately request the next update.
      */
     private static final boolean ABSOLUTE_ENCODER_UPDATE_CHECK = false, DAMP_TURN_SPEED_IF_SO = false;
-    
+
+    // The PID controllers for each swerve mode (more sensitive on holonomic mode and tank mode).
+    private Function errorResponder;
+    public final Function swerveErrorResponder, holonomicErrorResponder, tankErrorResponder;
+    private SwomniDrive.SwomniControlMode controlMode;
+    public void setControlMode(SwomniDrive.SwomniControlMode controlMode)
+    {
+        this.controlMode = controlMode;
+
+        switch (controlMode)
+        {
+            case SWERVE_DRIVE:
+                this.errorResponder = swerveErrorResponder;
+                setDriveMotorTorqueCorrectionEnabled(true);
+                setEnablePassiveAlignmentCorrection(false);
+                break;
+
+            case HOLONOMIC:
+                this.errorResponder = holonomicErrorResponder;
+                setDriveMotorTorqueCorrectionEnabled(false);
+                setEnablePassiveAlignmentCorrection(true);
+                break;
+
+            case TANK_DRIVE:
+                this.errorResponder = tankErrorResponder;
+                setDriveMotorTorqueCorrectionEnabled(false);
+                setEnablePassiveAlignmentCorrection(true);
+                break;
+        }
+    }
+
     // Swerve wheel specific components.
     private final String moduleName;
     private final double physicalEncoderOffset;
@@ -62,7 +92,6 @@ public class SwomniModule extends ScheduledTask
     private final AbsoluteEncoder swerveEncoder;
 
     // The PID controller components which prevents wheel oscillation.
-    public final Function errorResponder;
     private long updateRateMS;
     
     // Whether or not we can log.
@@ -120,27 +149,6 @@ public class SwomniModule extends ScheduledTask
 
     // Required for absolute encoder position verification
     private int numAbsoluteEncoderSkips = 0;
-
-    /**
-     * Instantiates the SwomniModule with the data it requires.
-     * @param moduleName  The module name (will appear with this name in logging).
-     * @param driveMotor  The drive motor for the module.
-     * @param turnMotor   The turning vex motor for the module.
-     * @param swerveEncoder  The absolute encoder on the vex motor.
-     * @param pidController   The PID constants for aligning the vex motor.
-     * @param physicalEncoderOffset  The degree offset of the absolute encoder from zero.
-     */
-    public SwomniModule(
-            String moduleName,
-            EncoderMotor driveMotor,
-            Servo turnMotor,
-            AbsoluteEncoder swerveEncoder,
-            PIDController pidController,
-            double physicalEncoderOffset,
-            double driveMotorTorqueCorrection)
-    {
-        this(moduleName, driveMotor, turnMotor, swerveEncoder, pidController, (long)(pidController.minimumNanosecondGap / 1e3), physicalEncoderOffset, driveMotorTorqueCorrection);
-    }
     
     /**
      * Instantiates the SwomniModule with the data it requires.
@@ -148,7 +156,7 @@ public class SwomniModule extends ScheduledTask
      * @param driveMotor  The drive motor for the module.
      * @param turnMotor   The turning vex motor for the module.
      * @param swerveEncoder  The absolute encoder on the vex motor.
-     * @param errorResponder   The error responder for aligning the vex motor.
+     * @param swerveErrorResponder   The error responder for aligning the vex motor.
      * @param physicalEncoderOffset  The degree offset of the absolute encoder from zero.
      */
     public SwomniModule(
@@ -156,7 +164,9 @@ public class SwomniModule extends ScheduledTask
             EncoderMotor driveMotor,
             Servo turnMotor,
             AbsoluteEncoder swerveEncoder,
-            Function errorResponder,
+            Function swerveErrorResponder,
+            Function holonomicErrorResponder,
+            Function tankErrorResponder,
             long updateRateMS,
             double physicalEncoderOffset,
             double driveMotorTorqueCorrection)
@@ -168,7 +178,11 @@ public class SwomniModule extends ScheduledTask
         this.swerveEncoder = swerveEncoder;
         this.physicalEncoderOffset = physicalEncoderOffset;
 
-        this.errorResponder = errorResponder;
+        this.swerveErrorResponder = swerveErrorResponder;
+        this.holonomicErrorResponder = holonomicErrorResponder;
+        this.tankErrorResponder = tankErrorResponder;
+        setControlMode(SwomniDrive.SwomniControlMode.SWERVE_DRIVE);
+
         this.updateRateMS = updateRateMS;
         this.driveMotorTorqueCorrection = driveMotorTorqueCorrection;
     }

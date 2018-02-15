@@ -20,12 +20,14 @@ import hankextensions.vision.opencv.OpenCVCam;
 import hankextensions.vision.vuforia.VuforiaCam;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwomniModule;
 import org.firstinspires.ftc.teamcode.structs.Function;
 import org.firstinspires.ftc.teamcode.structs.SingleParameterRunnable;
 import org.firstinspires.ftc.teamcode.structs.TimedFunction;
 import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.HarvesterGlyphChecker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
+import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.NonLocalizedJewelDetector;
 
 public abstract class Autonomous extends EnhancedOpMode implements CompetitionProgram
 {
@@ -51,93 +53,52 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         robot.swomniDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         // Init the viewers.
-        JewelDetector jewelDetector = new JewelDetector();
+        NonLocalizedJewelDetector jewelDetector = new NonLocalizedJewelDetector();
         HarvesterGlyphChecker glyphChecker = new HarvesterGlyphChecker();
 
         // Put down the flipper glyph holder servo so that we can see the jewels.
 //        robot.flipper.setGlyphHolderUpTo(false);
 
+        // Disable PID on driving because we want quick movements.
+        for (SwomniModule module : robot.swomniDrive.swomniModules)
+            module.setEnableDrivePID(false);
+
         // Orient for turning
         robot.swomniDrive.orientSwerveModulesForRotation(10, 3000, flow);
 
-        // region Detect cryptokey pose during initialization
-        RelicRecoveryVuMark detectedVuMark = RelicRecoveryVuMark.UNKNOWN;
-        double angleOffset = 0;
-
-        VuforiaCam vuforiaCam = new VuforiaCam();
-        vuforiaCam.start();
-        VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
-        vuforiaCam.getTrackables().activate();
-        ProcessConsole vuforiaConsole = log.newProcessConsole("Vuforia");
-        while (!isStarted())
-        {
-            detectedVuMark = RelicRecoveryVuMark.from(relicTemplate);
-
-            if (detectedVuMark != RelicRecoveryVuMark.UNKNOWN)
-            {
-                OpenGLMatrix pose = ((VuforiaTrackableDefaultListener)relicTemplate.getListener()).getPose();
-
-                if (pose != null) {
-//                    VectorF trans = pose.getTranslation();
-                    Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
-
-//                    // Extract the X, Y, and Z components of the offset of the target relative to the robot
-//                    double tX = trans.get(0);
-//                    double tY = trans.get(1);
-//                    double tZ = trans.get(2);
-//
-//                    // Extract the rotational components of the target relative to the robot
-//                    double rX = rot.firstAngle;
-//                    double rY = rot.secondAngle;
-//                    double rZ = rot.thirdAngle;
-
-
-                    vuforiaConsole.write(
-                            "Detected: " + detectedVuMark.toString(),
-                            "Rotation: <" + rot.firstAngle + ", " + rot.secondAngle + ", " + rot.thirdAngle + ">");
-
-                    angleOffset = rot.secondAngle;
-                }
-                else
-                {
-                    vuforiaConsole.write("Detected: " + detectedVuMark.toString());
-                }
-            }
-
-            flow.yield();
-        }
-        vuforiaConsole.destroy();
-        // endregion
-
-        // Turn for angle offset.
-        robot.gyro.applyOffset(angleOffset);
-        robot.swomniDrive.turnRobotToHeading(0, 2, 5000, flow);
-
         // DON'T specify a default order, if we mess this up we lose points.
         OpenCVCam openCVCam = new OpenCVCam();
-        JewelDetector.JewelOrder jewelOrder = JewelDetector.JewelOrder.UNKNOWN;
+        NonLocalizedJewelDetector.JewelOrder jewelOrder = NonLocalizedJewelDetector.JewelOrder.UNKNOWN;
 
-        // Jewel detection
+        // region Jewel detection
         openCVCam.start(jewelDetector);
+
+        ProcessConsole jewelConsole = log.newProcessConsole("Jewels");
+        while (!isStarted())
+        {
+            jewelConsole.write("Looking at " + jewelDetector.getCurrentOrder().toString());
+            flow.yield();
+        }
+        jewelConsole.destroy();
+
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < 5000)
         {
             jewelOrder = jewelDetector.getCurrentOrder();
 
-            if (jewelOrder != JewelDetector.JewelOrder.UNKNOWN)
+            if (jewelOrder != NonLocalizedJewelDetector.JewelOrder.UNKNOWN)
                 break;
 
             flow.yield();
         }
         openCVCam.stop();
 
-        // region Knock Ball
-        if (jewelOrder != JewelDetector.JewelOrder.UNKNOWN)
+        if (jewelOrder != NonLocalizedJewelDetector.JewelOrder.UNKNOWN)
         {
             // Determine which direction we're going to have to rotate when auto starts.
             if (getAlliance() == Alliance.RED) // since this extends competition op mode.
             {
-                if (jewelOrder == JewelDetector.JewelOrder.BLUE_RED)
+                if (jewelOrder == NonLocalizedJewelDetector.JewelOrder.BLUE_RED)
                     robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
                 else
                     robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
@@ -145,12 +106,41 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             }
             else if (getAlliance() == Alliance.BLUE)
             {
-                if (jewelOrder == JewelDetector.JewelOrder.BLUE_RED)
+                if (jewelOrder == NonLocalizedJewelDetector.JewelOrder.BLUE_RED)
                     robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
                 else
                     robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
             }
         }
+        // endregion
+
+        // Init while turning
+        VuforiaCam vuforiaCam = new VuforiaCam();
+        vuforiaCam.start();
+
+        // region Detect cryptokey
+        robot.swomniDrive.turnRobotToHeading(20, 5, 4000, flow);
+
+        RelicRecoveryVuMark detectedVuMark = RelicRecoveryVuMark.UNKNOWN;
+
+        VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
+        vuforiaCam.getTrackables().activate();
+        ProcessConsole vuforiaConsole = log.newProcessConsole("Vuforia");
+
+        start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < 8000)
+        {
+            RelicRecoveryVuMark vumark = RelicRecoveryVuMark.from(relicTemplate);
+
+            if (vumark != RelicRecoveryVuMark.UNKNOWN)
+                detectedVuMark = vumark;
+
+            flow.yield();
+        }
+
+        vuforiaConsole.destroy();
+
+        robot.swomniDrive.turnRobotToHeading(0, 5, 4000, flow);
         // endregion
 
         // region Place Pre-Loaded Glyph
@@ -208,7 +198,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     new Function() {
                         @Override
                         public double value(double input) {
-                            return 0.5 - .3 * input;
+                            return 0.3 - .15 * input;
                         }
                     },
                     new Function() {
