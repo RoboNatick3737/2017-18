@@ -53,7 +53,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         robot.swomniDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         // Init the viewers.
-        NonLocalizedJewelDetector jewelDetector = new NonLocalizedJewelDetector();
+        JewelDetector jewelDetector = new JewelDetector();
         HarvesterGlyphChecker glyphChecker = new HarvesterGlyphChecker();
 
         // Put down the flipper glyph holder servo so that we can see the jewels.
@@ -68,7 +68,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         // DON'T specify a default order, if we mess this up we lose points.
         OpenCVCam openCVCam = new OpenCVCam();
-        NonLocalizedJewelDetector.JewelOrder jewelOrder = NonLocalizedJewelDetector.JewelOrder.UNKNOWN;
+        JewelDetector.JewelOrder jewelOrder = JewelDetector.JewelOrder.UNKNOWN;
 
         // region Jewel detection
         openCVCam.start(jewelDetector);
@@ -86,30 +86,30 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         {
             jewelOrder = jewelDetector.getCurrentOrder();
 
-            if (jewelOrder != NonLocalizedJewelDetector.JewelOrder.UNKNOWN)
+            if (jewelOrder != JewelDetector.JewelOrder.UNKNOWN)
                 break;
 
             flow.yield();
         }
         openCVCam.stop();
 
-        if (jewelOrder != NonLocalizedJewelDetector.JewelOrder.UNKNOWN)
+        if (jewelOrder != JewelDetector.JewelOrder.UNKNOWN)
         {
             // Determine which direction we're going to have to rotate when auto starts.
             if (getAlliance() == Alliance.RED) // since this extends competition op mode.
             {
-                if (jewelOrder == NonLocalizedJewelDetector.JewelOrder.BLUE_RED)
-                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
-                else
+                if (jewelOrder == JewelDetector.JewelOrder.BLUE_RED)
                     robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
+                else
+                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
 
             }
             else if (getAlliance() == Alliance.BLUE)
             {
-                if (jewelOrder == NonLocalizedJewelDetector.JewelOrder.BLUE_RED)
-                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
-                else
+                if (jewelOrder == JewelDetector.JewelOrder.BLUE_RED)
                     robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
+                else
+                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
             }
         }
         // endregion
@@ -128,15 +128,21 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         ProcessConsole vuforiaConsole = log.newProcessConsole("Vuforia");
 
         start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < 8000)
+        while (System.currentTimeMillis() - start < 9000)
         {
-            RelicRecoveryVuMark vumark = RelicRecoveryVuMark.from(relicTemplate);
+            detectedVuMark = RelicRecoveryVuMark.from(relicTemplate);
+            vuforiaConsole.write("Currently seeing " + detectedVuMark.toString());
 
-            if (vumark != RelicRecoveryVuMark.UNKNOWN)
-                detectedVuMark = vumark;
+            if (detectedVuMark != RelicRecoveryVuMark.UNKNOWN)
+                break;
 
             flow.yield();
         }
+
+        log.lines("Chose " + detectedVuMark.toString());
+
+        if (detectedVuMark == RelicRecoveryVuMark.UNKNOWN)
+            detectedVuMark = RelicRecoveryVuMark.CENTER;
 
         vuforiaConsole.destroy();
 
@@ -146,10 +152,9 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // region Place Pre-Loaded Glyph
         robot.intake.intake();
 
-        // Simple Autonomous
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
-            double[] DEPOSIT_LOCATIONS = {65.2, 81.2, 89.8};
+            double[] DEPOSIT_LOCATIONS = new double[]{61.2, 79.2, 97.8};
 
             // battery adjustment
             double batteryDriveCorrection = batteryCoefficient * -.2;
@@ -198,7 +203,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     new Function() {
                         @Override
                         public double value(double input) {
-                            return 0.3 - .15 * input;
+                            return 0.25 + (1 - batteryCoefficient) * .05 - .15 * input;
                         }
                     },
                     new Function() {
@@ -215,28 +220,56 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             // Align wheels backward.
             robot.swomniDrive.orientSwerveModules(Vector2D.polar(1, 180), 10, 1500, flow);
 
-            // Drive back to the cryptobox.
-            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
-                    new Function() {
-                        @Override
-                        public double value(double input) {
-                            return 0.4 - .3 * input;
+            // Drive back to the cryptobox, using range sensor if possible.
+            if (robot.backRangeSensor.initializedCorrectly)
+            {
+                int streak = 0;
+                double closeThreshold = 24;
+                while (true)
+                {
+                    double rangeSensorDist = robot.backRangeSensor.getForwardDist();
+
+                    if (rangeSensorDist < closeThreshold)
+                    {
+                        streak++;
+
+                        if (streak > 3)
+                        {
+                            break;
                         }
-                    },
-                    new Function() {
-                        @Override
-                        public double value(double input) {
-                            return 180;
-                        }
-                    }),
-                    12.5, null, flow);
+                    }
+                    else
+                        streak = 0;
+
+                    robot.swomniDrive.setDesiredMovement(Vector2D.polar(0.2 + (1 - batteryCoefficient) * .05 - .15 * (closeThreshold - rangeSensorDist) / (255 - closeThreshold), 180));
+
+                    robot.swomniDrive.synchronousUpdate();
+
+                    flow.yield();
+                }
+
+                robot.swomniDrive.stop();
+            }
+            else
+            {
+                robot.swomniDrive.driveDistance(ParametrizedVector.polar(
+                        new Function() {
+                            @Override
+                            public double value(double input) {
+                                return 0.4 - .3 * input;
+                            }
+                        },
+                        new Function() {
+                            @Override
+                            public double value(double input) {
+                                return 180;
+                            }
+                        }),
+                        12.5, null, flow);
+            }
 
             // Turn for better glyph placement
-            double desiredHeading = getAlliance() == Alliance.BLUE ? 330 : 30;
-            robot.swomniDrive.setDesiredHeading(desiredHeading);
-            while (Math.abs(robot.gyro.getHeading() - desiredHeading) > 3)
-                robot.swomniDrive.synchronousUpdate();
-            robot.swomniDrive.stop();
+            robot.swomniDrive.turnRobotToHeading(getAlliance() == Alliance.BLUE ? 330 : 30, 5, 3000, flow);
 
             // Dump glyph
             TimedFunction flipperPos = new TimedFunction(new Function() {
@@ -264,27 +297,202 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             // Shove glyph in
             robot.swomniDrive.setDesiredHeading(getAlliance() == Alliance.BLUE ? 20 : 340);// A bit of rotation helps smush the cube in.
             robot.swomniDrive.driveTime(Vector2D.polar(0.5, 180), 1400, flow);
+
+            // Make sure we aren't touching the glyph
+            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 0.3;
+                        }
+                    },
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 0;
+                        }
+                    }),
+                    7, null, flow);
         }
-
-        // TODO Pain in the A** autonomous
         else if (getBalancePlate() == BalancePlate.TOP)
-        {}
+        {
+            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 0.25 + (1 - batteryCoefficient) * .05 - .15 * input;
+                        }
+                    },
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return getAlliance() == Alliance.RED ? 270 : 90;
+                        }
+                    }),
+                    65, null, flow);
 
-        // Make sure we aren't touching the glyph
-        robot.swomniDrive.driveDistance(ParametrizedVector.polar(
-                new Function() {
-                    @Override
-                    public double value(double input) {
-                        return 0.3;
+            robot.swomniDrive.turnRobotToHeading(getAlliance() == Alliance.BLUE ? 270 : 90, 5, 9000, flow);
+
+            double[] DEPOSIT_LOCATIONS = new double[]{21.2, 39.2, 57.8};
+
+            // battery adjustment
+            double batteryDriveCorrection = batteryCoefficient * -.2;
+            for (int i = 0; i < DEPOSIT_LOCATIONS.length; i++)
+                DEPOSIT_LOCATIONS[i] += batteryDriveCorrection;
+
+            // Choose the length to drive.
+            double desiredDriveLength = 0;
+            if (getAlliance() == Alliance.BLUE)
+            {
+                switch (detectedVuMark)
+                {
+                    case LEFT:
+                        desiredDriveLength = DEPOSIT_LOCATIONS[0];
+                        break;
+
+                    case CENTER:
+                        desiredDriveLength = DEPOSIT_LOCATIONS[1];
+                        break;
+
+                    case RIGHT:
+                        desiredDriveLength = DEPOSIT_LOCATIONS[2];
+                        break;
+                }
+            }
+            else
+            {
+                switch (detectedVuMark)
+                {
+                    case LEFT:
+                        desiredDriveLength = DEPOSIT_LOCATIONS[2];
+                        break;
+
+                    case CENTER:
+                        desiredDriveLength = DEPOSIT_LOCATIONS[1];
+                        break;
+
+                    case RIGHT:
+                        desiredDriveLength = DEPOSIT_LOCATIONS[0];
+                        break;
+                }
+            }
+
+            // Drive that length slowing down over time.
+            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 0.25 + (1 - batteryCoefficient) * .05 - .15 * input;
+                        }
+                    },
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return getAlliance() == Alliance.RED ? 180 : 0;
+                        }
+                    }),
+                    desiredDriveLength, null, flow);
+
+            // Align wheels backward.
+            robot.swomniDrive.orientSwerveModules(Vector2D.polar(1, 180), 10, 1500, flow);
+
+            // Drive back to the cryptobox, using range sensor if possible.
+            if (robot.backRangeSensor.initializedCorrectly)
+            {
+                int streak = 0;
+                double closeThreshold = 24;
+                while (true)
+                {
+                    double rangeSensorDist = robot.backRangeSensor.getForwardDist();
+
+                    if (rangeSensorDist < closeThreshold)
+                    {
+                        streak++;
+
+                        if (streak > 3)
+                        {
+                            break;
+                        }
                     }
-                },
-                new Function() {
-                    @Override
-                    public double value(double input) {
-                        return 0;
-                    }
-                }),
-                7, null, flow);
+                    else
+                        streak = 0;
+
+                    robot.swomniDrive.setDesiredMovement(Vector2D.polar(0.2 + (1 - batteryCoefficient) * .05 - .15 * (closeThreshold - rangeSensorDist) / (255 - closeThreshold), getAlliance() == Alliance.RED ? 270 : 90));
+
+                    robot.swomniDrive.synchronousUpdate();
+
+                    flow.yield();
+                }
+
+                robot.swomniDrive.stop();
+            }
+            else
+            {
+                robot.swomniDrive.driveDistance(ParametrizedVector.polar(
+                        new Function() {
+                            @Override
+                            public double value(double input) {
+                                return 0.4 - .3 * input;
+                            }
+                        },
+                        new Function() {
+                            @Override
+                            public double value(double input) {
+                                return getAlliance() == Alliance.RED ? 270 : 90;
+                            }
+                        }),
+                        12.5, null, flow);
+            }
+
+            // Turn for better glyph placement
+            robot.swomniDrive.turnRobotToHeading(getAlliance() == Alliance.BLUE ? getAlliance() == Alliance.RED ? 60 : 240 : getAlliance() == Alliance.RED ? 300 : 120, 5, 3000, flow);
+
+            // Dump glyph
+            TimedFunction flipperPos = new TimedFunction(new Function() {
+                @Override
+                public double value(double input) {
+                    return -.25 * input + .8;
+                }
+            });
+            while (true)
+            {
+                if (flipperPos.value() < .4)
+                    break;
+
+                robot.flipper.setFlipperPositionManually(flipperPos.value());
+
+                flow.yield();
+            }
+            robot.intake.stop();
+            robot.flipper.advanceStage(2);
+
+            if (true)
+                return;
+
+            // Drive away from glyph
+            robot.swomniDrive.setDesiredHeading(0);
+            robot.swomniDrive.driveTime(Vector2D.polar(0.3, getAlliance() == Alliance.BLUE ? 10 : 350), 1200, flow);
+
+            // Shove glyph in
+            robot.swomniDrive.setDesiredHeading(getAlliance() == Alliance.BLUE ? 20 : 340);// A bit of rotation helps smush the cube in.
+            robot.swomniDrive.driveTime(Vector2D.polar(0.5, 180), 1400, flow);
+
+            // Make sure we aren't touching the glyph
+            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 0.3;
+                        }
+                    },
+                    new Function() {
+                        @Override
+                        public double value(double input) {
+                            return 0;
+                        }
+                    }),
+                    7, null, flow);
+        }
 
         // endregion
 

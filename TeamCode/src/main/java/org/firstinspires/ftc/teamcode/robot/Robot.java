@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -44,7 +45,7 @@ public class Robot
     public final LightingSystem lights;
 
     // Autonomous sensors
-    private final SmarterRangeSensor frontRangeSensor, backRangeSensor;
+    public final SmarterRangeSensor frontRangeSensor, backRangeSensor;
 
     /**
      * A separate method so that their positions can be set ASAP (thus doesn't set off alignment if
@@ -262,6 +263,9 @@ public class Robot
             // Get front and back sensors.
             frontRangeSensor = null; //new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Front Range Sensor"), 0x10);
             backRangeSensor = new SmarterRangeSensor(hardware.initialize(ModernRoboticsI2cRangeSensor.class, "Back Range Sensor"), 0x2c);
+
+            if (backRangeSensor.getForwardDist() >= 255)
+                LoggingBase.instance.lines("RANGE SENSOR FUCKED UP REEEEE (power cycle the robot)");
         }
         else
         {

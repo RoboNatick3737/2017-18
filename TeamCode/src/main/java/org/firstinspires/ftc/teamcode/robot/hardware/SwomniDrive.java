@@ -29,7 +29,7 @@ public class SwomniDrive extends ScheduledTask
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
-    private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.009, 0, 0, 5, PIDController.TimeUnits.MILLISECONDS, 40, -1000, 1000, .95);
+    private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.0081, 0, 0, 5, PIDController.TimeUnits.MILLISECONDS, 40, -1000, 1000, .95);
 
     // Robot reference (for gyro and such).
     private final Gyro gyro;
@@ -91,6 +91,8 @@ public class SwomniDrive extends ScheduledTask
         setSwomniControlMode(SwomniControlMode.SWERVE_DRIVE);
 
         swerveConsole = LoggingBase.instance.newProcessConsole("Swerve Console");
+
+        stop();
     }
     // endregion
 
@@ -270,7 +272,7 @@ public class SwomniDrive extends ScheduledTask
             angleOff = angleOff < -180 ? angleOff + 360 : angleOff;
 
             // Figure out the actual translation vector for swerve wheels based on gyro value.
-            Vector2D fieldCentricTranslation = desiredMovement.rotateBy(-gyroHeading);
+            Vector2D fieldCentricTranslation = desiredMovement.rotateBy(-desiredHeading);
 
             // Don't bother trying to be more accurate than 8 degrees while turning.
             rotationSpeed = FIELD_CENTRIC_TURN_CONTROLLER.value(-angleOff);
@@ -309,7 +311,8 @@ public class SwomniDrive extends ScheduledTask
                 swerveConsole.write(
                         "Desired Angle: " + desiredHeading,
                         "Rotation Speed: " + rotationSpeed,
-                        "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR));
+                        "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
+                        FIELD_CENTRIC_TURN_CONTROLLER instanceof PIDController ? "PID: " + ((PIDController)FIELD_CENTRIC_TURN_CONTROLLER).summary() : "");
         }
 
         // By setting vector targets, SwerveModules will take care of their own orientation.
@@ -546,13 +549,27 @@ public class SwomniDrive extends ScheduledTask
      */
     public void turnRobotToHeading(double heading, double precisionRequired, long msMax, Flow flow) throws InterruptedException
     {
+        if (FIELD_CENTRIC_TURN_CONTROLLER instanceof PIDController)
+            ((PIDController) FIELD_CENTRIC_TURN_CONTROLLER).resetController();
+
         setDesiredHeading(heading);
 
         long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < msMax && Math.abs(gyro.getHeading() - heading) > precisionRequired)
+        boolean wasGoodLast = false;
+        while (System.currentTimeMillis() - start < msMax)
         {
             if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
                 synchronousUpdate();
+
+            if (Math.abs(gyro.getHeading() - heading) < precisionRequired)
+            {
+                if (wasGoodLast)
+                    break;
+                else
+                    wasGoodLast = true;
+            }
+            else
+                wasGoodLast = false;
 
             flow.yield();
         }
@@ -571,6 +588,8 @@ public class SwomniDrive extends ScheduledTask
             wheel.stopWheel();
 
         setDesiredMovement(Vector2D.ZERO);
-        setDesiredHeading(0);
+
+        if (FIELD_CENTRIC_TURN_CONTROLLER instanceof PIDController)
+            ((PIDController) FIELD_CENTRIC_TURN_CONTROLLER).resetController();
     }
 }
