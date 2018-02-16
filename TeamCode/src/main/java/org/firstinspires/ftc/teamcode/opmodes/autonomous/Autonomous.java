@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
 import com.makiah.makiahsandroidlib.logging.ProcessConsole;
 import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -65,6 +66,10 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         // Orient for turning
         robot.swomniDrive.orientSwerveModulesForRotation(10, 3000, flow);
+
+        // Kind of helps the modules from sliding off the balance board during the match.
+        for (SwomniModule module : robot.swomniDrive.swomniModules)
+            module.driveMotor.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // DON'T specify a default order, if we mess this up we lose points.
         OpenCVCam openCVCam = new OpenCVCam();
@@ -147,6 +152,10 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         vuforiaConsole.destroy();
 
         robot.swomniDrive.turnRobotToHeading(0, 5, 4000, flow);
+
+        // Return to default mode to drive off the platform.
+        for (SwomniModule module : robot.swomniDrive.swomniModules)
+            module.driveMotor.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         // endregion
 
         // region Place Pre-Loaded Glyph
@@ -331,6 +340,10 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     }),
                     65, null, flow);
 
+            flow.msPause(5000);
+
+            robot.swomniDrive.setDesiredMovement(Vector2D.ZERO);
+
             robot.swomniDrive.turnRobotToHeading(getAlliance() == Alliance.BLUE ? 270 : 90, 5, 9000, flow);
 
             double[] DEPOSIT_LOCATIONS = new double[]{21.2, 39.2, 57.8};
@@ -466,15 +479,15 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             robot.intake.stop();
             robot.flipper.advanceStage(2);
 
+            // Drive away from glyph
+            robot.swomniDrive.setDesiredHeading(getAlliance() == Alliance.RED ? 90 : 270);
+            robot.swomniDrive.driveTime(Vector2D.polar(0.3, getAlliance() == Alliance.RED ? 80 : 260), 1200, flow);
+
             if (true)
                 return;
 
-            // Drive away from glyph
-            robot.swomniDrive.setDesiredHeading(0);
-            robot.swomniDrive.driveTime(Vector2D.polar(0.3, getAlliance() == Alliance.BLUE ? 10 : 350), 1200, flow);
-
             // Shove glyph in
-            robot.swomniDrive.setDesiredHeading(getAlliance() == Alliance.BLUE ? 20 : 340);// A bit of rotation helps smush the cube in.
+            robot.swomniDrive.setDesiredHeading(getAlliance() == Alliance.RED ? 20 : 340);// A bit of rotation helps smush the cube in.
             robot.swomniDrive.driveTime(Vector2D.polar(0.5, 180), 1400, flow);
 
             // Make sure we aren't touching the glyph

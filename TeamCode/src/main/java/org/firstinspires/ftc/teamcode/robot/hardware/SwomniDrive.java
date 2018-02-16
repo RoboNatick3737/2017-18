@@ -29,7 +29,7 @@ public class SwomniDrive extends ScheduledTask
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
-    private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.0081, 0, 0, 5, PIDController.TimeUnits.MILLISECONDS, 40, -1000, 1000, .95);
+    private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.0081, .001, 0, 5, PIDController.TimeUnits.MILLISECONDS, 40, -1000, 1000, .95);
 
     // Robot reference (for gyro and such).
     private final Gyro gyro;
@@ -276,6 +276,10 @@ public class SwomniDrive extends ScheduledTask
 
             // Don't bother trying to be more accurate than 8 degrees while turning.
             rotationSpeed = FIELD_CENTRIC_TURN_CONTROLLER.value(-angleOff);
+
+            if (opModeSituation == EnhancedOpMode.AutoOrTeleop.AUTONOMOUS)
+                if (Math.abs(rotationSpeed) > .324)
+                    rotationSpeed = Math.signum(rotationSpeed) * .324;
 
             // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
             driveVector = fieldCentricTranslation.multiply(speedControl.driveSpeed);
@@ -555,21 +559,19 @@ public class SwomniDrive extends ScheduledTask
         setDesiredHeading(heading);
 
         long start = System.currentTimeMillis();
-        boolean wasGoodLast = false;
+        int streak = 0;
         while (System.currentTimeMillis() - start < msMax)
         {
             if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
                 synchronousUpdate();
 
             if (Math.abs(gyro.getHeading() - heading) < precisionRequired)
-            {
-                if (wasGoodLast)
-                    break;
-                else
-                    wasGoodLast = true;
-            }
+                streak++;
             else
-                wasGoodLast = false;
+                streak = 0;
+
+            if (streak > 5)
+                break;
 
             flow.yield();
         }
