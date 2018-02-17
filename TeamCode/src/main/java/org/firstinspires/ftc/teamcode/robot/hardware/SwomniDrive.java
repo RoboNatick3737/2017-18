@@ -566,12 +566,14 @@ public class SwomniDrive extends ScheduledTask
                 synchronousUpdate();
 
             if (Math.abs(gyro.getHeading() - heading) < precisionRequired)
+            {
                 streak++;
+
+                if (streak > 5)
+                    break;
+            }
             else
                 streak = 0;
-
-            if (streak > 5)
-                break;
 
             flow.yield();
         }
