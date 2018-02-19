@@ -8,6 +8,7 @@ import android.hardware.SensorManager;
 
 import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
 
+import hankextensions.structs.Angle;
 import hankextensions.structs.Vector2D;
 
 public class AndroidGyro implements Gyro
@@ -116,10 +117,9 @@ public class AndroidGyro implements Gyro
      */
     public void startAntiDrift()
     {
-        double diff = Vector2D.clampAngle(360 - y);
-        diff = diff > 180 ? diff - 360 : diff;
+        double drift = 360 - y;
 
-        driftRate = diff / ((System.currentTimeMillis() - startCalibrateTime) / 1000.0);
+        driftRate = Angle.degrees(drift).value(Angle.MeasurementType.DEGREES) / ((System.currentTimeMillis() - startCalibrateTime) / 1000.0);
         zero();
     }
 
@@ -141,9 +141,9 @@ public class AndroidGyro implements Gyro
      * Returns the current heading of the bot.
      * @return the heading of the bot.
      */
-    public double getHeading()
+    public Angle getHeading()
     {
-        return Vector2D.clampAngle(Vector2D.clampAngle(360 - y)
+        return Angle.degrees(360 - y
                 - driftRate * ((System.currentTimeMillis() - startCalibrateTime) / 1000.0)
                 - offset);
     }

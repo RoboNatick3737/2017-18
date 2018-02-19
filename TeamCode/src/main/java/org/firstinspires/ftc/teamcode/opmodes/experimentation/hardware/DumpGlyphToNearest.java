@@ -60,7 +60,7 @@ public class DumpGlyphToNearest extends EnhancedOpMode
                 offFromHorizontalIdeal = -1;
             }
 
-            robot.swomniDrive.setDesiredMovement(Vector2D.rectangular(forwardSpeed, horizontalSpeed));
+            robot.swomniDrive.setDesiredMovement(new Vector2D(forwardSpeed, horizontalSpeed));
 
             // Wait until we have a new reading (frames can take a while to process)
             double currentOffFromForward = offFromForwardIdeal, currentOffFromHorizontal = offFromHorizontalIdeal; // use other vals as anchor points

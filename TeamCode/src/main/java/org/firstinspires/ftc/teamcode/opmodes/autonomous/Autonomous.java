@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
 import hankextensions.EnhancedOpMode;
+import hankextensions.structs.Angle;
 import hankextensions.structs.Vector2D;
 import hankextensions.vision.opencv.OpenCVCam;
 import hankextensions.vision.vuforia.VuforiaCam;
@@ -128,7 +129,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // Init while turning
         vuforiaCam.start();
 
-        robot.swomniDrive.turnRobotToHeading(20, 5, 4000, flow);
+        robot.swomniDrive.turnRobotToHeading(Angle.degrees(20), Angle.degrees(5), 4000, flow);
 
         RelicRecoveryVuMark detectedVuMark = RelicRecoveryVuMark.UNKNOWN;
 
@@ -155,7 +156,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         vuforiaConsole.destroy();
 
-        robot.swomniDrive.turnRobotToHeading(0, 5, 4000, flow);
+        robot.swomniDrive.turnRobotToHeading(Angle.ZERO, Angle.degrees(5), 4000, flow);
 
         // Return to default mode to drive off the platform.
         for (SwomniModule module : robot.swomniDrive.swomniModules)
@@ -165,10 +166,15 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // region Place Pre-Loaded Glyph
         robot.intake.intake();
 
-        double[] DEPOSIT_LOCATIONS = new double[3];
+        // Depends on top or bottom.
+        double[] DEPOSIT_LOCATIONS;
 
         // Define this so that all angles are easy to correct for the top plate.
-        final double depositAngle = getBalancePlate() == BalancePlate.TOP ? getAlliance() == Alliance.BLUE ? 270 : 90 : 0;
+        final Angle depositAngle = getBalancePlate() == BalancePlate.TOP ?
+                getAlliance() == Alliance.BLUE ?
+                        Angle.degrees(270) :
+                        Angle.degrees(90) :
+                Angle.ZERO;
 
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
@@ -194,7 +200,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     65, null, flow);
 
             // Now turn to the heading which faces the cryptobox.
-            robot.swomniDrive.turnRobotToHeading(depositAngle, 5, 9000, flow);
+            robot.swomniDrive.turnRobotToHeading(depositAngle, Angle.degrees(5), 9000, flow);
 
             DEPOSIT_LOCATIONS = new double[]{21.2, 39.2, 57.8};
         }
@@ -262,7 +268,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         // Align wheels in preparation to drive backward (this is robot-centric).
         robot.swomniDrive.orientSwerveModules(
-                Vector2D.polar(1, 180),
+                new Vector2D(1, Angle.degrees(180)),
                 10,
                 1500,
                 flow);
@@ -289,10 +295,10 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     streak = 0;
 
                 robot.swomniDrive.setDesiredMovement(
-                        Vector2D.polar(
+                        new Vector2D(
                                 0.2 + (1 - batteryCoefficient) * .05
                                         - .15 * (closeThreshold - rangeSensorDist) / (255 - closeThreshold),
-                                Vector2D.clampAngle(180 + depositAngle)));
+                                depositAngle.opposing()));
                 robot.swomniDrive.synchronousUpdate();
 
                 flow.yield();
@@ -312,18 +318,15 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     new Function() {
                         @Override
                         public double value(double input) {
-                            return Vector2D.clampAngle(180 + depositAngle); // opposite direction from angle offset (0 for bottom plate)
+                            return depositAngle.opposing().value(Angle.MeasurementType.DEGREES);
                         }
                     }),
                     12.5, null, flow);
         }
 
         // Turn for better glyph placement
-        double glyphPlacementAngle = 30 * (getAlliance() == Alliance.BLUE ? -1 : 1);
-        robot.swomniDrive.turnRobotToHeading(
-                Vector2D.clampAngle(depositAngle + glyphPlacementAngle),
-                5, 3000,
-                flow);
+        Angle glyphPlacementAngle = Angle.degrees(30 * (getAlliance() == Alliance.BLUE ? -1 : 1));
+        robot.swomniDrive.turnRobotToHeading(depositAngle.add(glyphPlacementAngle), Angle.degrees(5), 3000, flow);
 
         // Dump glyph
         TimedFunction flipperPos = new TimedFunction(new Function() {
@@ -346,13 +349,13 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         // Drive away from glyph
         robot.swomniDrive.setDesiredHeading(depositAngle);
-        double driveOffsetAngle = 10 * (getAlliance() == Alliance.BLUE ? 1 : -1);
-        robot.swomniDrive.driveTime(Vector2D.polar(0.3, Vector2D.clampAngle(depositAngle + driveOffsetAngle)), 1200, flow);
+        Angle driveOffsetAngle = Angle.degrees(10 * (getAlliance() == Alliance.BLUE ? 1 : -1));
+        robot.swomniDrive.driveTime(new Vector2D(0.3, depositAngle.add(driveOffsetAngle)), 1200, flow);
 
         // Smush in dat glyph
-        double smushAngle = 20 * (getAlliance() == Alliance.BLUE ? 1 : -1);
-        robot.swomniDrive.setDesiredHeading(Vector2D.clampAngle(depositAngle + smushAngle));
-        robot.swomniDrive.driveTime(Vector2D.polar(0.5, Vector2D.clampAngle(180 + depositAngle)), 1400, flow);
+        Angle smushAngle = Angle.degrees(20 * (getAlliance() == Alliance.BLUE ? 1 : -1));
+        robot.swomniDrive.setDesiredHeading(depositAngle.add(smushAngle));
+        robot.swomniDrive.driveTime(new Vector2D(0.5, depositAngle.opposing()), 1400, flow);
 
         // Make sure we aren't touching the glyph
         robot.swomniDrive.driveDistance(ParametrizedVector.polar(
@@ -365,7 +368,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                 new Function() {
                     @Override
                     public double value(double input) {
-                        return depositAngle;
+                        return depositAngle.value(Angle.MeasurementType.DEGREES);
                     }
                 }),
                 7, null, flow);
@@ -383,7 +386,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             robot.intake.intake();
 
             // Drive to where the glyph pit is but stop directly in front of it.
-            robot.swomniDrive.setDesiredHeading(0);
+            robot.swomniDrive.setDesiredHeading(Angle.ZERO);
             robot.swomniDrive.driveDistance(ParametrizedVector.polar(
                     new Function() {
                         @Override
@@ -413,7 +416,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
             // Initialize the viewer and wait for glyphs to show up in the harvester.
             openCVCam.start(glyphChecker);
-            robot.swomniDrive.setDesiredMovement(Vector2D.polar(0.3, 0));
+            robot.swomniDrive.setDesiredMovement(new Vector2D(0.3, Angle.ZERO));
             while (glyphChecker.getGlyphsHarvested() < 2)
             {
                 robot.swomniDrive.synchronousUpdate();

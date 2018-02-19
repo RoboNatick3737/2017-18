@@ -1,5 +1,7 @@
 package hankextensions.phonesensors;
 
+import hankextensions.structs.Angle;
+
 /**
  * Since we're better off with calculating the rate at which the gyro drifts and trying to counteract it.
  */
@@ -31,5 +33,5 @@ public interface Gyro
      * Accuracy may vary depending on the gyroscope in question.
      * @return the current heading of the robot.
      */
-    double getHeading();
+    Angle getHeading();
 }

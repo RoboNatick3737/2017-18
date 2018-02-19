@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.structs;
 
+import hankextensions.structs.Angle;
 import hankextensions.structs.Vector2D;
 
 /**
@@ -14,14 +15,14 @@ public class ParametrizedVector
                 {
                     public double value(double input)
                     {
-                        return base.x;
+                        return base.x();
                     }
                 },
                 new Function()
                 {
                     public double value(double input)
                     {
-                        return base.y;
+                        return base.y();
                     }
                 });
     }
@@ -54,7 +55,7 @@ public class ParametrizedVector
     public Vector2D getVector(double param)
     {
         return type == VariableVectorType.POLAR ?
-                Vector2D.polar(a.value(param), b.value(param)) :
-                Vector2D.rectangular(a.value(param), b.value(param));
+                new Vector2D(a.value(param), Angle.degrees(b.value(param))) :
+                new Vector2D(a.value(param), b.value(param));
     }
 }

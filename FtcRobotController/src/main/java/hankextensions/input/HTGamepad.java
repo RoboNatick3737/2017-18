@@ -1,6 +1,8 @@
 package hankextensions.input;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
+
+import hankextensions.structs.Angle;
 import hankextensions.structs.Vector2D;
 
 /**
@@ -50,16 +52,16 @@ public class HTGamepad
 
     public Vector2D rightJoystick()
     {
-        return Vector2D.rectangular(gamepad.right_stick_x, -gamepad.right_stick_y).rotateBy(-90);
+        return new Vector2D(gamepad.right_stick_x, -gamepad.right_stick_y).rotateBy(Angle.degrees(-90));
     }
 
     public Vector2D leftJoystick()
     {
-        return Vector2D.rectangular(gamepad.left_stick_x, -gamepad.left_stick_y).rotateBy(-90);
+        return new Vector2D(gamepad.left_stick_x, -gamepad.left_stick_y).rotateBy(Angle.degrees(-90));
     }
 
     public Vector2D dpad()
     {
-        return Vector2D.rectangular((gamepad.dpad_left ? 1 : 0) + (gamepad.dpad_right ? -1 : 0), (gamepad.dpad_up ? 1 : 0) + (gamepad.dpad_down ? -1 : 0)).unit();
+        return new Vector2D((gamepad.dpad_left ? 1 : 0) + (gamepad.dpad_right ? -1 : 0), (gamepad.dpad_up ? 1 : 0) + (gamepad.dpad_down ? -1 : 0)).unit();
     }
 }

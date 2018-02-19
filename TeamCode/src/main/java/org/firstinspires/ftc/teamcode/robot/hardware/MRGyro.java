@@ -4,6 +4,7 @@ import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 
 import hankextensions.EnhancedOpMode;
+import hankextensions.structs.Angle;
 import hankextensions.structs.Vector2D;
 
 import hankextensions.phonesensors.Gyro;
@@ -69,8 +70,8 @@ public class MRGyro implements Gyro
     }
 
     @Override
-    public double getHeading()
+    public Angle getHeading()
     {
-        return Vector2D.clampAngle(sensor.getHeading());
+        return Angle.degrees(sensor.getHeading());
     }
 }

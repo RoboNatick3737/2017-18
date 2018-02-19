@@ -10,13 +10,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
 import hankextensions.EnhancedOpMode;
 import hankextensions.phonesensors.Gyro;
+import hankextensions.structs.Angle;
 import hankextensions.structs.Vector2D;
 
 public class HankuTankuIMU implements Gyro
 {
     public final BNO055IMU imu;
 
-    private double resetOffset = 0;
+    private Angle resetOffset = Angle.ZERO;
 
     public HankuTankuIMU(BNO055IMU imu)
     {
@@ -60,23 +61,23 @@ public class HankuTankuIMU implements Gyro
     @Override
     public void zero() throws InterruptedException
     {
-         resetOffset = Vector2D.clampAngle(imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle);
+         resetOffset = Angle.degrees(imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle);
     }
 
     @Override
-    public double getHeading() {
+    public Angle getHeading() {
         return z();
     }
 
-    public double x() {
-        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).thirdAngle;
+    public Angle x() {
+        return Angle.degrees(imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).thirdAngle);
     }
 
-    public double y() {
-        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).secondAngle;
+    public Angle y() {
+        return Angle.degrees(imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).secondAngle);
     }
 
-    public double z() {
-        return Vector2D.clampAngle(imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle - resetOffset);
+    public Angle z() {
+        return Angle.degrees(imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle).subtract(resetOffset);
     }
 }

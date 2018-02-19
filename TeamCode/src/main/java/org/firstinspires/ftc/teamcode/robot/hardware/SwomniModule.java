@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.structs.Function;
 import org.firstinspires.ftc.teamcode.structs.PIDController;
 
+import hankextensions.structs.Angle;
 import hankextensions.structs.Vector2D;
 
 /**
@@ -113,7 +114,7 @@ public class SwomniModule extends ScheduledTask
     }
     
     // The vector components which should constitute the direction and power of this wheel.
-    private Vector2D targetVector = Vector2D.polar(0, 0);
+    private Vector2D targetVector = new Vector2D(0, Angle.ZERO);
 
     // Swiveling properties.
     private double currentSwivelOrientation = 0;
@@ -217,7 +218,7 @@ public class SwomniModule extends ScheduledTask
     public long onContinueTask() throws InterruptedException
     {
         // If we aren't going to be driving anywhere, don't try to align.
-        if (targetVector.magnitude < .00001 && !enablePassiveAlignmentCorrection)
+        if (targetVector.magnitude() < .00001 && !enablePassiveAlignmentCorrection)
         {
             turnMotor.setPosition(0.5);
             currentTurnSpeed = 0;
@@ -267,10 +268,9 @@ public class SwomniModule extends ScheduledTask
                 currentSwivelOrientation = swerveEncoder.position();
 
             // Shortest angle from current heading to desired heading.
-            double desiredAngle = targetVector.angle;
-            double currentAngle = currentSwivelOrientation - physicalEncoderOffset;
-            double angleFromDesired = (Vector2D.clampAngle(desiredAngle - currentAngle) + 180) % 360 - 180;
-            angleFromDesired = angleFromDesired < -180 ? angleFromDesired + 360 : angleFromDesired;
+            Angle desiredAngle = targetVector.angle();
+            Angle currentAngle = Angle.degrees(currentSwivelOrientation - physicalEncoderOffset);
+            double angleFromDesired = currentAngle.shortestPathTo(desiredAngle).value(Angle.MeasurementType.DEGREES);
 
             // Clip this angle to 90 degree maximum turns.
             if (angleFromDesired > 90)
@@ -299,11 +299,11 @@ public class SwomniModule extends ScheduledTask
             if (drivingEnabled)
             {
                 // Scale up/down motor power depending on how far we are from the ideal heading.
-                drivePower = targetVector.magnitude;
+                drivePower = targetVector.magnitude();
                 if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
                     drivePower *= -1;
 
-                if (targetVector.magnitude < .00001)
+                if (drivePower < .00001)
                 {
                     driveMotor.setVelocity(0);
                     driveMotor.motor.setPower(0);
