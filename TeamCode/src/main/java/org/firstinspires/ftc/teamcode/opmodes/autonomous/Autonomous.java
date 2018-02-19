@@ -29,7 +29,6 @@ import org.firstinspires.ftc.teamcode.structs.TimedFunction;
 import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.HarvesterGlyphChecker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
-import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.NonLocalizedJewelDetector;
 
 public abstract class Autonomous extends EnhancedOpMode implements CompetitionProgram
 {

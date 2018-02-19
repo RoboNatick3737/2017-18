@@ -274,13 +274,13 @@ public class SwomniDrive extends ScheduledTask
             Angle gyroHeading = gyro.getHeading();
 
             // Find the least heading between the gyro and the current heading.
-            Angle angleOff = gyroHeading.shortestPathTo(desiredHeading);
+            double angleOff = gyroHeading.shortestPathTo(desiredHeading, Angle.MeasurementType.DEGREES);
 
             // Figure out the actual translation vector for swerve wheels based on gyro value.
             Vector2D fieldCentricTranslation = desiredMovement.rotateBy(desiredHeading.negative());
 
             // Don't bother trying to be more accurate than 8 degrees while turning.
-            rotationSpeed = FIELD_CENTRIC_TURN_CONTROLLER.value(-angleOff.value(Angle.MeasurementType.DEGREES));
+            rotationSpeed = FIELD_CENTRIC_TURN_CONTROLLER.value(-angleOff);
 
             if (opModeSituation == EnhancedOpMode.AutoOrTeleop.AUTONOMOUS)
                 if (Math.abs(rotationSpeed) > .324)
@@ -336,11 +336,11 @@ public class SwomniDrive extends ScheduledTask
         {
             for (int i = 0; i < swomniModules.length; i++)
             {
-                Angle angleOff = driveVector.angle().shortestPathTo(WHEEL_ORIENTATIONS[i]);
+                double angleOff = driveVector.angle().shortestPathTo(WHEEL_ORIENTATIONS[i], Angle.MeasurementType.RADIANS);
 
                 swomniModules[i].setVectorTarget(
                         new Vector2D(
-                                rotationSpeed * speedControl.turnSpeed + 2 * driveVector.magnitude() * Math.cos(angleOff.value(Angle.MeasurementType.RADIANS)),
+                                rotationSpeed * speedControl.turnSpeed + 2 * driveVector.magnitude() * Math.cos(angleOff),
                                 WHEEL_ORIENTATIONS[i]));
             }
         }
@@ -569,7 +569,7 @@ public class SwomniDrive extends ScheduledTask
             if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
                 synchronousUpdate();
 
-            if (gyro.getHeading().shortestPathTo(heading).compareTo(precisionRequired) != 1)
+            if (Math.abs(gyro.getHeading().shortestPathTo(heading, Angle.MeasurementType.DEGREES)) < precisionRequired.value(Angle.MeasurementType.DEGREES))
             {
                 streak++;
 

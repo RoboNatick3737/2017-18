@@ -74,7 +74,7 @@ public class SwomniModule extends ScheduledTask
 
     // Swerve wheel specific components.
     private final String moduleName;
-    private final double physicalEncoderOffset;
+    private final Angle physicalEncoderOffset;
     private boolean driveMotorTorqueCorrectionEnabled = true;
     public void setDriveMotorTorqueCorrectionEnabled(boolean enabled)
     {
@@ -117,8 +117,8 @@ public class SwomniModule extends ScheduledTask
     private Vector2D targetVector = new Vector2D(0, Angle.ZERO);
 
     // Swiveling properties.
-    private double currentSwivelOrientation = 0;
-    public double getCurrentSwivelOrientation()
+    private Angle currentSwivelOrientation = Angle.ZERO;
+    public Angle getCurrentSwivelOrientation()
     {
         return currentSwivelOrientation;
     }
@@ -169,7 +169,7 @@ public class SwomniModule extends ScheduledTask
             Function holonomicErrorResponder,
             Function tankErrorResponder,
             long updateRateMS,
-            double physicalEncoderOffset,
+            Angle physicalEncoderOffset,
             double driveMotorTorqueCorrection)
     {
         this.moduleName = moduleName;
@@ -242,10 +242,10 @@ public class SwomniModule extends ScheduledTask
             if (ABSOLUTE_ENCODER_UPDATE_CHECK)
             {
                 // currentSwivelOrientation currently represents old swivel orientation.
-                double newSwivelOrientation = swerveEncoder.position();
+                Angle newSwivelOrientation = swerveEncoder.position();
 
                 // If we're turning but the absolute encoder hasn't registered the turn position change (latency).
-                if (Math.abs(currentTurnSpeed) > .15 && Math.abs(newSwivelOrientation - currentSwivelOrientation) < .5)
+                if (Math.abs(currentTurnSpeed) > .15 && Math.abs(newSwivelOrientation.shortestPathTo(currentSwivelOrientation, Angle.MeasurementType.DEGREES)) < 5)
                 {
                     // Record that this happened
                     numAbsoluteEncoderSkips++;
@@ -269,8 +269,8 @@ public class SwomniModule extends ScheduledTask
 
             // Shortest angle from current heading to desired heading.
             Angle desiredAngle = targetVector.angle();
-            Angle currentAngle = Angle.degrees(currentSwivelOrientation - physicalEncoderOffset);
-            double angleFromDesired = currentAngle.shortestPathTo(desiredAngle).value(Angle.MeasurementType.DEGREES);
+            Angle currentAngle = currentSwivelOrientation.subtract(physicalEncoderOffset);
+            double angleFromDesired = currentAngle.shortestPathTo(desiredAngle, Angle.MeasurementType.DEGREES);
 
             // Clip this angle to 90 degree maximum turns.
             if (angleFromDesired > 90)

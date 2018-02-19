@@ -70,10 +70,15 @@ public class Angle implements Comparable<Angle>
         return Angle.degrees(value(MeasurementType.DEGREES) - other.value(MeasurementType.DEGREES));
     }
 
-    public Angle shortestPathTo(Angle other)
+    public double shortestPathTo(Angle other, MeasurementType measurementType)
     {
         Angle diff = this.subtract(other);
-        return diff.value(MeasurementType.DEGREES) > 180 ? Angle.degrees(180 - diff.value(MeasurementType.DEGREES)) : diff;
+        double degreesToTurn = diff.value(MeasurementType.DEGREES) > 180 ? 360 - diff.value(MeasurementType.DEGREES) : diff.value(MeasurementType.DEGREES);
+
+        if (measurementType == MeasurementType.RADIANS)
+            return Math.toRadians(degreesToTurn);
+        else
+            return degreesToTurn;
     }
 
     public Angle opposing()
