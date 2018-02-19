@@ -26,6 +26,7 @@ import hankextensions.hardware.HardwareInitializer;
 import hankextensions.hardware.SmarterRangeSensor;
 import hankextensions.phonesensors.AndroidGyro;
 import hankextensions.phonesensors.Gyro;
+import hankextensions.structs.Angle;
 
 /**
  * Wrapper class for all robot hardware.
@@ -178,7 +179,7 @@ public class Robot
                 new ModifiedPIDController(0.0062, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 
                 50,
-                56,
+                Angle.degrees(56),
                 .0005);
 
         swomniModules[1] = new SwomniModule(
@@ -197,7 +198,7 @@ public class Robot
                 new ModifiedPIDController(0.0062, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 
                 50,
-                71,
+                Angle.degrees(71),
                 .001);
 
         swomniModules[2] = new SwomniModule(
@@ -216,7 +217,7 @@ public class Robot
                 new ModifiedPIDController(0.007, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 
                 50,
-                132,
+                Angle.degrees(132),
                 .001);
 
         swomniModules[3] = new SwomniModule(
@@ -235,7 +236,7 @@ public class Robot
                 new ModifiedPIDController(0.0056, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
 
                 50,
-                96,
+                Angle.degrees(96),
                 .0005);
 
         return swomniModules;
