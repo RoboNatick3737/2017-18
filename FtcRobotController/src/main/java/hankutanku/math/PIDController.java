@@ -7,7 +7,7 @@ import dude.makiah.androidlib.threading.TimeMeasure;
 /**
  * Largely based on http://www.societyofrobots.com/programming_PID.shtml.
  */
-public class PIDController implements LimitedUpdateRateFunction
+public class PIDController implements LimitedUpdateRateFunction<Double>
 {
     /**
      * Typically the main drive in a control loop, KP reduces a large part of the overall
@@ -118,13 +118,13 @@ public class PIDController implements LimitedUpdateRateFunction
      * and figures out what to do with it next.
      * @return correction result
      */
-    public double value(double error)
+    public Double value(double error)
     {
         if (Math.abs(error) < errorThreshold)
-            return 0;
+            return 0.0;
 
         if (!canUpdate())
-            return 0;
+            return 0.0;
 
         // Calculate proportional correction.
         double p = Math.abs(kP) > NO_CALCULATION_THRESHOLD ? kP * error : 0;

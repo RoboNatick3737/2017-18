@@ -1,6 +1,11 @@
 package hankutanku.math;
 
-public interface Function
+public interface Function<T>
 {
-    double value(double input);
+    /**
+     * Returns some object in response to a numerical parameter.
+     * @param input
+     * @return
+     */
+    T value(double input);
 }

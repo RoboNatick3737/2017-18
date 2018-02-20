@@ -90,7 +90,7 @@ public class Robot
                 "Front Left",
                 hardware.initialize(DcMotor.class, "Front Left"),
 //                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
-                new LimitedUpdateRateFunction()
+                new LimitedUpdateRateFunction<Double>()
                 {
                     @Override
                     public TimeMeasure getUpdateRate()
@@ -98,9 +98,9 @@ public class Robot
                         return new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50);
                     }
 
-                    public double value(double input)
+                    public Double value(double input)
                     {
-                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
+                        return Math.signum(input) * (6e-5 * Math.pow(Math.abs(input), 2));
                     }
                 },
                 475, 7.62, desiredZeroPowerBehavior);
@@ -111,7 +111,7 @@ public class Robot
                 "Back Left",
                 hardware.initialize(DcMotor.class, "Back Left"),
 //                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
-                new LimitedUpdateRateFunction()
+                new LimitedUpdateRateFunction<Double>()
                 {
                     @Override
                     public TimeMeasure getUpdateRate()
@@ -119,9 +119,9 @@ public class Robot
                         return new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50);
                     }
 
-                    public double value(double input)
+                    public Double value(double input)
                     {
-                        return Math.signum(input) * (.000065 * Math.pow(Math.abs(input), 2));
+                        return Math.signum(input) * (6.5e-5 * Math.pow(Math.abs(input), 2));
                     }
                 },
                 202, 7.62, desiredZeroPowerBehavior);
@@ -132,16 +132,16 @@ public class Robot
                 "Back Right",
                 hardware.initialize(DcMotor.class, "Back Right"),
 //                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
-                new LimitedUpdateRateFunction()
+                new LimitedUpdateRateFunction<Double>()
                 {
                     @Override
                     public TimeMeasure getUpdateRate() {
                         return new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50);
                     }
 
-                    public double value(double input)
+                    public Double value(double input)
                     {
-                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
+                        return Math.signum(input) * (6e-5 * Math.pow(Math.abs(input), 2));
                     }
                 },
                 475, 7.62, desiredZeroPowerBehavior);
@@ -152,16 +152,16 @@ public class Robot
                 "Front Right",
                 hardware.initialize(DcMotor.class, "Front Right"),
 //                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
-                new LimitedUpdateRateFunction()
+                new LimitedUpdateRateFunction<Double>()
                 {
                     @Override
                     public TimeMeasure getUpdateRate() {
                         return new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50);
                     }
 
-                    public double value(double input)
+                    public Double value(double input)
                     {
-                        return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
+                        return Math.signum(input) * (6e-5 * Math.pow(Math.abs(input), 2));
                     }
                 },
                 202, 7.62, desiredZeroPowerBehavior);
@@ -199,7 +199,7 @@ public class Robot
                 new ModifiedPIDController(0.0062, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 80), -.5, .5, .95),
 
                 Angle.degrees(56),
-                .0005);
+                5e-4);
 
         swomniModules[1] = new SwomniModule(
                 "Back Left",
@@ -217,7 +217,7 @@ public class Robot
                 new ModifiedPIDController(0.0062, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 80), -.5, .5, .95),
 
                 Angle.degrees(71),
-                .001);
+                1e-3);
 
         swomniModules[2] = new SwomniModule(
                 "Back Right",
@@ -235,7 +235,7 @@ public class Robot
                 new ModifiedPIDController(0.007, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 80), -.5, .5, .95),
 
                 Angle.degrees(132),
-                .001);
+                1e-3);
 
         swomniModules[3] = new SwomniModule(
                 "Front Right",
@@ -253,7 +253,7 @@ public class Robot
                 new ModifiedPIDController(0.0056, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 80), -.5, .5, .95),
 
                 Angle.degrees(96),
-                .0005);
+                5e-4);
 
         return swomniModules;
     }

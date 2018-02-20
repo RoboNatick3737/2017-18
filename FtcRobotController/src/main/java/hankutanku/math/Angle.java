@@ -72,8 +72,7 @@ public class Angle implements Comparable<Angle>
 
     public double shortestPathTo(Angle other, MeasurementType measurementType)
     {
-        Angle diff = this.subtract(other);
-        double degreesToTurn = diff.value(MeasurementType.DEGREES) > 180 ? -(360 - diff.value(MeasurementType.DEGREES)) : diff.value(MeasurementType.DEGREES);
+        double degreesToTurn = 0; // TODO this
 
         if (measurementType == MeasurementType.RADIANS)
             return Math.toRadians(degreesToTurn);

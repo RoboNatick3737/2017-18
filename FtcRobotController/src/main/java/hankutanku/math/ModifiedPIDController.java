@@ -27,13 +27,13 @@ public class ModifiedPIDController extends PIDController
      * @return correction result
      */
     @Override
-    public double value(double error)
+    public Double value(double error)
     {
         if (Math.abs(error) < errorThreshold)
-            return 0;
+            return 0.0;
 
         if (!canUpdate())
-            return 0;
+            return 0.0;
 
         // Calculate proportional correction.
         double p = Math.abs(kP) > NO_CALCULATION_THRESHOLD ? kP * error : 0;

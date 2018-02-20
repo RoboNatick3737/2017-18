@@ -10,11 +10,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import dude.makiah.androidlib.threading.TimeMeasure;
 import hankutanku.EnhancedOpMode;
 import hankutanku.math.Angle;
+import hankutanku.math.ParametrizedVector;
 import hankutanku.math.Vector2D;
 import hankutanku.math.Function;
 import hankutanku.math.SingleParameterRunnable;
 import hankutanku.math.TimedFunction;
-import hankutanku.math.ParametrizedVector;
 
 import hankutanku.vision.opencv.OpenCVCam;
 import hankutanku.vision.vuforia.VuforiaCam;
@@ -180,16 +180,16 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         {
             // First move off the balance board.
             robot.swomniDrive.driveDistance(ParametrizedVector.polar(
-                    new Function() {
+                    new Function<Double>() {
                         @Override
-                        public double value(double input) {
+                        public Double value(double input) {
                             return 0.25 + (1 - batteryCoefficient) * .05 - .15 * input;
                         }
                     },
-                    new Function() {
+                    new Function<Angle>() {
                         @Override
-                        public double value(double input) {
-                            return getAlliance() == Alliance.RED ? 270 : 90;
+                        public Angle value(double input) {
+                            return getAlliance() == Alliance.RED ? Angle.degrees(270) : Angle.degrees(90);
                         }
                     }),
                     65, null, flow);
@@ -244,19 +244,19 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         // Drive that length slowing down over time.
         robot.swomniDrive.driveDistance(ParametrizedVector.polar(
-                new Function() {
+                new Function<Double>() {
                     @Override
-                    public double value(double input) {
+                    public Double value(double input) {
                         return 0.25 + (1 - batteryCoefficient) * .05 - .15 * input;
                     }
                 },
-                new Function() {
+                new Function<Angle>() {
                     @Override
-                    public double value(double input) {
+                    public Angle value(double input) {
                         if (getBalancePlate() == BalancePlate.BOTTOM)
-                            return getAlliance() == Alliance.BLUE ? 90 : 270;
+                            return getAlliance() == Alliance.BLUE ? Angle.degrees(90) : Angle.degrees(270);
                         else
-                            return 0;
+                            return Angle.ZERO;
                     }
                 }),
                 desiredDriveLength, null, flow);
@@ -304,16 +304,16 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         else
         {
             robot.swomniDrive.driveDistance(ParametrizedVector.polar(
-                    new Function() {
+                    new Function<Double>() {
                         @Override
-                        public double value(double input) {
+                        public Double value(double input) {
                             return 0.4 - .3 * input;
                         }
                     },
-                    new Function() {
+                    new Function<Angle>() {
                         @Override
-                        public double value(double input) {
-                            return depositAngle.opposing().value(Angle.MeasurementType.DEGREES);
+                        public Angle value(double input) {
+                            return depositAngle.opposing();
                         }
                     }),
                     12.5, null, flow);
@@ -324,9 +324,9 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         robot.swomniDrive.turnRobotToHeading(depositAngle.add(glyphPlacementAngle), Angle.degrees(5), new TimeMeasure(TimeMeasure.Units.SECONDS, 3), flow);
 
         // Dump glyph
-        TimedFunction flipperPos = new TimedFunction(new Function() {
+        TimedFunction<Double> flipperPos = new TimedFunction<>(new Function<Double>() {
             @Override
-            public double value(double input) {
+            public Double value(double input) {
                 return -.25 * input + .8;
             }
         });
@@ -354,16 +354,16 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         // Make sure we aren't touching the glyph
         robot.swomniDrive.driveDistance(ParametrizedVector.polar(
-                new Function() {
+                new Function<Double>() {
                     @Override
-                    public double value(double input) {
+                    public Double value(double input) {
                         return 0.3;
                     }
                 },
-                new Function() {
+                new Function<Angle>() {
                     @Override
-                    public double value(double input) {
-                        return depositAngle.value(Angle.MeasurementType.DEGREES);
+                    public Angle value(double input) {
+                        return depositAngle;
                     }
                 }),
                 7, null, flow);
@@ -383,16 +383,16 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             // Drive to where the glyph pit is but stop directly in front of it.
             robot.swomniDrive.setDesiredHeading(Angle.ZERO);
             robot.swomniDrive.driveDistance(ParametrizedVector.polar(
-                    new Function() {
+                    new Function<Double>() {
                         @Override
-                        public double value(double input) {
+                        public Double value(double input) {
                             return 0.6 - input * 0.3;
                         }
                     },
-                    new Function() {
+                    new Function<Angle>() {
                         @Override
-                        public double value(double input) {
-                            return 0;
+                        public Angle value(double input) {
+                            return Angle.ZERO;
                         }
                     }),
                     40,
@@ -420,16 +420,16 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
             // Drive back.
             robot.swomniDrive.driveDistance(ParametrizedVector.polar(
-                    new Function() {
+                    new Function<Double>() {
                         @Override
-                        public double value(double input) {
+                        public Double value(double input) {
                             return -0.6 + input * 0.3;
                         }
                     },
-                    new Function() {
+                    new Function<Angle>() {
                         @Override
-                        public double value(double input) {
-                            return 0;
+                        public Angle value(double input) {
+                            return Angle.ZERO;
                         }
                     }),
                     50,

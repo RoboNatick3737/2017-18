@@ -38,7 +38,7 @@ public class SwomniDrive extends ScheduledTask
                     Angle.degrees((180 + ROBOT_PHI) - 90),
                     Angle.degrees((360 - ROBOT_PHI) - 90)
             };
-    private static final LimitedUpdateRateFunction FIELD_CENTRIC_TURN_CONTROLLER =
+    private static final LimitedUpdateRateFunction<Double> FIELD_CENTRIC_TURN_CONTROLLER =
             new ModifiedPIDController(
                     .0081,
                     .001,
@@ -454,7 +454,7 @@ public class SwomniDrive extends ScheduledTask
     }
     public void driveDistance(Vector2D direction, double distance, Flow flow) throws InterruptedException
     {
-        driveDistance(ParametrizedVector.from(direction), distance, null, flow);
+        driveDistance(ParametrizedVector.constant(direction), distance, null, flow);
     }
 
     /**
@@ -495,7 +495,7 @@ public class SwomniDrive extends ScheduledTask
     }
     public void driveTime(Vector2D direction, TimeMeasure msDrive, Flow flow) throws InterruptedException
     {
-        driveTime(ParametrizedVector.from(direction), msDrive, null, flow);
+        driveTime(ParametrizedVector.constant(direction), msDrive, null, flow);
     }
 
     /**

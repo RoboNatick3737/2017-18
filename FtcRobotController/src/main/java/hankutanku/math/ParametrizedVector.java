@@ -1,58 +1,60 @@
 package hankutanku.math;
 
-/**
- * Looks like multivariable calc was a useful class after all :P
- */
+import android.support.annotation.NonNull;
+
+import org.firstinspires.ftc.robotcore.external.Func;
+
 public class ParametrizedVector
 {
-    public static ParametrizedVector from(final Vector2D base)
+    public static ParametrizedVector polar(@NonNull Function<Double> magnitude, @NonNull Function<Angle> angle)
     {
-        return ParametrizedVector.rectangular(
-                new Function()
-                {
-                    public double value(double input)
-                    {
-                        return base.x();
+        return new ParametrizedVector(null, null, magnitude, angle);
+    }
+
+    public static ParametrizedVector rectangular(@NonNull Function<Double> x, @NonNull Function<Double> y)
+    {
+        return new ParametrizedVector(x, y, null, null);
+    }
+
+    public static ParametrizedVector constant(@NonNull final Vector2D vector)
+    {
+        return new ParametrizedVector(
+                new Function<Double>() {
+                    @Override
+                    public Double value(double input) {
+                        return vector.x();
                     }
                 },
-                new Function()
-                {
-                    public double value(double input)
-                    {
-                        return base.y();
+                new Function<Double>() {
+                    @Override
+                    public Double value(double input) {
+                        return vector.y();
                     }
-                });
+                },
+                null,
+                null
+        );
     }
 
-    public static ParametrizedVector polar(Function mag, Function theta)
+    private final Function<Double> x, y;
+
+    private final Function<Double> magnitude;
+    private final Function<Angle> angle;
+
+    public ParametrizedVector(Function<Double> x, Function<Double> y, Function<Double> magnitude, Function<Angle> angle)
     {
-        return new ParametrizedVector(VariableVectorType.POLAR, mag, theta);
-    }
+        this.x = x;
+        this.y = y;
 
-    public static ParametrizedVector rectangular(Function x, Function y)
-    {
-        return new ParametrizedVector(VariableVectorType.RECTANGULAR, x, y);
-    }
-
-    // Type which this was initialized as.
-    private enum VariableVectorType {POLAR, RECTANGULAR}
-    private final VariableVectorType type;
-
-    // The components of this function.
-    private final Function a, b;
-
-    private ParametrizedVector(VariableVectorType type, Function a, Function b)
-    {
-        this.type = type;
-
-        this.a = a;
-        this.b = b;
+        this.magnitude = magnitude;
+        this.angle = angle;
     }
 
     public Vector2D getVector(double param)
     {
-        return type == VariableVectorType.POLAR ?
-                new Vector2D(a.value(param), Angle.degrees(b.value(param))) :
-                new Vector2D(a.value(param), b.value(param));
+        if (x == null)
+            return new Vector2D(magnitude.value(param), angle.value(param));
+        else
+            return new Vector2D(x.value(param), y.value(param));
     }
 }

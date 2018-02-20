@@ -9,7 +9,7 @@ public class Polynomial implements Function
         this.coefficients = coefficients;
     }
 
-    public double value(double input)
+    public Double value(double input)
     {
         double total = 0;
         for (int i = 0; i < coefficients.length; i++)

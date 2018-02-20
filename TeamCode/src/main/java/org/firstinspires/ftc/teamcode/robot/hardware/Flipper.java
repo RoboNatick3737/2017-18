@@ -47,7 +47,7 @@ public class Flipper
 
     // The current servo position (getPosition() doesn't seem to work).
     private double position = FlipPosition.MIN.position;
-    private TimedFunction liftFunc = null;
+    private TimedFunction<Double> liftFunc = null;
 
     public Flipper(Servo left, Servo right, Servo glyphClamp)
     {
@@ -82,9 +82,9 @@ public class Flipper
             case 1:
                 position = FlipPosition.MID_START.position;
                 glyphClamp.setPosition(GlyphClamp.CLAMP.position);
-                liftFunc = new TimedFunction(new Function() {
+                liftFunc = new TimedFunction<>(new Function<Double>() {
                     @Override
-                    public double value(double input) {
+                    public Double value(double input) {
                         return -.25 * input + FlipPosition.MID_START.position; // gradient lift
                     }
                 });

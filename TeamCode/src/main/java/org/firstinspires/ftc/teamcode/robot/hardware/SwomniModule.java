@@ -45,8 +45,8 @@ public class SwomniModule extends ScheduledTask
     private static final boolean ABSOLUTE_ENCODER_UPDATE_CHECK = false, DAMP_TURN_SPEED_IF_SO = false;
 
     // The PID controllers for each swerve mode (more sensitive on holonomic mode and tank mode).
-    private LimitedUpdateRateFunction errorResponder;
-    public final LimitedUpdateRateFunction swerveErrorResponder, holonomicErrorResponder, tankErrorResponder;
+    private LimitedUpdateRateFunction<Double> errorResponder;
+    public final LimitedUpdateRateFunction<Double> swerveErrorResponder, holonomicErrorResponder, tankErrorResponder;
     private SwomniDrive.SwomniControlMode controlMode;
     public void setControlMode(SwomniDrive.SwomniControlMode controlMode)
     {
