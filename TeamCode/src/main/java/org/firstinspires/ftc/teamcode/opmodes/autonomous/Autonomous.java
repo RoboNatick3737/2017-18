@@ -124,7 +124,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // Init while turning
         vuforiaCam.start();
 
-        robot.swomniDrive.turnRobotToHeading(Angle.degrees(20), Angle.degrees(5), 4000, flow);
+        robot.swomniDrive.turnRobotToHeading(Angle.degrees(20), Angle.degrees(5), new TimeMeasure(TimeMeasure.Units.SECONDS, 4), flow);
 
         RelicRecoveryVuMark detectedVuMark = RelicRecoveryVuMark.UNKNOWN;
 
@@ -151,7 +151,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         vuforiaConsole.destroy();
 
-        robot.swomniDrive.turnRobotToHeading(Angle.ZERO, Angle.degrees(5), 4000, flow);
+        robot.swomniDrive.turnRobotToHeading(Angle.ZERO, Angle.degrees(5), new TimeMeasure(TimeMeasure.Units.SECONDS, 4), flow);
 
         // Return to default mode to drive off the platform.
         for (SwomniModule module : robot.swomniDrive.swomniModules)
@@ -195,7 +195,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     65, null, flow);
 
             // Now turn to the heading which faces the cryptobox.
-            robot.swomniDrive.turnRobotToHeading(depositAngle, Angle.degrees(5), 9000, flow);
+            robot.swomniDrive.turnRobotToHeading(depositAngle, Angle.degrees(5), new TimeMeasure(TimeMeasure.Units.SECONDS, 9), flow);
 
             DEPOSIT_LOCATIONS = new double[]{21.2, 39.2, 57.8};
         }
@@ -321,7 +321,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         // Turn for better glyph placement
         Angle glyphPlacementAngle = Angle.degrees(30 * (getAlliance() == Alliance.BLUE ? -1 : 1));
-        robot.swomniDrive.turnRobotToHeading(depositAngle.add(glyphPlacementAngle), Angle.degrees(5), 3000, flow);
+        robot.swomniDrive.turnRobotToHeading(depositAngle.add(glyphPlacementAngle), Angle.degrees(5), new TimeMeasure(TimeMeasure.Units.SECONDS, 3), flow);
 
         // Dump glyph
         TimedFunction flipperPos = new TimedFunction(new Function() {

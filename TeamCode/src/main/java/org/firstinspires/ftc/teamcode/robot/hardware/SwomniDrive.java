@@ -567,7 +567,7 @@ public class SwomniDrive extends ScheduledTask
     /**
      * Turns the robot to some pre-specified heading according to the gyro
      */
-    public void turnRobotToHeading(Angle heading, Angle precisionRequired, long msMax, Flow flow) throws InterruptedException
+    public void turnRobotToHeading(Angle heading, Angle precisionRequired, TimeMeasure maxDuration, Flow flow) throws InterruptedException
     {
         if (FIELD_CENTRIC_TURN_CONTROLLER instanceof PIDController)
             ((PIDController) FIELD_CENTRIC_TURN_CONTROLLER).resetController();
@@ -576,7 +576,7 @@ public class SwomniDrive extends ScheduledTask
 
         long start = System.currentTimeMillis();
         int streak = 0;
-        while (System.currentTimeMillis() - start < msMax)
+        while (System.currentTimeMillis() - start < maxDuration.durationIn(TimeMeasure.Units.MILLISECONDS))
         {
             if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
                 synchronousUpdate();
