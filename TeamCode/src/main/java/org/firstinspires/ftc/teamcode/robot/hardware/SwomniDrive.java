@@ -464,27 +464,28 @@ public class SwomniDrive extends ScheduledTask
      * @param runnable runnable to run every loop
      * @param flow When to exit
      */
-    public void driveTime(ParametrizedVector direction, long driveTime, SingleParameterRunnable runnable, Flow flow) throws InterruptedException
+    public void driveTime(ParametrizedVector direction, TimeMeasure driveTime, SingleParameterRunnable runnable, Flow flow) throws InterruptedException
     {
-        if (driveTime <= 0)
+        if (driveTime.durationIn(TimeMeasure.Units.NANOSECONDS) <= 0)
             return;
 
         ProcessConsole distanceConsole = LoggingBase.instance.newProcessConsole("Timed Drive");
 
-        long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis(); // no need to be accurate in nanoseconds
         long elapsedTime = 0;
-        while (elapsedTime < driveTime)
+        while (elapsedTime < driveTime.durationIn(TimeMeasure.Units.MILLISECONDS))
         {
             elapsedTime = System.currentTimeMillis() - startTime;
 
-            setDesiredMovement(direction.getVector(elapsedTime / driveTime));
-            distanceConsole.write("Remaining: " + (driveTime - (System.currentTimeMillis() - startTime) + "ms"));
+            double state = elapsedTime / driveTime.durationIn(TimeMeasure.Units.MILLISECONDS);
+            setDesiredMovement(direction.getVector(state));
+            distanceConsole.write("Completion: " + (state * 100) + "%");
             if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
                 synchronousUpdate();
 
             // Shortcut, callers can provide anonymous methods here.
             if (runnable != null)
-                runnable.run(elapsedTime / driveTime);
+                runnable.run(state);
 
             flow.yield();
         }
@@ -492,7 +493,7 @@ public class SwomniDrive extends ScheduledTask
         stop();
         distanceConsole.destroy();
     }
-    public void driveTime(Vector2D direction, long msDrive, Flow flow) throws InterruptedException
+    public void driveTime(Vector2D direction, TimeMeasure msDrive, Flow flow) throws InterruptedException
     {
         driveTime(ParametrizedVector.from(direction), msDrive, null, flow);
     }
@@ -500,23 +501,23 @@ public class SwomniDrive extends ScheduledTask
     /**
      * Orients all SwerveModules to a given vector with some degree of certainty (for auto)
      */
-    public void orientSwerveModules(Vector2D orientationVector, double precisionRequired, long msMax, Flow flow) throws InterruptedException
+    public void orientSwerveModules(Vector2D orientationVector, double precisionRequired, TimeMeasure maxDuration, Flow flow) throws InterruptedException
     {
         for (int i = 0; i < swomniModules.length; i++)
             swomniModules[i].setVectorTarget(orientationVector);
 
-        orientModules(precisionRequired, msMax, flow);
+        orientModules(precisionRequired, maxDuration, flow);
     }
 
     /**
      * Orient all swivel modules for rotation.
      */
-    public void orientSwerveModulesForRotation(double precisionRequired, long msMax, Flow flow) throws InterruptedException
+    public void orientSwerveModulesForRotation(double precisionRequired, TimeMeasure maxDuration, Flow flow) throws InterruptedException
     {
         for (int i = 0; i < swomniModules.length; i++)
             swomniModules[i].setVectorTarget(new Vector2D(1, WHEEL_ORIENTATIONS[i]));
 
-        orientModules(precisionRequired, msMax, flow);
+        orientModules(precisionRequired, maxDuration, flow);
     }
 
     /**
@@ -524,7 +525,7 @@ public class SwomniDrive extends ScheduledTask
      *
      * TODO include asynchronous mode
      */
-    private void orientModules(double precisionRequired, long msMax, Flow flow) throws InterruptedException
+    private void orientModules(double precisionRequired, TimeMeasure maxDuration, Flow flow) throws InterruptedException
     {
         // Have to make a separate package for just swiveling.
         ScheduledTaskPackage updatePackage = new ScheduledTaskPackage(
@@ -534,7 +535,7 @@ public class SwomniDrive extends ScheduledTask
         updatePackage.setUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < msMax)
+        while (System.currentTimeMillis() - start < maxDuration.durationIn(TimeMeasure.Units.MILLISECONDS))
         {
             // Otherwise update
             updatePackage.synchronousUpdate();

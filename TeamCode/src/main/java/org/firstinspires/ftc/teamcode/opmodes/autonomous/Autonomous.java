@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 
+import dude.makiah.androidlib.threading.TimeMeasure;
 import hankutanku.EnhancedOpMode;
 import hankutanku.math.Angle;
 import hankutanku.math.Vector2D;
@@ -58,12 +59,12 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         for (SwomniModule module : robot.swomniDrive.swomniModules)
             module.setEnableDrivePID(false);
 
-        // Braking helps the modules from sliding off the balance board during the match.
+        // Braking helps the modules from sliding off the balance board during the first stage of auto.
         for (SwomniModule module : robot.swomniDrive.swomniModules)
             module.driveMotor.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Orient for turning
-        robot.swomniDrive.orientSwerveModulesForRotation(10, 3000, flow);
+        robot.swomniDrive.orientSwerveModulesForRotation(10, new TimeMeasure(TimeMeasure.Units.SECONDS, 3), flow);
 
         // region Jewels
         openCVCam.start(jewelDetector);
@@ -264,7 +265,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         robot.swomniDrive.orientSwerveModules(
                 new Vector2D(1, Angle.degrees(180)),
                 10,
-                1500,
+                new TimeMeasure(TimeMeasure.Units.SECONDS, 1.5),
                 flow);
 
         // Drive back to the cryptobox, using range sensor if possible.
@@ -344,12 +345,12 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // Drive away from glyph
         robot.swomniDrive.setDesiredHeading(depositAngle);
         Angle driveOffsetAngle = Angle.degrees(10 * (getAlliance() == Alliance.BLUE ? 1 : -1));
-        robot.swomniDrive.driveTime(new Vector2D(0.3, depositAngle.add(driveOffsetAngle)), 1200, flow);
+        robot.swomniDrive.driveTime(new Vector2D(0.3, depositAngle.add(driveOffsetAngle)), new TimeMeasure(TimeMeasure.Units.SECONDS, 1.2), flow);
 
         // Smush in dat glyph
         Angle smushAngle = Angle.degrees(20 * (getAlliance() == Alliance.BLUE ? 1 : -1));
         robot.swomniDrive.setDesiredHeading(depositAngle.add(smushAngle));
-        robot.swomniDrive.driveTime(new Vector2D(0.5, depositAngle.opposing()), 1400, flow);
+        robot.swomniDrive.driveTime(new Vector2D(0.5, depositAngle.opposing()), new TimeMeasure(TimeMeasure.Units.SECONDS, 1.4), flow);
 
         // Make sure we aren't touching the glyph
         robot.swomniDrive.driveDistance(ParametrizedVector.polar(
