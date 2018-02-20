@@ -6,21 +6,22 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
-import org.firstinspires.ftc.teamcode.robot.Robot;
 
 import hankutanku.EnhancedOpMode;
 import hankutanku.math.Angle;
 import hankutanku.math.Vector2D;
-import hankutanku.vision.opencv.OpenCVCam;
-import hankutanku.vision.vuforia.VuforiaCam;
-
-import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
-import org.firstinspires.ftc.teamcode.robot.hardware.SwomniModule;
 import hankutanku.math.Function;
 import hankutanku.math.SingleParameterRunnable;
 import hankutanku.math.TimedFunction;
 import hankutanku.math.ParametrizedVector;
+
+import hankutanku.vision.opencv.OpenCVCam;
+import hankutanku.vision.vuforia.VuforiaCam;
+
+import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
+import org.firstinspires.ftc.teamcode.robot.Robot;
+import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
+import org.firstinspires.ftc.teamcode.robot.hardware.SwomniModule;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.HarvesterGlyphChecker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
 
