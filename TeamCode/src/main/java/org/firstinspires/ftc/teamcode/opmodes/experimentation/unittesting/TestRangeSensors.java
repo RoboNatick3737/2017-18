@@ -1,13 +1,13 @@
 package org.firstinspires.ftc.teamcode.opmodes.experimentation.unittesting;
 
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import dude.makiah.androidlib.logging.ProcessConsole;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 
-import hankextensions.EnhancedOpMode;
-import hankextensions.hardware.SmarterRangeSensor;
+import hankutanku.EnhancedOpMode;
+import hankutanku.hardware.SmarterRangeSensor;
 
 @Autonomous(name="Test Range Sensors", group= OpModeDisplayGroups.FINAL_BOT_EXPERIMENTATION)
 public class TestRangeSensors extends EnhancedOpMode

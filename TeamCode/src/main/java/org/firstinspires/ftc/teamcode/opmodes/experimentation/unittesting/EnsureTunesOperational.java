@@ -2,8 +2,8 @@ package org.firstinspires.ftc.teamcode.opmodes.experimentation.unittesting;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import hankextensions.EnhancedOpMode;
-import hankextensions.music.Tunes;
+import hankutanku.EnhancedOpMode;
+import hankutanku.music.Tunes;
 
 @Autonomous(name="Pumping Beats", group="Experimentation")
 public class EnsureTunesOperational extends EnhancedOpMode

@@ -1,6 +1,6 @@
 [submodule "makiahsandroidlib"]
 	path = makiahsandroidlib
-	url = https://github.com/Makiah/makiahsandroidlib
+	url = https://github.dude.makiah.androidlib
 [submodule "AndroidCV-SDK"]
 	path = AndroidCV-SDK
 	url = https://github.com/Makiah/AndroidCV-SDK

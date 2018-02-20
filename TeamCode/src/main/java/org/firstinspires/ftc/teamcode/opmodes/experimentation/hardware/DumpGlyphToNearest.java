@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.experimentation.hardware;
 
-import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
+import dude.makiah.androidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
@@ -8,9 +8,9 @@ import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CryptoboxTracker;
 
-import hankextensions.EnhancedOpMode;
-import hankextensions.structs.Vector2D;
-import hankextensions.vision.opencv.OpenCVCam;
+import hankutanku.EnhancedOpMode;
+import hankutanku.math.Vector2D;
+import hankutanku.vision.opencv.OpenCVCam;
 
 @Autonomous(name="Dump Glyph to Nearest", group= OpModeDisplayGroups.FINAL_BOT_EXPERIMENTATION)
 public class DumpGlyphToNearest extends EnhancedOpMode

@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import java.io.File;
 
-import hankextensions.EnhancedOpMode;
-import hankextensions.files.FileManager;
+import hankutanku.EnhancedOpMode;
+import hankutanku.files.FileManager;
 
 @Autonomous(name="Test File IO", group="Experimentation")
 public class EnsureFileIO extends EnhancedOpMode

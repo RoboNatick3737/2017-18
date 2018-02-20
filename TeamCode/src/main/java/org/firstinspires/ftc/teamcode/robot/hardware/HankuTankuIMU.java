@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot.hardware;
 
-import com.makiah.makiahsandroidlib.logging.LoggingBase;
+import dude.makiah.androidlib.logging.LoggingBase;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 
@@ -8,10 +8,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
-import hankextensions.EnhancedOpMode;
-import hankextensions.phonesensors.Gyro;
-import hankextensions.structs.Angle;
-import hankextensions.structs.Vector2D;
+import hankutanku.phonesensors.Gyro;
+import hankutanku.math.Angle;
 
 public class HankuTankuIMU implements Gyro
 {

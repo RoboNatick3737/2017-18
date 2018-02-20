@@ -2,24 +2,26 @@ package org.firstinspires.ftc.teamcode.robot.hardware;
 
 import android.support.annotation.NonNull;
 
-import com.makiah.makiahsandroidlib.logging.LoggingBase;
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
-import com.makiah.makiahsandroidlib.threading.Flow;
-import com.makiah.makiahsandroidlib.threading.ScheduledTask;
-import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
+import dude.makiah.androidlib.logging.LoggingBase;
+import dude.makiah.androidlib.logging.ProcessConsole;
+import dude.makiah.androidlib.threading.Flow;
+import dude.makiah.androidlib.threading.ScheduledTask;
+import dude.makiah.androidlib.threading.ScheduledTaskPackage;
+import dude.makiah.androidlib.threading.TimeMeasure;
 
-import hankextensions.EnhancedOpMode;
-import hankextensions.input.HTGamepad;
+import hankutanku.EnhancedOpMode;
+import hankutanku.input.HTGamepad;
 
-import org.firstinspires.ftc.teamcode.structs.Function;
-import org.firstinspires.ftc.teamcode.structs.ModifiedPIDController;
-import org.firstinspires.ftc.teamcode.structs.PIDController;
-import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
-import org.firstinspires.ftc.teamcode.structs.SingleParameterRunnable;
+import hankutanku.math.Function;
+import hankutanku.math.LimitedUpdateRateFunction;
+import hankutanku.math.ModifiedPIDController;
+import hankutanku.math.PIDController;
+import hankutanku.math.ParametrizedVector;
+import hankutanku.math.SingleParameterRunnable;
 
-import hankextensions.phonesensors.Gyro;
-import hankextensions.structs.Angle;
-import hankextensions.structs.Vector2D;
+import hankutanku.phonesensors.Gyro;
+import hankutanku.math.Angle;
+import hankutanku.math.Vector2D;
 
 /**
  * The SwomniDrive contains 4 SwomniModule instances to which a number of vectors are specified
@@ -36,7 +38,16 @@ public class SwomniDrive extends ScheduledTask
                     Angle.degrees((180 + ROBOT_PHI) - 90),
                     Angle.degrees((360 - ROBOT_PHI) - 90)
             };
-    private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.0081, .001, 0, 5, PIDController.TimeUnits.MILLISECONDS, 40, -1000, 1000, .95);
+    private static final LimitedUpdateRateFunction FIELD_CENTRIC_TURN_CONTROLLER =
+            new ModifiedPIDController(
+                    .0081,
+                    .001,
+                    0,
+                    5,
+                    new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 40),
+                    -1000, 1000,
+                    .95);
+    private static TimeMeasure controlUpdateLatency = new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 100);
 
     // Robot reference (for gyro and such).
     private final Gyro gyro;
@@ -213,7 +224,7 @@ public class SwomniDrive extends ScheduledTask
      * Runs every update, just does a lot of vector algebra depending on the drive mode we're in.
      */
     @Override
-    protected long onContinueTask() throws InterruptedException
+    protected TimeMeasure onContinueTask() throws InterruptedException
     {
         // Simple code for tank drive.
         if (swomniControlMode == SwomniControlMode.TANK_DRIVE)
@@ -231,7 +242,7 @@ public class SwomniDrive extends ScheduledTask
 
             updateCanDrive();
 
-            return 100;
+            return controlUpdateLatency;
         }
 
         // Determined based on Field Centric/Robot Centric control mode.
@@ -260,7 +271,7 @@ public class SwomniDrive extends ScheduledTask
                     try {
                         gyro.zero();
                     } catch (InterruptedException e) {
-                        return 100;
+                        return controlUpdateLatency;
                     }
                 }
 
@@ -348,7 +359,7 @@ public class SwomniDrive extends ScheduledTask
         updateCanDrive();
 
         // A bit of latency before update.
-        return 100;
+        return controlUpdateLatency;
     }
 
     /**

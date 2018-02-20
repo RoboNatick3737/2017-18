@@ -2,17 +2,19 @@ package org.firstinspires.ftc.teamcode.robot.hardware;
 
 import android.support.annotation.NonNull;
 
-import com.makiah.makiahsandroidlib.logging.LoggingBase;
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
-import com.makiah.makiahsandroidlib.threading.ScheduledTask;
+import dude.makiah.androidlib.logging.LoggingBase;
+import dude.makiah.androidlib.logging.ProcessConsole;
+import dude.makiah.androidlib.threading.ScheduledTask;
+import dude.makiah.androidlib.threading.TimeMeasure;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.structs.Function;
-import org.firstinspires.ftc.teamcode.structs.PIDController;
+import hankutanku.math.Function;
+import hankutanku.math.LimitedUpdateRateFunction;
+import hankutanku.math.PIDController;
 
-import hankextensions.structs.Angle;
-import hankextensions.structs.Vector2D;
+import hankutanku.math.Angle;
+import hankutanku.math.Vector2D;
 
 /**
  * Since the vex motor requires some time to turn to the correct position (we aren't
@@ -43,8 +45,8 @@ public class SwomniModule extends ScheduledTask
     private static final boolean ABSOLUTE_ENCODER_UPDATE_CHECK = false, DAMP_TURN_SPEED_IF_SO = false;
 
     // The PID controllers for each swerve mode (more sensitive on holonomic mode and tank mode).
-    private Function errorResponder;
-    public final Function swerveErrorResponder, holonomicErrorResponder, tankErrorResponder;
+    private LimitedUpdateRateFunction errorResponder;
+    public final LimitedUpdateRateFunction swerveErrorResponder, holonomicErrorResponder, tankErrorResponder;
     private SwomniDrive.SwomniControlMode controlMode;
     public void setControlMode(SwomniDrive.SwomniControlMode controlMode)
     {
@@ -91,9 +93,6 @@ public class SwomniModule extends ScheduledTask
     public final EncoderMotor driveMotor;
     private final Servo turnMotor;
     private final AbsoluteEncoder swerveEncoder;
-
-    // The PID controller components which prevents wheel oscillation.
-    private long updateRateMS;
     
     // Whether or not we can log.
     private ProcessConsole wheelConsole = null;
@@ -165,10 +164,9 @@ public class SwomniModule extends ScheduledTask
             EncoderMotor driveMotor,
             Servo turnMotor,
             AbsoluteEncoder swerveEncoder,
-            Function swerveErrorResponder,
-            Function holonomicErrorResponder,
-            Function tankErrorResponder,
-            long updateRateMS,
+            LimitedUpdateRateFunction swerveErrorResponder,
+            LimitedUpdateRateFunction holonomicErrorResponder,
+            LimitedUpdateRateFunction tankErrorResponder,
             Angle physicalEncoderOffset,
             double driveMotorTorqueCorrection)
     {
@@ -184,7 +182,6 @@ public class SwomniModule extends ScheduledTask
         this.tankErrorResponder = tankErrorResponder;
         setControlMode(SwomniDrive.SwomniControlMode.SWERVE_DRIVE);
 
-        this.updateRateMS = updateRateMS;
         this.driveMotorTorqueCorrection = driveMotorTorqueCorrection;
     }
 
@@ -215,7 +212,7 @@ public class SwomniModule extends ScheduledTask
      * possible.
      */
     @Override
-    public long onContinueTask() throws InterruptedException
+    public TimeMeasure onContinueTask() throws InterruptedException
     {
         // If we aren't going to be driving anywhere, don't try to align.
         if (targetVector.magnitude() < .00001 && !enablePassiveAlignmentCorrection)
@@ -258,7 +255,7 @@ public class SwomniModule extends ScheduledTask
                     }
 
                     // Try to immediately update.
-                    return 0;
+                    return TimeMeasure.IMMEDIATE;
                 }
 
                 currentSwivelOrientation = newSwivelOrientation;
@@ -332,6 +329,6 @@ public class SwomniModule extends ScheduledTask
         }
 
         // The ms to wait before updating again.
-        return updateRateMS;
+        return errorResponder.getUpdateRate();
     }
 }

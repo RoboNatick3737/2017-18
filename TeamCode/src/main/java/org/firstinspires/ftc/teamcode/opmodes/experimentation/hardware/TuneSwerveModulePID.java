@@ -1,16 +1,16 @@
 package org.firstinspires.ftc.teamcode.opmodes.experimentation.hardware;
 
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
-import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
+import dude.makiah.androidlib.logging.ProcessConsole;
+import dude.makiah.androidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwomniModule;
-import org.firstinspires.ftc.teamcode.structs.PIDController;
+import hankutanku.math.PIDController;
 
-import hankextensions.EnhancedOpMode;
+import hankutanku.EnhancedOpMode;
 
 @TeleOp(name="Tune Swerve Module PID", group= OpModeDisplayGroups.FINAL_BOT_EXPERIMENTATION)
 public class TuneSwerveModulePID extends EnhancedOpMode

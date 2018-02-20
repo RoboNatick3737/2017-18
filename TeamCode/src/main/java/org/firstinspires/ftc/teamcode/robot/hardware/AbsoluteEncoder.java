@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.robot.hardware;
 
 import com.qualcomm.robotcore.hardware.AnalogInput;
 
-import hankextensions.structs.Angle;
+import hankutanku.math.Angle;
 
 public class AbsoluteEncoder
 {

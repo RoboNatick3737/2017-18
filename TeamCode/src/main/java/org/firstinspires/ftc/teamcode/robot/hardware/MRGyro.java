@@ -1,13 +1,12 @@
 package org.firstinspires.ftc.teamcode.robot.hardware;
 
-import com.makiah.makiahsandroidlib.logging.LoggingBase;
+import dude.makiah.androidlib.logging.LoggingBase;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 
-import hankextensions.EnhancedOpMode;
-import hankextensions.structs.Angle;
-import hankextensions.structs.Vector2D;
+import hankutanku.EnhancedOpMode;
+import hankutanku.math.Angle;
 
-import hankextensions.phonesensors.Gyro;
+import hankutanku.phonesensors.Gyro;
 
 /**
  * Encapsulates the gyro sensor in an easy to access set of methods.

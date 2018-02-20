@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.robot.hardware;
 
-import com.makiah.makiahsandroidlib.logging.LoggingBase;
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import dude.makiah.androidlib.logging.LoggingBase;
+import dude.makiah.androidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 

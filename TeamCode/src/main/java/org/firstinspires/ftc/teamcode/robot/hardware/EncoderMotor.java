@@ -1,13 +1,14 @@
 package org.firstinspires.ftc.teamcode.robot.hardware;
 
-import com.makiah.makiahsandroidlib.logging.LoggingBase;
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
-import com.makiah.makiahsandroidlib.threading.ScheduledTask;
+import dude.makiah.androidlib.logging.LoggingBase;
+import dude.makiah.androidlib.logging.ProcessConsole;
+import dude.makiah.androidlib.threading.ScheduledTask;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.structs.Function;
-import org.firstinspires.ftc.teamcode.structs.PIDController;
+import hankutanku.math.LimitedUpdateRateFunction;
+import hankutanku.math.PIDController;
+import dude.makiah.androidlib.threading.TimeMeasure;
 
 public class EncoderMotor extends ScheduledTask
 {
@@ -24,8 +25,7 @@ public class EncoderMotor extends ScheduledTask
     /**
      * The PID controller which this motor uses to stabilize itself.
      */
-    public final Function errorResponder;
-    private long updateRateMS;
+    public final LimitedUpdateRateFunction errorResponder;
 
     /**
      * The process console which this motor needs to output data.
@@ -62,29 +62,7 @@ public class EncoderMotor extends ScheduledTask
      * The encoder motor response methods.
      * @param motorName  The motor name which appears on the console.
      * @param motor  The motor itself.
-     * @param motorErrorResponse  The motor error response PID Controller
-     * @param encoderTicksPerWheelRevolution  duh
-     * @param wheelDiameterCM  The diameter of the wheel
-     * @param zeroPowerBehavior  The zero power behavior for the motor (whether to actively
-     *                           try to maintain position)
-     */
-    public EncoderMotor(
-            String motorName,
-            DcMotor motor,
-            PIDController motorErrorResponse,
-            int encoderTicksPerWheelRevolution,
-            double wheelDiameterCM,
-            DcMotor.ZeroPowerBehavior zeroPowerBehavior)
-    {
-        this(motorName, motor, motorErrorResponse, (long)(motorErrorResponse.minimumNanosecondGap / 1e3), encoderTicksPerWheelRevolution, wheelDiameterCM, zeroPowerBehavior);
-    }
-
-    /**
-     * The encoder motor response methods.
-     * @param motorName  The motor name which appears on the console.
-     * @param motor  The motor itself.
      * @param motorErrorResponse  The motor error response function
-     * @param updateRateMS  The rate at which the motor responds to error
      * @param encoderTicksPerWheelRevolution  duh
      * @param wheelDiameterCM  The diameter of the wheel
      * @param zeroPowerBehavior  The zero power behavior for the motor (whether to actively
@@ -93,8 +71,7 @@ public class EncoderMotor extends ScheduledTask
     public EncoderMotor(
             String motorName,
             DcMotor motor,
-            Function motorErrorResponse,
-            long updateRateMS,
+            LimitedUpdateRateFunction motorErrorResponse,
             int encoderTicksPerWheelRevolution,
             double wheelDiameterCM,
             DcMotor.ZeroPowerBehavior zeroPowerBehavior)
@@ -106,7 +83,6 @@ public class EncoderMotor extends ScheduledTask
         resetEncoder();
 
         this.errorResponder = motorErrorResponse;
-        this.updateRateMS = updateRateMS;
 
         // The wheel which the motor drives.
         ENCODER_TICKS_PER_REVOLUTION = encoderTicksPerWheelRevolution;
@@ -174,22 +150,18 @@ public class EncoderMotor extends ScheduledTask
     }
 
     /**
-     * Controls updating error correction for the motor.  Essentially, this is the I term since
-     * we change motor acceleration.
+     * Does all error responder stuff.
+     * @return
+     * @throws InterruptedException
      */
-    private long updateErrorCorrection()
+    @Override
+    protected TimeMeasure onContinueTask() throws InterruptedException
     {
-        // Rare
-        if (errorResponder instanceof PIDController)
-        {
-            if (!((PIDController) errorResponder).canUpdate())
-                return 1;
-        }
-        else if (System.nanoTime() - lastAdjustmentTime < updateRateMS)
-            return 1;
+        if (System.nanoTime() - lastAdjustmentTime < errorResponder.getUpdateRate().durationIn(TimeMeasure.Units.NANOSECONDS))
+            return errorResponder.getUpdateRate();
 
         if (Math.abs(desiredVelocity) < .00001)
-            return updateRateMS;
+            return errorResponder.getUpdateRate();
 
         // Calculate PID by finding the number of ticks the motor SHOULD have gone minus the amount it actually went.
         currentVelocity = (((motor.getCurrentPosition() - lastMotorPosition) / ENCODER_TICKS_PER_REVOLUTION) * WHEEL_CIRCUMFERENCE) / ((System.nanoTime() - lastAdjustmentTime)) * 1e9;
@@ -208,12 +180,6 @@ public class EncoderMotor extends ScheduledTask
         lastMotorPosition = motor.getCurrentPosition();
         lastAdjustmentTime = System.nanoTime();
 
-        return updateRateMS;
-    }
-
-    @Override
-    protected long onContinueTask() throws InterruptedException
-    {
-        return updateErrorCorrection();
+        return errorResponder.getUpdateRate();
     }
 }
