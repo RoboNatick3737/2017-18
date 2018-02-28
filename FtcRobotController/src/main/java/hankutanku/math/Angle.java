@@ -24,6 +24,7 @@ public class Angle implements Comparable<Angle>
     }
     public final static Angle ZERO = new Angle(MeasurementType.DEGREES, 0);
 
+    // Should be greater than 0 for either measurement (but less than 360 and 2pi respectively).
     private double degrees = -1, radians = -1;
 
     public enum MeasurementType {DEGREES, RADIANS}
@@ -72,7 +73,8 @@ public class Angle implements Comparable<Angle>
 
     public double shortestPathTo(Angle other, MeasurementType measurementType)
     {
-        double degreesToTurn = 0; // TODO this
+        double degreesToTurn = (other.value(MeasurementType.DEGREES) - value(MeasurementType.DEGREES) + 180) % 360 - 180;
+        degreesToTurn = degreesToTurn < -180 ? degreesToTurn + 360 : degreesToTurn;
 
         if (measurementType == MeasurementType.RADIANS)
             return Math.toRadians(degreesToTurn);
