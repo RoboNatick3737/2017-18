@@ -1,5 +1,9 @@
 package hankutanku.math;
 
+import android.support.annotation.NonNull;
+
+import java.text.DecimalFormat;
+
 public class Vector2D
 {
     public static Vector2D clone(Vector2D other)
@@ -12,6 +16,8 @@ public class Vector2D
         RECTANGULAR
     }
 
+    private final DecimalFormat vectorPropertyFormatter = new DecimalFormat("#.00");
+
     public final static Vector2D ZERO = new Vector2D(0, 0);
 
     private Double x = null, y = null, magnitude = null;
@@ -23,7 +29,7 @@ public class Vector2D
         this.y = y;
     }
 
-    public Vector2D (double magnitude, Angle angle)
+    public Vector2D (double magnitude, @NonNull Angle angle)
     {
         this.magnitude = Math.abs(magnitude);
         this.angle = magnitude < 0 ? angle.opposing() : angle;
@@ -68,7 +74,7 @@ public class Vector2D
      */
     public Vector2D add(Vector2D other)
     {
-        return new Vector2D(this.x + other.x, this.y + other.y);
+        return new Vector2D(this.x() + other.x(), this.y() + other.y());
     }
 
     /**
@@ -78,7 +84,10 @@ public class Vector2D
      */
     public Vector2D multiply(double coefficient)
     {
-        return new Vector2D(x * coefficient, y * coefficient);
+        if (x != null)
+            return new Vector2D(x() * coefficient, y() * coefficient);
+        else
+            return new Vector2D(magnitude() * coefficient, angle());
     }
 
     /**
@@ -109,7 +118,7 @@ public class Vector2D
      */
     public Vector2D unit()
     {
-        return this.divide(magnitude);
+        return this.divide(magnitude());
     }
 
     /**
@@ -119,7 +128,7 @@ public class Vector2D
      */
     public boolean equals(Vector2D other)
     {
-        return Math.abs(other.x - x) < .0001 && Math.abs(other.y - y) < .0001;
+        return Math.abs(other.x() - x()) < .0001 && Math.abs(other.y() - y()) < .0001;
     }
 
     /**
@@ -129,7 +138,7 @@ public class Vector2D
      */
     public Vector2D rotateBy(Angle rotAngle)
     {
-        return new Vector2D(magnitude, angle.add(rotAngle));
+        return new Vector2D(magnitude(), angle().add(rotAngle));
     }
 
     public String toString()
@@ -139,7 +148,7 @@ public class Vector2D
     public String toString(VectorCoordinates coordinate)
     {
         return coordinate == VectorCoordinates.RECTANGULAR ?
-                "<" + x + ", " + y + ">" :
-                "<" + magnitude + ", " + angle + ">";
+                "<" + vectorPropertyFormatter.format(x()) + ", " + vectorPropertyFormatter.format(y()) + ">" :
+                "<" + vectorPropertyFormatter.format(magnitude()) + ", " + vectorPropertyFormatter.format(angle().value(Angle.MeasurementType.DEGREES)) + ">";
     }
 }

@@ -145,7 +145,9 @@ public class Teleop extends EnhancedOpMode
 
             // endregion
 
-            teleopConsole.write("In " + (seanInIntakeMode ? "intake mode" : "relic arm mode"));
+            teleopConsole.write(
+                    "In " + (seanInIntakeMode ? "intake mode" : "relic arm mode")
+            );
 
             flow.yield();
         }

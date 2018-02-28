@@ -16,7 +16,7 @@ public class BallKnocker
         this.knocker = knocker;
 
         setUpwardPosTo(true);
-        knocker.setPosition(0);
+        setKnockerTo(KnockerPosition.RIGHT);
     }
 
     private double currentPos = 0;
@@ -31,7 +31,7 @@ public class BallKnocker
     {
         this.up = up;
 
-        descender.setPosition(up ? -1.2 : 0.6);
+        descender.setPosition(up ? 0.1 : 0.6);
     }
     public void toggleDescender()
     {

@@ -111,6 +111,9 @@ public class SwomniDrive extends ScheduledTask
         swerveConsole = LoggingBase.instance.newProcessConsole("Swerve Console");
 
         stop();
+
+        for (SwomniModule module : swomniModules)
+            module.setEnableLogging(true);
     }
     // endregion
 
@@ -293,18 +296,15 @@ public class SwomniDrive extends ScheduledTask
             // Don't bother trying to be more accurate than 8 degrees while turning.
             rotationSpeed = FIELD_CENTRIC_TURN_CONTROLLER.value(-angleOff);
 
-            if (opModeSituation == EnhancedOpMode.AutoOrTeleop.AUTONOMOUS)
-                if (Math.abs(rotationSpeed) > .324)
-                    rotationSpeed = Math.signum(rotationSpeed) * .324;
-
             // Calculate in accordance with http://imjac.in/ta/pdf/frc/A%20Crash%20Course%20in%20Swerve%20Drive.pdf
             driveVector = fieldCentricTranslation.multiply(speedControl.driveSpeed);
 
             // Write some information to the telemetry console.
             if (swerveConsole != null)
                 swerveConsole.write(
+                        "Drive Mode: " + getSwomniControlMode().toString(),
                         "Current Heading: " + gyroHeading,
-                        "Desired Angle: " + desiredHeading,
+                        "Desired Angle: " + desiredHeading.value(Angle.MeasurementType.DEGREES),
                         "Rotation Speed: " + rotationSpeed,
                         "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
                         "Magnitude: " + fieldCentricTranslation.magnitude());
@@ -329,7 +329,8 @@ public class SwomniDrive extends ScheduledTask
             // Write some information to the telemetry console.
             if (swerveConsole != null)
                 swerveConsole.write(
-                        "Desired Angle: " + desiredHeading,
+                        "Drive Mode: " + getSwomniControlMode().toString(),
+                        "Desired Angle: " + desiredHeading.value(Angle.MeasurementType.DEGREES),
                         "Rotation Speed: " + rotationSpeed,
                         "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
                         FIELD_CENTRIC_TURN_CONTROLLER instanceof PIDController ? "PID: " + ((PIDController)FIELD_CENTRIC_TURN_CONTROLLER).summary() : "");

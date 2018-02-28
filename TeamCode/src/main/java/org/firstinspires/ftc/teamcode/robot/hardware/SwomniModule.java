@@ -322,7 +322,6 @@ public class SwomniModule extends ScheduledTask
                 // Add console information.
                 wheelConsole.write(
                         "Vector target: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
-                        "Current vector: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                         "Angle to turn: " + angleLeftToTurn,
                         "Num skips: " + numAbsoluteEncoderSkips,
                         errorResponder instanceof PIDController ? ((PIDController) errorResponder).summary() : "Using constant method");
