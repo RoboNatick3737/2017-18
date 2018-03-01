@@ -32,6 +32,6 @@ public class EnsureFileIO extends EnhancedOpMode
         }
 
         while (true)
-            flow.msPause(2000);
+            flow.yield();
     }
 }

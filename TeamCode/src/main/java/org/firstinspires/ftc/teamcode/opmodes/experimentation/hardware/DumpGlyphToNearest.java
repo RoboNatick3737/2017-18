@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CryptoboxTracker;
 
+import dude.makiah.androidlib.threading.TimeMeasure;
 import hankutanku.EnhancedOpMode;
 import hankutanku.math.Vector2D;
 import hankutanku.vision.opencv.OpenCVCam;
@@ -83,10 +84,10 @@ public class DumpGlyphToNearest extends EnhancedOpMode
 
         robot.intake.intake();
 
-        flow.msPause(1000);
+        flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, 1));
 
         robot.flipper.advanceStage(2);
 
-        flow.msPause(1000);
+        flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, 1));
     }
 }

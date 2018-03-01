@@ -4,6 +4,7 @@ import android.media.MediaPlayer;
 
 import dude.makiah.androidlib.logging.LoggingBase;
 
+import dude.makiah.androidlib.threading.TimeMeasure;
 import hankutanku.EnhancedOpMode;
 
 /**
@@ -52,7 +53,7 @@ public class Tunes
 
             LoggingBase.instance.lines("Playing " + choice.toString ());
 
-            EnhancedOpMode.instance.flow.msPause (1000); //Give the MediaPlayer some time to initialize, and register that a song is being played.
+            EnhancedOpMode.instance.flow.pause (new TimeMeasure(TimeMeasure.Units.SECONDS, 1)); //Give the MediaPlayer some time to initialize, and register that a song is being played.
         } catch (InterruptedException e)
         {/**/} //Exit immediately.
         catch (Exception e)

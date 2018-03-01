@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
+
+import dude.makiah.androidlib.threading.TimeMeasure;
 import hankutanku.math.PIDController;
 
 import hankutanku.EnhancedOpMode;
@@ -26,7 +28,7 @@ public class TuneDriveMotorPID extends EnhancedOpMode
             if (!(module.errorResponder instanceof PIDController))
             {
                 log.lines("Can't continue");
-                flow.msPause(5000);
+                flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, 5));
                 return;
             }
         }

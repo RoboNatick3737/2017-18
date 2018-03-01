@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.robot.hardware;
 
 import dude.makiah.androidlib.threading.Flow;
+import dude.makiah.androidlib.threading.TimeMeasure;
+
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -70,10 +72,10 @@ public class BallKnocker
         setKnockerTo(KnockerPosition.MIDDLE);
         setUpwardPosTo(false);
 
-        flow.msPause(800);
+        flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, .8));
 
         setKnockerTo(toKnock);
-        flow.msPause(800);
+        flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, .8));
 
         setUpwardPosTo(true);
     }

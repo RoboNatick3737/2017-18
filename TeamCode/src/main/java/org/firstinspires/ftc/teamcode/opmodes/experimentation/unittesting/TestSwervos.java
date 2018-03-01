@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 
+import dude.makiah.androidlib.threading.TimeMeasure;
 import hankutanku.EnhancedOpMode;
 
 @Autonomous(name="Ensure Swervos", group= OpModeDisplayGroups.FINAL_BOT_EXPERIMENTATION)
@@ -63,7 +64,7 @@ public class TestSwervos extends EnhancedOpMode
 //            flow.yield();
 //        flow.msPause(500); // Give user time to take hands off X.
 
-        flow.msPause(1500);
+        flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, 1.5));
     }
 
     private void runOn(String name, Servo servo, AbsoluteEncoder position, DcMotor motor) throws InterruptedException
@@ -77,7 +78,7 @@ public class TestSwervos extends EnhancedOpMode
 //            flow.yield();
 //        }
         pauseForX();
-        flow.msPause(500); // Give user time to take hands off X.
+        flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, .5)); // Give user time to take hands off X.
         servo.setPosition(0.5);
         motor.setPower(0);
     }
