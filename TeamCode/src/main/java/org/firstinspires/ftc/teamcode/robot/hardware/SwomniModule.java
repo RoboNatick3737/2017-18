@@ -113,7 +113,7 @@ public class SwomniModule extends ScheduledTask
     }
     
     // The vector components which should constitute the direction and power of this wheel.
-    private Vector2D targetVector = new Vector2D(0, Angle.ZERO);
+    private Vector2D targetVector = Vector2D.polar(0, Angle.ZERO);
 
     // Swiveling properties.
     private Angle currentSwivelOrientation = Angle.ZERO;
@@ -215,7 +215,7 @@ public class SwomniModule extends ScheduledTask
     public TimeMeasure onContinueTask() throws InterruptedException
     {
         // If we aren't going to be driving anywhere, don't try to align.
-        if (targetVector.magnitude() < .00001 && !enablePassiveAlignmentCorrection)
+        if (targetVector.magnitude < .00001 && !enablePassiveAlignmentCorrection)
         {
             turnMotor.setPosition(0.5);
             currentTurnSpeed = 0;
@@ -265,7 +265,7 @@ public class SwomniModule extends ScheduledTask
                 currentSwivelOrientation = swerveEncoder.position();
 
             // Shortest angle from current heading to desired heading.
-            Angle desiredAngle = targetVector.angle();
+            Angle desiredAngle = targetVector.angle;
             Angle currentAngle = currentSwivelOrientation.subtract(physicalEncoderOffset);
             double angleFromDesired = currentAngle.shortestPathTo(desiredAngle, Angle.MeasurementType.DEGREES);
 
@@ -296,7 +296,7 @@ public class SwomniModule extends ScheduledTask
             if (drivingEnabled)
             {
                 // Scale up/down motor power depending on how far we are from the ideal heading.
-                drivePower = targetVector.magnitude();
+                drivePower = targetVector.magnitude;
                 if (Math.abs(angleFromDesired) > 90) // Angle to turn != angle desired
                     drivePower *= -1;
 

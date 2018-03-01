@@ -9,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
+import dude.makiah.androidlib.threading.TimeMeasure;
 import hankutanku.vision.UILayoutUtility;
 
 /**
@@ -75,7 +76,7 @@ public class VuforiaCam
     public void stop(Flow flow) throws InterruptedException
     {
         if (currentlyActive)
-            flow.msPause(500);
+            flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, .5));
 
         currentlyActive = false;
 

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.robot.hardware;
 import dude.makiah.androidlib.logging.LoggingBase;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 
+import dude.makiah.androidlib.threading.TimeMeasure;
 import hankutanku.EnhancedOpMode;
 import hankutanku.math.Angle;
 
@@ -33,11 +34,11 @@ public class MRGyro implements Gyro
         LoggingBase.instance.lines("Gyroscope calibrating...");
 
         //Pause to prevent odd errors in which it says it's configured but is actually LYING.
-        EnhancedOpMode.instance.flow.msPause (1000);
+        EnhancedOpMode.instance.flow.pause (new TimeMeasure(TimeMeasure.Units.SECONDS, 1));
 
         //Wait for gyro to finish calibrating.
         while (sensor.isCalibrating())
-            EnhancedOpMode.instance.flow.msPause (50);
+            EnhancedOpMode.instance.flow.pause (new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50));
 
         //Zero gyro heading.
         if (zeroHeading)
@@ -63,9 +64,9 @@ public class MRGyro implements Gyro
     //Just resets the gyro.
     public void zero() throws InterruptedException
     {
-        EnhancedOpMode.instance.flow.msPause (400);
+        EnhancedOpMode.instance.flow.pause (new TimeMeasure(TimeMeasure.Units.SECONDS, .4));
         sensor.resetZAxisIntegrator();
-        EnhancedOpMode.instance.flow.msPause (400);
+        EnhancedOpMode.instance.flow.pause (new TimeMeasure(TimeMeasure.Units.SECONDS, .4));
     }
 
     @Override

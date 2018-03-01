@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.CryptoboxTracker;
 
+import dude.makiah.androidlib.threading.TimeMeasure;
 import hankutanku.EnhancedOpMode;
 import hankutanku.math.Vector2D;
 import hankutanku.vision.opencv.OpenCVCam;
@@ -60,7 +61,7 @@ public class DumpGlyphToNearest extends EnhancedOpMode
                 offFromHorizontalIdeal = -1;
             }
 
-            robot.swomniDrive.setDesiredMovement(new Vector2D(forwardSpeed, horizontalSpeed));
+            robot.swomniDrive.setDesiredMovement(Vector2D.rectangular(forwardSpeed, horizontalSpeed));
 
             // Wait until we have a new reading (frames can take a while to process)
             double currentOffFromForward = offFromForwardIdeal, currentOffFromHorizontal = offFromHorizontalIdeal; // use other vals as anchor points
@@ -83,10 +84,10 @@ public class DumpGlyphToNearest extends EnhancedOpMode
 
         robot.intake.intake();
 
-        flow.msPause(1000);
+        flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, 1));
 
         robot.flipper.advanceStage(2);
 
-        flow.msPause(1000);
+        flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, 1));
     }
 }

@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import java.io.File;
 
+import dude.makiah.androidlib.threading.TimeMeasure;
 import hankutanku.EnhancedOpMode;
 import hankutanku.files.FileManager;
 
@@ -32,6 +33,6 @@ public class EnsureFileIO extends EnhancedOpMode
         }
 
         while (true)
-            flow.msPause(2000);
+            flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, 2));
     }
 }

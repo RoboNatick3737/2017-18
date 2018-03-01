@@ -1,14 +1,19 @@
 package hankutanku.math;
 
-import android.support.annotation.NonNull;
-
 import java.text.DecimalFormat;
 
-public class Vector2D
-{
-    public static Vector2D clone(Vector2D other)
+public class Vector2D {
+    public static Vector2D polar(double magnitude, Angle angle)
     {
-        return new Vector2D(other.x, other.y);
+        return new Vector2D(magnitude, angle);
+    }
+
+    public static Vector2D rectangular(double x, double y) {
+        return new Vector2D(x, y, VectorCoordinates.RECTANGULAR);
+    }
+
+    public static Vector2D clone(Vector2D other) {
+        return new Vector2D(other.x, other.y, VectorCoordinates.RECTANGULAR);
     }
 
     public enum VectorCoordinates {
@@ -18,53 +23,74 @@ public class Vector2D
 
     private final DecimalFormat vectorPropertyFormatter = new DecimalFormat("#.00");
 
-    public final static Vector2D ZERO = new Vector2D(0, 0);
+    public final static Vector2D ZERO = Vector2D.rectangular(0, 0);
 
-    private Double x = null, y = null, magnitude = null;
-    private Angle angle = null;
+    public final double x, y, magnitude;
+    public final Angle angle;
 
-    public Vector2D (double x, double y)
-    {
+    private Vector2D(double x, double y) {
         this.x = x;
         this.y = y;
+
+        // Calculate unsupplied properties.
+        this.magnitude = Math.sqrt(x * x + y * y);
+        if (this.magnitude != 0)
+            this.angle = Angle.degrees(Math.toDegrees(Math.atan2(y, x)));
+        else
+            this.angle = Angle.degrees(0);
     }
 
-    public Vector2D (double magnitude, @NonNull Angle angle)
+    private Vector2D(double mag, Angle angle)
     {
-        this.magnitude = Math.abs(magnitude);
-        this.angle = magnitude < 0 ? angle.opposing() : angle;
+        this.magnitude = Math.abs(mag);
+
+        if (mag < 0)
+            this.angle = angle.opposing();
+        else
+            this.angle = angle;
+
+        this.x = magnitude * Math.cos(Math.toRadians(angle.value(Angle.MeasurementType.DEGREES)));
+        this.y = magnitude * Math.sin(Math.toRadians(angle.value(Angle.MeasurementType.DEGREES)));
     }
 
-    public double x()
+    private Vector2D(double val1, double val2, VectorCoordinates coordinateType)
     {
-        if (x == null)
-            this.x = magnitude * Math.cos(angle.value(Angle.MeasurementType.RADIANS));
+        switch (coordinateType)
+        {
+            case RECTANGULAR:
+                this.x = val1;
+                this.y = val2;
 
-        return x;
-    }
+                // Calculate unsupplied properties.
+                this.magnitude = Math.sqrt(x * x + y * y);
+                if (this.magnitude != 0)
+                    this.angle = Angle.degrees(Math.toDegrees(Math.atan2(y, x)));
+                else
+                    this.angle = Angle.degrees(0);
 
-    public double y()
-    {
-        if (y == null)
-            this.y = magnitude * Math.sin(angle.value(Angle.MeasurementType.RADIANS));
+                break;
 
-        return y;
-    }
+            case POLAR:
+                this.magnitude = Math.abs(val1);
 
-    public double magnitude()
-    {
-        if (magnitude == null)
-            this.magnitude = Math.sqrt(x() * x() + y() * y());
+                if (val1 < 0)
+                    this.angle = Angle.degrees(val2 - 180);
+                else
+                    this.angle = Angle.degrees(val2);
 
-        return magnitude;
-    }
+                this.x = magnitude * Math.cos(Math.toRadians(angle.value(Angle.MeasurementType.DEGREES)));
+                this.y = magnitude * Math.sin(Math.toRadians(angle.value(Angle.MeasurementType.DEGREES)));
 
-    public Angle angle()
-    {
-        if (angle == null)
-            angle = Angle.radians(Math.atan2(y, x));
+                break;
 
-        return angle;
+            default: // Just here to make android studio stop complaining.
+                this.x = 0;
+                this.y = 0;
+                this.magnitude = 0;
+                this.angle = Angle.ZERO;
+
+                break;
+        }
     }
 
     /**
@@ -74,7 +100,7 @@ public class Vector2D
      */
     public Vector2D add(Vector2D other)
     {
-        return new Vector2D(this.x() + other.x(), this.y() + other.y());
+        return Vector2D.rectangular(this.x + other.x, this.y + other.y);
     }
 
     /**
@@ -84,10 +110,7 @@ public class Vector2D
      */
     public Vector2D multiply(double coefficient)
     {
-        if (x != null)
-            return new Vector2D(x() * coefficient, y() * coefficient);
-        else
-            return new Vector2D(magnitude() * coefficient, angle());
+        return Vector2D.rectangular(x * coefficient, y * coefficient);
     }
 
     /**
@@ -118,7 +141,7 @@ public class Vector2D
      */
     public Vector2D unit()
     {
-        return this.divide(magnitude());
+        return this.divide(magnitude);
     }
 
     /**
@@ -128,7 +151,7 @@ public class Vector2D
      */
     public boolean equals(Vector2D other)
     {
-        return Math.abs(other.x() - x()) < .0001 && Math.abs(other.y() - y()) < .0001;
+        return Math.abs(other.x - x) < .0001 && Math.abs(other.y - y) < .0001;
     }
 
     /**
@@ -138,7 +161,7 @@ public class Vector2D
      */
     public Vector2D rotateBy(Angle rotAngle)
     {
-        return new Vector2D(magnitude(), angle().add(rotAngle));
+        return Vector2D.polar(magnitude, angle.add(rotAngle));
     }
 
     public String toString()
@@ -147,8 +170,15 @@ public class Vector2D
     }
     public String toString(VectorCoordinates coordinate)
     {
-        return coordinate == VectorCoordinates.RECTANGULAR ?
-                "<" + vectorPropertyFormatter.format(x()) + ", " + vectorPropertyFormatter.format(y()) + ">" :
-                "<" + vectorPropertyFormatter.format(magnitude()) + ", " + vectorPropertyFormatter.format(angle().value(Angle.MeasurementType.DEGREES)) + ">";
+        switch (coordinate)
+        {
+            case RECTANGULAR:
+                return "<" + vectorPropertyFormatter.format(x) + ", " + vectorPropertyFormatter.format(y) + ">";
+
+            case POLAR:
+                return "<" + vectorPropertyFormatter.format(magnitude) + ", " + vectorPropertyFormatter.format(angle.value(Angle.MeasurementType.DEGREES)) + ">";
+        }
+
+        return ""; // Satisfy android studio
     }
 }

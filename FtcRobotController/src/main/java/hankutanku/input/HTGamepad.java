@@ -52,16 +52,16 @@ public class HTGamepad
 
     public Vector2D rightJoystick()
     {
-        return new Vector2D(gamepad.right_stick_x, -gamepad.right_stick_y).rotateBy(Angle.degrees(-90));
+        return Vector2D.rectangular(gamepad.right_stick_x, -gamepad.right_stick_y).rotateBy(Angle.degrees(-90));
     }
 
     public Vector2D leftJoystick()
     {
-        return new Vector2D(gamepad.left_stick_x, -gamepad.left_stick_y).rotateBy(Angle.degrees(-90));
+        return Vector2D.rectangular(gamepad.left_stick_x, -gamepad.left_stick_y).rotateBy(Angle.degrees(-90));
     }
 
     public Vector2D dpad()
     {
-        return new Vector2D((gamepad.dpad_left ? 1 : 0) + (gamepad.dpad_right ? -1 : 0), (gamepad.dpad_up ? 1 : 0) + (gamepad.dpad_down ? -1 : 0)).unit();
+        return Vector2D.rectangular((gamepad.dpad_left ? 1 : 0) + (gamepad.dpad_right ? -1 : 0), (gamepad.dpad_up ? 1 : 0) + (gamepad.dpad_down ? -1 : 0)).unit();
     }
 }

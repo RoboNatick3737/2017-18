@@ -234,13 +234,13 @@ public class SwomniDrive extends ScheduledTask
         {
             if (opModeSituation == EnhancedOpMode.AutoOrTeleop.TELEOP)
             {
-                double rotationSpeed = HTGamepad.CONTROLLER1.leftJoystick().x() - HTGamepad.CONTROLLER1.rightJoystick().x();
-                double driveSpeed = (HTGamepad.CONTROLLER1.leftJoystick().x() + HTGamepad.CONTROLLER1.rightJoystick().x()) / 2.0;
+                double rotationSpeed = HTGamepad.CONTROLLER1.leftJoystick().x - HTGamepad.CONTROLLER1.rightJoystick().x;
+                double driveSpeed = (HTGamepad.CONTROLLER1.leftJoystick().x + HTGamepad.CONTROLLER1.rightJoystick().x) / 2.0;
 
                 for (int i = 0; i < swomniModules.length; i++)
                     swomniModules[i].setVectorTarget(
-                            new Vector2D(0.25 * rotationSpeed * speedControl.turnSpeed, WHEEL_ORIENTATIONS[i])
-                                    .add(new Vector2D(driveSpeed * speedControl.driveSpeed, 0)));
+                            Vector2D.polar(0.25 * rotationSpeed * speedControl.turnSpeed, WHEEL_ORIENTATIONS[i])
+                                    .add(Vector2D.rectangular(driveSpeed * speedControl.driveSpeed, 0)));
             }
 
             updateCanDrive();
@@ -261,10 +261,10 @@ public class SwomniDrive extends ScheduledTask
                 Vector2D joystickDesiredMovement = HTGamepad.CONTROLLER1.leftJoystick();
 
                 // Use the left joystick for rotation unless nothing is supplied, in which case check the DPAD.
-                if (joystickDesiredRotation.magnitude() > .0005)
-                    setDesiredHeading(joystickDesiredRotation.angle());
+                if (joystickDesiredRotation.magnitude > .0005)
+                    setDesiredHeading(joystickDesiredRotation.angle);
 
-                if (joystickDesiredMovement.magnitude() > .0005)
+                if (joystickDesiredMovement.magnitude > .0005)
                     setDesiredMovement(joystickDesiredMovement);
                 else
                     setDesiredMovement(Vector2D.ZERO);
@@ -307,7 +307,7 @@ public class SwomniDrive extends ScheduledTask
                         "Desired Angle: " + desiredHeading.value(Angle.MeasurementType.DEGREES),
                         "Rotation Speed: " + rotationSpeed,
                         "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
-                        "Magnitude: " + fieldCentricTranslation.magnitude());
+                        "Magnitude: " + fieldCentricTranslation.magnitude);
         }
 
         // Robot centric control.
@@ -317,10 +317,10 @@ public class SwomniDrive extends ScheduledTask
             if (opModeSituation == EnhancedOpMode.AutoOrTeleop.TELEOP)
             {
                 desiredMovement = HTGamepad.CONTROLLER1.leftJoystick();
-                if (desiredMovement.magnitude() < .0005)
+                if (desiredMovement.magnitude < .0005)
                     desiredMovement = Vector2D.ZERO;
 
-                rotationSpeed = -HTGamepad.CONTROLLER1.rightJoystick().y();
+                rotationSpeed = -HTGamepad.CONTROLLER1.rightJoystick().y;
             }
 
             // Set vector targets for wheels.
@@ -341,18 +341,18 @@ public class SwomniDrive extends ScheduledTask
         {
             for (int i = 0; i < swomniModules.length; i++)
                 swomniModules[i].setVectorTarget(
-                        new Vector2D(rotationSpeed * speedControl.turnSpeed, WHEEL_ORIENTATIONS[i])
+                        Vector2D.polar(rotationSpeed * speedControl.turnSpeed, WHEEL_ORIENTATIONS[i])
                                 .add(driveVector));
         }
         else if (swomniControlMode == SwomniControlMode.HOLONOMIC)
         {
             for (int i = 0; i < swomniModules.length; i++)
             {
-                double angleOff = driveVector.angle().shortestPathTo(WHEEL_ORIENTATIONS[i], Angle.MeasurementType.RADIANS);
+                double angleOff = driveVector.angle.shortestPathTo(WHEEL_ORIENTATIONS[i], Angle.MeasurementType.RADIANS);
 
                 swomniModules[i].setVectorTarget(
-                        new Vector2D(
-                                rotationSpeed * speedControl.turnSpeed + 2 * driveVector.magnitude() * Math.cos(angleOff),
+                        Vector2D.polar(
+                                rotationSpeed * speedControl.turnSpeed + 2 * driveVector.magnitude * Math.cos(angleOff),
                                 WHEEL_ORIENTATIONS[i]));
             }
         }
@@ -516,7 +516,7 @@ public class SwomniDrive extends ScheduledTask
     public void orientSwerveModulesForRotation(double precisionRequired, TimeMeasure maxDuration, Flow flow) throws InterruptedException
     {
         for (int i = 0; i < swomniModules.length; i++)
-            swomniModules[i].setVectorTarget(new Vector2D(1, WHEEL_ORIENTATIONS[i]));
+            swomniModules[i].setVectorTarget(Vector2D.polar(1, WHEEL_ORIENTATIONS[i]));
 
         orientModules(precisionRequired, maxDuration, flow);
     }

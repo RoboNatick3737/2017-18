@@ -22,13 +22,13 @@ public class ParametrizedVector
                 new Function<Double>() {
                     @Override
                     public Double value(double input) {
-                        return vector.x();
+                        return vector.x;
                     }
                 },
                 new Function<Double>() {
                     @Override
                     public Double value(double input) {
-                        return vector.y();
+                        return vector.y;
                     }
                 },
                 null,
@@ -53,8 +53,8 @@ public class ParametrizedVector
     public Vector2D getVector(double param)
     {
         if (x == null)
-            return new Vector2D(magnitude.value(param), angle.value(param));
+            return Vector2D.polar(magnitude.value(param), angle.value(param));
         else
-            return new Vector2D(x.value(param), y.value(param));
+            return Vector2D.rectangular(x.value(param), y.value(param));
     }
 }

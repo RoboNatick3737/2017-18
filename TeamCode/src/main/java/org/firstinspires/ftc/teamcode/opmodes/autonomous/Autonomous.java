@@ -263,7 +263,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         // Align wheels in preparation to drive backward (this is robot-centric).
         robot.swomniDrive.orientSwerveModules(
-                new Vector2D(1, Angle.degrees(180)),
+                Vector2D.polar(1, Angle.degrees(180)),
                 10,
                 new TimeMeasure(TimeMeasure.Units.SECONDS, 1.5),
                 flow);
@@ -290,7 +290,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     streak = 0;
 
                 robot.swomniDrive.setDesiredMovement(
-                        new Vector2D(
+                        Vector2D.polar(
                                 0.2 + (1 - batteryCoefficient) * .05
                                         - .15 * (closeThreshold - rangeSensorDist) / (255 - closeThreshold),
                                 depositAngle.opposing()));
@@ -345,12 +345,12 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // Drive away from glyph
         robot.swomniDrive.setDesiredHeading(depositAngle);
         Angle driveOffsetAngle = Angle.degrees(10 * (getAlliance() == Alliance.BLUE ? 1 : -1));
-        robot.swomniDrive.driveTime(new Vector2D(0.3, depositAngle.add(driveOffsetAngle)), new TimeMeasure(TimeMeasure.Units.SECONDS, 1.2), flow);
+        robot.swomniDrive.driveTime(Vector2D.polar(0.3, depositAngle.add(driveOffsetAngle)), new TimeMeasure(TimeMeasure.Units.SECONDS, 1.2), flow);
 
         // Smush in dat glyph
         Angle smushAngle = Angle.degrees(20 * (getAlliance() == Alliance.BLUE ? 1 : -1));
         robot.swomniDrive.setDesiredHeading(depositAngle.add(smushAngle));
-        robot.swomniDrive.driveTime(new Vector2D(0.5, depositAngle.opposing()), new TimeMeasure(TimeMeasure.Units.SECONDS, 1.4), flow);
+        robot.swomniDrive.driveTime(Vector2D.polar(0.5, depositAngle.opposing()), new TimeMeasure(TimeMeasure.Units.SECONDS, 1.4), flow);
 
         // Make sure we aren't touching the glyph
         robot.swomniDrive.driveDistance(ParametrizedVector.polar(
@@ -411,7 +411,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
             // Initialize the viewer and wait for glyphs to show up in the harvester.
             openCVCam.start(glyphChecker);
-            robot.swomniDrive.setDesiredMovement(new Vector2D(0.3, Angle.ZERO));
+            robot.swomniDrive.setDesiredMovement(Vector2D.polar(0.3, Angle.ZERO));
             while (glyphChecker.getGlyphsHarvested() < 2)
             {
                 robot.swomniDrive.synchronousUpdate();
