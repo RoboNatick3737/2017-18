@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.robot;
 
-import com.makiah.makiahsandroidlib.logging.LoggingBase;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,8 +11,11 @@ import org.firstinspires.ftc.teamcode.robot.hardware.LightingSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.RelicSystem;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwomniModule;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwomniDrive;
-import org.firstinspires.ftc.teamcode.structs.Function;
-import org.firstinspires.ftc.teamcode.structs.ModifiedPIDController;
+
+import dude.makiah.androidlib.threading.TimeMeasure;
+import hankutanku.math.Function;
+import hankutanku.math.LimitedUpdateRateFunction;
+import hankutanku.math.ModifiedPIDController;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 import org.firstinspires.ftc.teamcode.robot.hardware.Flipper;
 import org.firstinspires.ftc.teamcode.robot.hardware.Intake;
@@ -21,11 +23,12 @@ import org.firstinspires.ftc.teamcode.robot.hardware.Lift;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.EncoderMotor;
 
-import hankextensions.EnhancedOpMode;
-import hankextensions.hardware.HardwareInitializer;
-import hankextensions.hardware.SmarterRangeSensor;
-import hankextensions.phonesensors.AndroidGyro;
-import hankextensions.phonesensors.Gyro;
+import dude.makiah.androidlib.logging.LoggingBase;
+import hankutanku.EnhancedOpMode;
+import hankutanku.hardware.HardwareInitializer;
+import hankutanku.hardware.SmarterRangeSensor;
+import hankutanku.phonesensors.AndroidGyro;
+import hankutanku.phonesensors.Gyro;
 
 /**
  * Wrapper class for all robot hardware.
@@ -87,14 +90,20 @@ public class Robot
                 "Front Left",
                 hardware.initialize(DcMotor.class, "Front Left"),
 //                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
-                new Function()
+                new LimitedUpdateRateFunction()
                 {
+                    final TimeMeasure updateRate = new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50);
+
+                    @Override
+                    public TimeMeasure getUpdateRate() {
+                        return updateRate;
+                    }
+
                     public double value(double input)
                     {
                         return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
                     }
                 },
-                50,
                 475, 7.62, desiredZeroPowerBehavior);
 //        frontLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -103,14 +112,20 @@ public class Robot
                 "Back Left",
                 hardware.initialize(DcMotor.class, "Back Left"),
 //                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
-                new Function()
+                new LimitedUpdateRateFunction()
                 {
+                    final TimeMeasure updateRate = new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50);
+
+                    @Override
+                    public TimeMeasure getUpdateRate() {
+                        return updateRate;
+                    }
+
                     public double value(double input)
                     {
                         return Math.signum(input) * (.000065 * Math.pow(Math.abs(input), 2));
                     }
                 },
-                50,
                 202, 7.62, desiredZeroPowerBehavior);
 //        backLeftDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -119,14 +134,20 @@ public class Robot
                 "Back Right",
                 hardware.initialize(DcMotor.class, "Back Right"),
 //                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
-                new Function()
+                new LimitedUpdateRateFunction()
                 {
+                    final TimeMeasure updateRate = new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50);
+
+                    @Override
+                    public TimeMeasure getUpdateRate() {
+                        return updateRate;
+                    }
+
                     public double value(double input)
                     {
                         return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
                     }
                 },
-                50,
                 475, 7.62, desiredZeroPowerBehavior);
 //        backRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -135,14 +156,20 @@ public class Robot
                 "Front Right",
                 hardware.initialize(DcMotor.class, "Front Right"),
 //                new PIDController(.0006, 0, 0, 0, PIDController.TimeUnits.MILLISECONDS, 80, -1, 1),
-                new Function()
+                new LimitedUpdateRateFunction()
                 {
+                    final TimeMeasure updateRate = new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50);
+
+                    @Override
+                    public TimeMeasure getUpdateRate() {
+                        return updateRate;
+                    }
+
                     public double value(double input)
                     {
                         return Math.signum(input) * (.00006 * Math.pow(Math.abs(input), 2));
                     }
                 },
-                50,
                 202, 7.62, desiredZeroPowerBehavior);
 //        frontRightDrive.motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -169,15 +196,14 @@ public class Robot
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
 
                 // For swerve drive mode.
-                new ModifiedPIDController(0.0052, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new ModifiedPIDController(0.0052, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For holonomic mode
-                new ModifiedPIDController(0.0062, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new ModifiedPIDController(0.0062, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For tank drive mode
-                new ModifiedPIDController(0.0062, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new ModifiedPIDController(0.0062, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
-                50,
                 56,
                 .0005);
 
@@ -188,15 +214,14 @@ public class Robot
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Left Vex Encoder")),
 
                 // For swerve drive mode.
-                new ModifiedPIDController(0.0062, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new ModifiedPIDController(0.0062, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For holonomic mode
-                new ModifiedPIDController(0.0062, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new ModifiedPIDController(0.0062, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For tank drive mode
-                new ModifiedPIDController(0.0062, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new ModifiedPIDController(0.0062, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
-                50,
                 71,
                 .001);
 
@@ -207,15 +232,14 @@ public class Robot
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Back Right Vex Encoder")),
 
                 // For swerve drive mode.
-                new ModifiedPIDController(0.007, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new ModifiedPIDController(0.007, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For holonomic mode
-                new ModifiedPIDController(0.007, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new ModifiedPIDController(0.007, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For tank drive mode
-                new ModifiedPIDController(0.007, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new ModifiedPIDController(0.007, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
-                50,
                 132,
                 .001);
 
@@ -226,15 +250,14 @@ public class Robot
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Right Vex Encoder")),
 
                 // For swerve drive mode.
-                new ModifiedPIDController(0.0056, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new ModifiedPIDController(0.0056, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For holonomic mode
-                new ModifiedPIDController(0.0056, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new ModifiedPIDController(0.0056, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For tank drive mode
-                new ModifiedPIDController(0.0056, 0, 0, .5, ModifiedPIDController.TimeUnits.MILLISECONDS, 80, -.5, .5, .95),
+                new ModifiedPIDController(0.0056, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
-                50,
                 96,
                 .0005);
 

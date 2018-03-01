@@ -1,16 +1,15 @@
 package org.firstinspires.ftc.teamcode.opmodes.teleop;
 
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
-import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
+import dude.makiah.androidlib.logging.ProcessConsole;
+import dude.makiah.androidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwomniDrive;
-import org.firstinspires.ftc.teamcode.structs.PIDController;
 
-import hankextensions.EnhancedOpMode;
-import hankextensions.input.HTButton;
+import hankutanku.EnhancedOpMode;
+import hankutanku.input.HTButton;
 
 @TeleOp(name="Teleop", group= OpModeDisplayGroups.FINAL_BOT_OPMODES)
 public class Teleop extends EnhancedOpMode

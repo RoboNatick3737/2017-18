@@ -2,11 +2,10 @@ package org.firstinspires.ftc.teamcode.opmodes.experimentation.unittesting;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import hankextensions.EnhancedOpMode;
-import hankextensions.phonesensors.AndroidGyro;
-import hankextensions.phonesensors.Gyro;
+import hankutanku.EnhancedOpMode;
+import hankutanku.phonesensors.AndroidGyro;
 
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import dude.makiah.androidlib.logging.ProcessConsole;
 
 @Autonomous(name = "Test Android Gyro", group = "Experimentation")
 public class EnsureAndroidGyro extends EnhancedOpMode

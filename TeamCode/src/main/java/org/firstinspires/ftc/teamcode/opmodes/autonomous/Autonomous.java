@@ -1,31 +1,24 @@
 package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
-import com.makiah.makiahsandroidlib.threading.ScheduledTaskPackage;
+import dude.makiah.androidlib.logging.ProcessConsole;
+import dude.makiah.androidlib.threading.ScheduledTaskPackage;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
-import hankextensions.EnhancedOpMode;
-import hankextensions.structs.Vector2D;
-import hankextensions.vision.opencv.OpenCVCam;
-import hankextensions.vision.vuforia.VuforiaCam;
+import hankutanku.EnhancedOpMode;
+import hankutanku.math.Vector2D;
+import hankutanku.vision.opencv.OpenCVCam;
+import hankutanku.vision.vuforia.VuforiaCam;
 
-import org.firstinspires.ftc.teamcode.robot.hardware.BallKnocker;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwomniModule;
-import org.firstinspires.ftc.teamcode.structs.Function;
-import org.firstinspires.ftc.teamcode.structs.SingleParameterRunnable;
-import org.firstinspires.ftc.teamcode.structs.TimedFunction;
-import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
+import hankutanku.math.Function;
+import hankutanku.math.SingleParameterRunnable;
+import hankutanku.math.TimedFunction;
+import hankutanku.math.ParametrizedVector;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.HarvesterGlyphChecker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
 //import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.NonLocalizedJewelDetector;

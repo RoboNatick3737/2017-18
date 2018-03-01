@@ -4,9 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 
-import hankextensions.vision.opencv.OpenCVCam;
-import hankextensions.vision.vuforia.VuforiaCam;
-import hankextensions.EnhancedOpMode;
+import hankutanku.vision.opencv.OpenCVCam;
+import hankutanku.vision.vuforia.VuforiaCam;
+import hankutanku.EnhancedOpMode;
 
 @Autonomous(name="Vision Swap", group= OpModeDisplayGroups.VISION_TESTING)
 public class VisionSwap extends EnhancedOpMode

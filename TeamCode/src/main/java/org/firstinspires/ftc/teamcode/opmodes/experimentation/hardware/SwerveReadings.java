@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.experimentation.hardware;
 
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import dude.makiah.androidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 import org.firstinspires.ftc.teamcode.robot.hardware.AbsoluteEncoder;
 
-import hankextensions.EnhancedOpMode;
+import hankutanku.EnhancedOpMode;
 
 @Autonomous(name="Swerve Readings", group= OpModeDisplayGroups.FINAL_BOT_EXPERIMENTATION)
 public class SwerveReadings extends EnhancedOpMode

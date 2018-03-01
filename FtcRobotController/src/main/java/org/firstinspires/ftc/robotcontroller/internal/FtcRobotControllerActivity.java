@@ -74,14 +74,12 @@ import com.qualcomm.hardware.HardwareFactory;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegister;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
-import com.qualcomm.robotcore.util.Dimmer;
 import com.qualcomm.robotcore.util.ImmersiveMode;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.wifi.NetworkConnectionFactory;
 import com.qualcomm.robotcore.wifi.NetworkType;
 import com.qualcomm.robotcore.wifi.WifiDirectAssistant;
 
-import org.firstinspires.ftc.ftccommon.external.SoundPlayingRobotMonitor;
 import org.firstinspires.ftc.ftccommon.internal.FtcRobotControllerWatchdogService;
 // modified for turbo: removed ProgramAndManageActivity import
 import org.firstinspires.ftc.robotcore.internal.hardware.DragonboardLynxDragonboardIsPresentPin;
@@ -102,8 +100,8 @@ import org.openftc.Utils;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import hankextensions.activity.HankuBaseActivity;
-import hankextensions.activity.HankuTankuRobotMonitor;
+import hankutanku.activity.HankuBaseActivity;
+import hankutanku.activity.HankuTankuRobotMonitor;
 
 @SuppressWarnings("WeakerAccess")
 public class FtcRobotControllerActivity extends HankuBaseActivity

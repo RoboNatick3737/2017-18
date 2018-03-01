@@ -3,8 +3,8 @@ package org.firstinspires.ftc.teamcode.robot.hardware;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.structs.Function;
-import org.firstinspires.ftc.teamcode.structs.TimedFunction;
+import hankutanku.math.Function;
+import hankutanku.math.TimedFunction;
 
 /**
  * The left and right flippers for the glyphs.

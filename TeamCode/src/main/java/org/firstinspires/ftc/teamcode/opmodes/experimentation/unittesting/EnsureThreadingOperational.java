@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode.opmodes.experimentation.unittesting;
 
-import com.makiah.makiahsandroidlib.threading.ParallelTask;
+import dude.makiah.androidlib.threading.ParallelTask;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import hankextensions.EnhancedOpMode;
+import hankutanku.EnhancedOpMode;
 
 @Autonomous(name="Test Threading", group="Experimentation")
 public class EnsureThreadingOperational extends EnhancedOpMode

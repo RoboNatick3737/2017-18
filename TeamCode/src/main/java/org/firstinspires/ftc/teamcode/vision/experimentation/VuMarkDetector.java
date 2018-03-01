@@ -1,10 +1,9 @@
 package org.firstinspires.ftc.teamcode.vision.experimentation;
 
-import com.makiah.makiahsandroidlib.logging.ProcessConsole;
+import dude.makiah.androidlib.logging.ProcessConsole;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -14,8 +13,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.teamcode.OpModeDisplayGroups;
 
-import hankextensions.EnhancedOpMode;
-import hankextensions.vision.vuforia.VuforiaCam;
+import hankutanku.EnhancedOpMode;
+import hankutanku.vision.vuforia.VuforiaCam;
 
 @Autonomous(name="VuMark Detector", group= OpModeDisplayGroups.VISION_TESTING)
 public class VuMarkDetector extends EnhancedOpMode

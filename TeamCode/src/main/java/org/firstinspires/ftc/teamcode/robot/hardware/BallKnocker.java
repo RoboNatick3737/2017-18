@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot.hardware;
 
-import com.makiah.makiahsandroidlib.threading.Flow;
+import dude.makiah.androidlib.threading.Flow;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
