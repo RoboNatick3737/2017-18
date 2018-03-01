@@ -17,12 +17,10 @@ import hankutanku.vision.vuforia.VuforiaCam;
 
 import org.firstinspires.ftc.teamcode.robot.hardware.SwomniModule;
 import hankutanku.math.Function;
-import hankutanku.math.SingleParameterRunnable;
 import hankutanku.math.TimedFunction;
 import hankutanku.math.ParametrizedVector;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.HarvesterGlyphChecker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
-//import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.NonLocalizedJewelDetector;
 
 public abstract class Autonomous extends EnhancedOpMode implements CompetitionProgram
 {
@@ -137,11 +135,11 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // region Place Pre-Loaded Glyph
         robot.intake.intake();
 
-        double[] DEPOSIT_LOCATIONS = new double[3];
-
         // Define this so that all angles are easy to correct for the top plate.
         final double depositAngle = getBalancePlate() == BalancePlate.TOP ? getAlliance() == Alliance.BLUE ? 270 : 90 : 0;
 
+        // Define where to place glyph
+        double[] DEPOSIT_LOCATIONS;
         if (getBalancePlate() == BalancePlate.BOTTOM)
         {
             // Define locations directly off the balance board, since this auto is fairly simple.
@@ -175,7 +173,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         }
 
         // Choose the length to drive.
-        double desiredDriveLength = 0;
+        final double desiredDriveLength;
         if (getAlliance() == Alliance.BLUE)
         {
             switch (vumark)
@@ -190,6 +188,10 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
                 case RIGHT:
                     desiredDriveLength = DEPOSIT_LOCATIONS[2];
+                    break;
+
+                default: // satisfy android studio
+                    desiredDriveLength = 0;
                     break;
             }
         }
@@ -208,17 +210,19 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                 case RIGHT:
                     desiredDriveLength = DEPOSIT_LOCATIONS[0];
                     break;
+
+                default:
+                    desiredDriveLength = 0;
+                    break;
             }
         }
-
-        final double depositLength = desiredDriveLength;
 
         // Drive that length slowing down over time.
         robot.swomniDrive.purePursuit(ParametrizedVector.polar(
                 new Function() {
                     @Override
                     public double value(double input) {
-                        return input * depositLength;
+                        return input * desiredDriveLength;
                     }
                 },
                 new Function() {
@@ -241,9 +245,6 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                 10,
                 1500,
                 flow);
-
-        if (true)
-            return;
 
         // Drive back to the cryptobox, using range sensor if possible.
         if (robot.backRangeSensor.initializedCorrectly)
@@ -356,6 +357,11 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                 new TimeMeasure(TimeMeasure.Units.SECONDS, 2),
                 2, null, flow);
 
+        // endregion
+
+        // Multiglyph is unreliable atm
+        if (true)
+            return;
         // endregion
     }
 }

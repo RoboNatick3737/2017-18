@@ -35,6 +35,9 @@ public class SwomniDrive extends ScheduledTask
     private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.0081, .001, 0, 5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 40), -1000, 1000, .95);
     private static TimeMeasure controlUpdateLatency = new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 100);
 
+    // Total vector displacement from desired movement combinations.
+    private Vector2D cumulativeRobotVectorDisplacement = Vector2D.ZERO;
+
     // Robot reference (for gyro and such).
     private final Gyro gyro;
     private final EnhancedOpMode.AutoOrTeleop opModeSituation;
@@ -411,17 +414,17 @@ public class SwomniDrive extends ScheduledTask
             double movementParameter = Range.clip(driveCompletion + lookaheadFactor, 0, 1);
 
             // How to move based on the lookahead.
-            Vector2D lookaheadMovement = movement.getVector(movementParameter);
+            Vector2D desiredPosition = movement.getVector(movementParameter).add(cumulativeRobotVectorDisplacement);
 
             // Movement vector taken by dividing by some constant
-            Vector2D newTranslation = lookaheadMovement.divide(5);
+            Vector2D resultingTranslationVector = desiredPosition.subtract(currentDisplacement).divide(5);
 
             // Clip to max of 1 speed.
-            if (newTranslation.magnitude > 1)
-                newTranslation = Vector2D.polar(1, newTranslation.angle);
+            if (resultingTranslationVector.magnitude > 1)
+                resultingTranslationVector = Vector2D.polar(1, resultingTranslationVector.angle);
 
             // Apply and drive.
-            setDesiredMovement(newTranslation);
+            setDesiredMovement(resultingTranslationVector);
             if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
                 synchronousUpdate();
 
@@ -437,6 +440,8 @@ public class SwomniDrive extends ScheduledTask
         }
 
         stop();
+
+        cumulativeRobotVectorDisplacement.add(movement.getVector(1));
     }
 
     /**
@@ -475,6 +480,8 @@ public class SwomniDrive extends ScheduledTask
 
         stop();
         distanceConsole.destroy();
+
+        cumulativeRobotVectorDisplacement.add(movement.getVector(1));
     }
 
     /**
