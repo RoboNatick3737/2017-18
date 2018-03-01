@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.robot.hardware;
 
 import android.support.annotation.NonNull;
 
+import com.qualcomm.robotcore.util.Range;
+
 import dude.makiah.androidlib.logging.LoggingBase;
 import dude.makiah.androidlib.logging.ProcessConsole;
 import dude.makiah.androidlib.threading.Flow;
@@ -369,119 +371,110 @@ public class SwomniDrive extends ScheduledTask
     }
 
     // region Autonomous Methods
-    /**
-     * Represents the encoder positions of each of the four drive motor encoders.
-     */
-    public double[] currentDrivePosition()
-    {
-        double[] toReturn = new double[swomniModules.length];
-        for (int i = 0; i < toReturn.length; i++)
-            toReturn[i] = swomniModules[i].driveMotor.currentDistanceMoved();
-        return toReturn;
-    }
 
     /**
      * Drives a certain distance with a variable heading/power.
-     * @param direction represents the direction and speed of movement, with current distance
-     *                  moved as the parameter.
-     * @param distance  the distance in inches to move.
-     * @param runnable  Optional parameter to run every loop.
+     * @param movement  Represents the plotted movement over time (just current time is plugged
+     *                   into this vector parametrization to decide where we should be).
+     * @param totalTime The time that this drive should take (will take longer if it needs longer).
+     * @param lookahead The time to look ahead for driving.
+     * @param runnable  Optional runnable to run every loop.
+     * @param flow      Tells it how to pause itself safely.
      */
-    public void driveDistance(ParametrizedVector direction, double distance, SingleParameterRunnable runnable, Flow flow) throws InterruptedException
+    public void purePursuit(ParametrizedVector movement, TimeMeasure totalTime, TimeMeasure lookahead, double endpointLeniency, SingleParameterRunnable runnable, Flow flow) throws InterruptedException
     {
-        if (distance <= 0)
-            return;
+        // The timestamp when we start.
+        final long startDriveTime = System.currentTimeMillis();
 
-        ProcessConsole distanceConsole = LoggingBase.instance.newProcessConsole("Distance Drive");
+        // The fraction of the totalTime which is the lookahead.
+        final double lookaheadFactor = lookahead.durationIn(TimeMeasure.Units.MILLISECONDS) / totalTime.durationIn(TimeMeasure.Units.MILLISECONDS);
 
-        // Represents distance driven by each module.
-        double[] cumulativeOffsets = new double[swomniModules.length];
+        // The end point of the movement.
+        final Vector2D movementEndpoint = movement.getVector(1);
 
-        double[] lastPosition = currentDrivePosition();
-        boolean canStop = false; // becomes true once the average offset reaches the requested distance.
-        while (!canStop)
+        while (true)
         {
-            double[] currentPosition = currentDrivePosition();
+            // Current displacement vector.
+            Vector2D currentDisplacement = Vector2D.average(
+                    swomniModules[0].getDisplacementVector(),
+                    swomniModules[1].getDisplacementVector(),
+                    swomniModules[2].getDisplacementVector(),
+                    swomniModules[3].getDisplacementVector());
 
-            // Determine how far we've moved and add that distance to the cumulative offsets.
-            for (int i = 0; i < currentPosition.length; i++)
-                cumulativeOffsets[i] += Math.abs(currentPosition[i] - lastPosition[i]);
+            // Total time spent driving so far.
+            long currentMSProgression = System.currentTimeMillis() - startDriveTime;
 
-            // New anchor.
-            lastPosition = currentPosition;
+            // From 0 to 1 to represent how far along we are.
+            double driveCompletion = currentMSProgression / totalTime.durationIn(TimeMeasure.Units.MILLISECONDS);
 
-            // Figure out the average offset and thus whether we can stop.
-            double avgOffset = 0;
-            for (double offset : cumulativeOffsets)
-                avgOffset += offset;
-            avgOffset /= cumulativeOffsets.length;
-            canStop = avgOffset >= distance;
+            // Also consider lookahead, but wrap to 0 and 1.
+            double movementParameter = Range.clip(driveCompletion + lookaheadFactor, 0, 1);
 
-            // Keep updating unless we can stop.
-            if (!canStop)
-            {
-                setDesiredMovement(direction.getVector(avgOffset / distance)); // 0 and 1
+            // How to move based on the lookahead.
+            Vector2D lookaheadMovement = movement.getVector(movementParameter);
 
-                distanceConsole.write(
-                        "Cumulatives are: " + cumulativeOffsets[0] + " " + cumulativeOffsets[1] + " " + cumulativeOffsets[2] + " " + cumulativeOffsets[3],
-                        "Distances are " + currentPosition[0] + " " + currentPosition[1] + " " + currentPosition[2] + " " + currentPosition[3]);
+            // Movement vector taken by dividing by some constant
+            Vector2D newTranslation = lookaheadMovement.divide(5);
 
-                if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
-                    synchronousUpdate();
+            // Clip to max of 1 speed.
+            if (newTranslation.magnitude > 1)
+                newTranslation = Vector2D.polar(1, newTranslation.angle);
 
-                if (runnable != null)
-                    runnable.run(avgOffset / distance);
-            }
+            // Apply and drive.
+            setDesiredMovement(newTranslation);
+            if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
+                synchronousUpdate();
+
+            // Any other tasks we should be doing, with a general idea of how far along we are.
+            if (runnable != null)
+                runnable.run(driveCompletion);
+
+            // Decide whether we can exit based on our current displacement from the end point.
+            if (currentDisplacement.subtract(movementEndpoint).magnitude < endpointLeniency)
+                break;
 
             flow.yield();
         }
 
         stop();
-        distanceConsole.destroy();
-    }
-    public void driveDistance(Vector2D direction, double distance, Flow flow) throws InterruptedException
-    {
-        driveDistance(ParametrizedVector.from(direction), distance, null, flow);
     }
 
     /**
      * Drives a certain time with a variable heading/power
-     * @param direction The direction to drive
+     * @param movement The direction to drive
      * @param driveTime the ms to drive
      * @param runnable runnable to run every loop
      * @param flow When to exit
      */
-    public void driveTime(ParametrizedVector direction, long driveTime, SingleParameterRunnable runnable, Flow flow) throws InterruptedException
+    public void driveTime(ParametrizedVector movement, TimeMeasure driveTime, SingleParameterRunnable runnable, Flow flow) throws InterruptedException
     {
-        if (driveTime <= 0)
+        long msDrive = driveTime.durationIn(TimeMeasure.Units.MILLISECONDS);
+
+        if (msDrive <= 0)
             return;
 
         ProcessConsole distanceConsole = LoggingBase.instance.newProcessConsole("Timed Drive");
 
         long startTime = System.currentTimeMillis();
         long elapsedTime = 0;
-        while (elapsedTime < driveTime)
+        while (elapsedTime < msDrive)
         {
             elapsedTime = System.currentTimeMillis() - startTime;
 
-            setDesiredMovement(direction.getVector(elapsedTime / driveTime));
-            distanceConsole.write("Remaining: " + (driveTime - (System.currentTimeMillis() - startTime) + "ms"));
+            setDesiredMovement(movement.getVector(elapsedTime / msDrive));
+            distanceConsole.write("Remaining: " + (msDrive - (System.currentTimeMillis() - startTime) + "ms"));
             if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
                 synchronousUpdate();
 
             // Shortcut, callers can provide anonymous methods here.
             if (runnable != null)
-                runnable.run(elapsedTime / driveTime);
+                runnable.run(elapsedTime / msDrive);
 
             flow.yield();
         }
 
         stop();
         distanceConsole.destroy();
-    }
-    public void driveTime(Vector2D direction, long msDrive, Flow flow) throws InterruptedException
-    {
-        driveTime(ParametrizedVector.from(direction), msDrive, null, flow);
     }
 
     /**

@@ -9,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.teamcode.opmodes.CompetitionProgram;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 
+import dude.makiah.androidlib.threading.TimeMeasure;
 import hankutanku.EnhancedOpMode;
 import hankutanku.math.Vector2D;
 import hankutanku.vision.opencv.OpenCVCam;
@@ -149,11 +150,11 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         else
         {
             // First move off the balance board.
-            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
+            robot.swomniDrive.purePursuit(ParametrizedVector.polar(
                     new Function() {
                         @Override
                         public double value(double input) {
-                            return 0.25 + (1 - batteryCoefficient) * .05 - .15 * input;
+                            return input * 15;
                         }
                     },
                     new Function() {
@@ -162,18 +163,16 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                             return getAlliance() == Alliance.RED ? 270 : 90;
                         }
                     }),
-                    65, null, flow);
+                    new TimeMeasure(TimeMeasure.Units.SECONDS, 3),
+                    new TimeMeasure(TimeMeasure.Units.SECONDS, 1),
+                    2,
+                    null, flow);
 
             // Now turn to the heading which faces the cryptobox.
             robot.swomniDrive.turnRobotToHeading(depositAngle, 5, 9000, flow);
 
             DEPOSIT_LOCATIONS = new double[]{21.2, 39.2, 57.8};
         }
-
-        // battery adjustment
-        double batteryDriveCorrection = batteryCoefficient * -.2;
-        for (int i = 0; i < DEPOSIT_LOCATIONS.length; i++)
-            DEPOSIT_LOCATIONS[i] += batteryDriveCorrection;
 
         // Choose the length to drive.
         double desiredDriveLength = 0;
@@ -212,12 +211,14 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             }
         }
 
+        final double depositLength = desiredDriveLength;
+
         // Drive that length slowing down over time.
-        robot.swomniDrive.driveDistance(ParametrizedVector.polar(
+        robot.swomniDrive.purePursuit(ParametrizedVector.polar(
                 new Function() {
                     @Override
                     public double value(double input) {
-                        return 0.25 + (1 - batteryCoefficient) * .05 - .15 * input;
+                        return input * depositLength;
                     }
                 },
                 new Function() {
@@ -229,7 +230,10 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                             return 0;
                     }
                 }),
-                desiredDriveLength, null, flow);
+                new TimeMeasure(TimeMeasure.Units.SECONDS, 5),
+                new TimeMeasure(TimeMeasure.Units.SECONDS, 1),
+                2,
+                null, flow);
 
         // Align wheels in preparation to drive backward (this is robot-centric).
         robot.swomniDrive.orientSwerveModules(
@@ -237,6 +241,9 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                 10,
                 1500,
                 flow);
+
+        if (true)
+            return;
 
         // Drive back to the cryptobox, using range sensor if possible.
         if (robot.backRangeSensor.initializedCorrectly)
@@ -273,11 +280,11 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         }
         else
         {
-            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
+            robot.swomniDrive.purePursuit(ParametrizedVector.polar(
                     new Function() {
                         @Override
                         public double value(double input) {
-                            return 0.4 - .3 * input;
+                            return input * 12.5;
                         }
                     },
                     new Function() {
@@ -286,7 +293,9 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                             return Vector2D.clampAngle(180 + depositAngle); // opposite direction from angle offset (0 for bottom plate)
                         }
                     }),
-                    12.5, null, flow);
+                    new TimeMeasure(TimeMeasure.Units.SECONDS, 5),
+                    new TimeMeasure(TimeMeasure.Units.SECONDS, 1),
+                    2, null, flow);
         }
 
         // Turn for better glyph placement
@@ -318,19 +327,23 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // Drive away from glyph
         robot.swomniDrive.setDesiredHeading(depositAngle);
         double driveOffsetAngle = 10 * (getAlliance() == Alliance.BLUE ? 1 : -1);
-        robot.swomniDrive.driveTime(Vector2D.polar(0.3, Vector2D.clampAngle(depositAngle + driveOffsetAngle)), 1200, flow);
+        robot.swomniDrive.driveTime(
+                ParametrizedVector.from(Vector2D.polar(0.3, Vector2D.clampAngle(depositAngle + driveOffsetAngle))),
+                new TimeMeasure(TimeMeasure.Units.SECONDS, 1.2), null, flow);
 
         // Smush in dat glyph
         double smushAngle = 20 * (getAlliance() == Alliance.BLUE ? 1 : -1);
         robot.swomniDrive.setDesiredHeading(Vector2D.clampAngle(depositAngle + smushAngle));
-        robot.swomniDrive.driveTime(Vector2D.polar(0.5, Vector2D.clampAngle(180 + depositAngle)), 1400, flow);
+        robot.swomniDrive.driveTime(
+                ParametrizedVector.from(Vector2D.polar(0.5, Vector2D.clampAngle(180 + depositAngle))),
+                new TimeMeasure(TimeMeasure.Units.SECONDS, 1.4), null, flow);
 
         // Make sure we aren't touching the glyph
-        robot.swomniDrive.driveDistance(ParametrizedVector.polar(
+        robot.swomniDrive.purePursuit(ParametrizedVector.polar(
                 new Function() {
                     @Override
                     public double value(double input) {
-                        return 0.3;
+                        return input * 7;
                     }
                 },
                 new Function() {
@@ -339,82 +352,10 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                         return depositAngle;
                     }
                 }),
-                7, null, flow);
+                new TimeMeasure(TimeMeasure.Units.SECONDS, 2),
+                new TimeMeasure(TimeMeasure.Units.SECONDS, 2),
+                2, null, flow);
 
-        // endregion
-
-        // Multiglyph is unreliable atm
-        if (true)
-            return;
-
-        // region TODO Multi-Glyph!
-        if (getBalancePlate() == BalancePlate.BOTTOM)
-        {
-            // Start the intake.
-            robot.intake.intake();
-
-            // Drive to where the glyph pit is but stop directly in front of it.
-            robot.swomniDrive.setDesiredHeading(0);
-            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
-                    new Function() {
-                        @Override
-                        public double value(double input) {
-                            return 0.6 - input * 0.3;
-                        }
-                    },
-                    new Function() {
-                        @Override
-                        public double value(double input) {
-                            return 0;
-                        }
-                    }),
-                    40,
-                    new SingleParameterRunnable() {
-                        @Override
-                        public void run(double param) {
-                            if (param > .66)
-                            {
-                                // Put the flipper back down.
-                                robot.flipper.advanceStage(0);
-                            }
-                        }
-                    },
-                    flow
-            );
-
-            // Initialize the viewer and wait for glyphs to show up in the harvester.
-            openCVCam.start(glyphChecker);
-            robot.swomniDrive.setDesiredMovement(Vector2D.polar(0.3, 0));
-            while (glyphChecker.getGlyphsHarvested() < 2)
-            {
-                robot.swomniDrive.synchronousUpdate();
-                flow.yield();
-            }
-
-            // Drive back.
-            robot.swomniDrive.driveDistance(ParametrizedVector.polar(
-                    new Function() {
-                        @Override
-                        public double value(double input) {
-                            return -0.6 + input * 0.3;
-                        }
-                    },
-                    new Function() {
-                        @Override
-                        public double value(double input) {
-                            return 0;
-                        }
-                    }),
-                    50,
-                    null,
-                    flow
-            );
-        }
-
-        // TODO Pain in the A** multiglyph
-        else if (getBalancePlate() == BalancePlate.TOP)
-        {
-        }
         // endregion
     }
 }

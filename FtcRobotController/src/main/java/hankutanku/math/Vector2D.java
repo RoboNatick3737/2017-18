@@ -2,6 +2,16 @@ package hankutanku.math;
 
 public class Vector2D
 {
+    public static Vector2D average(Vector2D... toAverage)
+    {
+        Vector2D sum = Vector2D.ZERO;
+        for (Vector2D vector : toAverage)
+            sum.add(vector);
+        sum.divide(toAverage.length);
+
+        return sum;
+    }
+
     public static double clampAngle(double angle)
     {
         while (angle < 0.0)
