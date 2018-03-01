@@ -60,7 +60,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             module.driveMotor.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Orient for turning
-        robot.swomniDrive.orientSwerveModules(Vector2D.polar(1, 90), 5, 3000, flow);
+        robot.swomniDrive.orientSwerveModules(Vector2D.polar(1, 90), 5, new TimeMeasure(TimeMeasure.Units.SECONDS, 3), flow);
 
         // region Initialization Detection of the Crypto Key and the Jewel Alignment
 
@@ -163,11 +163,11 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     }),
                     new TimeMeasure(TimeMeasure.Units.SECONDS, 3),
                     new TimeMeasure(TimeMeasure.Units.SECONDS, 1),
-                    2,
+                    .1,
                     null, flow);
 
             // Now turn to the heading which faces the cryptobox.
-            robot.swomniDrive.turnRobotToHeading(depositAngle, 5, 9000, flow);
+            robot.swomniDrive.turnRobotToHeading(depositAngle, 5, new TimeMeasure(TimeMeasure.Units.SECONDS, 9), flow);
 
             DEPOSIT_LOCATIONS = new double[]{21.2, 39.2, 57.8};
         }
@@ -243,7 +243,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         robot.swomniDrive.orientSwerveModules(
                 Vector2D.polar(1, 180),
                 10,
-                1500,
+                new TimeMeasure(TimeMeasure.Units.SECONDS, 1.5),
                 flow);
 
         // Drive back to the cryptobox, using range sensor if possible.
@@ -296,14 +296,14 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     }),
                     new TimeMeasure(TimeMeasure.Units.SECONDS, 5),
                     new TimeMeasure(TimeMeasure.Units.SECONDS, 1),
-                    2, null, flow);
+                    .1, null, flow);
         }
 
         // Turn for better glyph placement
         double glyphPlacementAngle = 30 * (getAlliance() == Alliance.BLUE ? -1 : 1);
         robot.swomniDrive.turnRobotToHeading(
                 Vector2D.clampAngle(depositAngle + glyphPlacementAngle),
-                5, 3000,
+                5, new TimeMeasure(TimeMeasure.Units.SECONDS, 3),
                 flow);
 
         // Dump glyph
@@ -355,7 +355,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                 }),
                 new TimeMeasure(TimeMeasure.Units.SECONDS, 2),
                 new TimeMeasure(TimeMeasure.Units.SECONDS, 2),
-                2, null, flow);
+                .1, null, flow);
 
         // endregion
 

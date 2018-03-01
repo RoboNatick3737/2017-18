@@ -35,8 +35,8 @@ public class SwomniDrive extends ScheduledTask
     private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.0081, .001, 0, 5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 40), -1000, 1000, .95);
     private static TimeMeasure controlUpdateLatency = new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 100);
 
-    // Total vector displacement from desired movement combinations.
-    private Vector2D cumulativeRobotVectorDisplacement = Vector2D.ZERO;
+    // Total vector displacement from desired movement combinations, may be off from current but allows driving inaccuracies to be corrected in later drives.
+    private Vector2D cumulativeRobotFieldPosition = Vector2D.ZERO;
 
     // Robot reference (for gyro and such).
     private final Gyro gyro;
@@ -398,7 +398,7 @@ public class SwomniDrive extends ScheduledTask
         while (true)
         {
             // Current displacement vector.
-            Vector2D currentDisplacement = Vector2D.average(
+            Vector2D currentPositionOnField = Vector2D.average(
                     swomniModules[0].getDisplacementVector(),
                     swomniModules[1].getDisplacementVector(),
                     swomniModules[2].getDisplacementVector(),
@@ -414,10 +414,10 @@ public class SwomniDrive extends ScheduledTask
             double movementParameter = Range.clip(driveCompletion + lookaheadFactor, 0, 1);
 
             // How to move based on the lookahead.
-            Vector2D desiredPosition = movement.getVector(movementParameter).add(cumulativeRobotVectorDisplacement);
+            Vector2D desiredPositionOnField = movement.getVector(movementParameter).add(cumulativeRobotFieldPosition);
 
-            // Movement vector taken by dividing by some constant
-            Vector2D resultingTranslationVector = desiredPosition.subtract(currentDisplacement).divide(5);
+            // Movement vector taken by dividing by some constant which represents a conversion from distance to power.
+            Vector2D resultingTranslationVector = desiredPositionOnField.subtract(currentPositionOnField).divide(5);
 
             // Clip to max of 1 speed.
             if (resultingTranslationVector.magnitude > 1)
@@ -433,7 +433,7 @@ public class SwomniDrive extends ScheduledTask
                 runnable.run(driveCompletion);
 
             // Decide whether we can exit based on our current displacement from the end point.
-            if (currentDisplacement.subtract(movementEndpoint).magnitude < endpointLeniency)
+            if (currentPositionOnField.subtract(movementEndpoint).magnitude < endpointLeniency)
                 break;
 
             flow.yield();
@@ -441,7 +441,7 @@ public class SwomniDrive extends ScheduledTask
 
         stop();
 
-        cumulativeRobotVectorDisplacement.add(movement.getVector(1));
+        cumulativeRobotFieldPosition.add(movement.getVector(1));
     }
 
     /**
@@ -481,29 +481,29 @@ public class SwomniDrive extends ScheduledTask
         stop();
         distanceConsole.destroy();
 
-        cumulativeRobotVectorDisplacement.add(movement.getVector(1));
+        cumulativeRobotFieldPosition.add(movement.getVector(1));
     }
 
     /**
      * Orients all SwerveModules to a given vector with some degree of certainty (for auto)
      */
-    public void orientSwerveModules(Vector2D orientationVector, double precisionRequired, long msMax, Flow flow) throws InterruptedException
+    public void orientSwerveModules(Vector2D orientationVector, double precisionRequired, TimeMeasure timeMax, Flow flow) throws InterruptedException
     {
         for (int i = 0; i < swomniModules.length; i++)
             swomniModules[i].setVectorTarget(orientationVector);
 
-        orientModules(precisionRequired, msMax, flow);
+        orientModules(precisionRequired, timeMax, flow);
     }
 
     /**
      * Orient all swivel modules for rotation.
      */
-    public void orientSwerveModulesForRotation(double precisionRequired, long msMax, Flow flow) throws InterruptedException
+    public void orientSwerveModulesForRotation(double precisionRequired, TimeMeasure timeMax, Flow flow) throws InterruptedException
     {
         for (int i = 0; i < swomniModules.length; i++)
             swomniModules[i].setVectorTarget(Vector2D.polar(1, WHEEL_ORIENTATIONS[i]));
 
-        orientModules(precisionRequired, msMax, flow);
+        orientModules(precisionRequired, timeMax, flow);
     }
 
     /**
@@ -511,7 +511,7 @@ public class SwomniDrive extends ScheduledTask
      *
      * TODO include asynchronous mode
      */
-    private void orientModules(double precisionRequired, long msMax, Flow flow) throws InterruptedException
+    private void orientModules(double precisionRequired, TimeMeasure timeMax, Flow flow) throws InterruptedException
     {
         // Have to make a separate package for just swiveling.
         ScheduledTaskPackage updatePackage = new ScheduledTaskPackage(
@@ -521,7 +521,7 @@ public class SwomniDrive extends ScheduledTask
         updatePackage.setUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
 
         long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < msMax)
+        while (System.currentTimeMillis() - start < timeMax.durationIn(TimeMeasure.Units.MILLISECONDS))
         {
             // Otherwise update
             updatePackage.synchronousUpdate();
@@ -553,7 +553,7 @@ public class SwomniDrive extends ScheduledTask
     /**
      * Turns the robot to some pre-specified heading according to the gyro
      */
-    public void turnRobotToHeading(double heading, double precisionRequired, long msMax, Flow flow) throws InterruptedException
+    public void turnRobotToHeading(double heading, double precisionRequired, TimeMeasure timeMax, Flow flow) throws InterruptedException
     {
         if (FIELD_CENTRIC_TURN_CONTROLLER instanceof PIDController)
             ((PIDController) FIELD_CENTRIC_TURN_CONTROLLER).resetController();
@@ -562,7 +562,7 @@ public class SwomniDrive extends ScheduledTask
 
         long start = System.currentTimeMillis();
         int streak = 0;
-        while (System.currentTimeMillis() - start < msMax)
+        while (System.currentTimeMillis() - start < timeMax.durationIn(TimeMeasure.Units.MILLISECONDS))
         {
             if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
                 synchronousUpdate();
