@@ -28,7 +28,7 @@ import org.firstinspires.ftc.teamcode.structs.TimedFunction;
 import org.firstinspires.ftc.teamcode.structs.ParametrizedVector;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.HarvesterGlyphChecker;
 import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.JewelDetector;
-import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.NonLocalizedJewelDetector;
+//import org.firstinspires.ftc.teamcode.vision.relicrecoveryvisionpipelines.NonLocalizedJewelDetector;
 
 public abstract class Autonomous extends EnhancedOpMode implements CompetitionProgram
 {
@@ -68,99 +68,77 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             module.driveMotor.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Orient for turning
-        robot.swomniDrive.orientSwerveModulesForRotation(10, 3000, flow);
+        robot.swomniDrive.orientSwerveModules(Vector2D.polar(1, 90), 5, 3000, flow);
 
-        // region Jewels
-        openCVCam.start(jewelDetector);
+        // region Initialization Detection of the Crypto Key and the Jewel Alignment
 
-        // Search for the jewels until they show up in the detector.
-        ProcessConsole jewelConsole = log.newProcessConsole("Jewels");
-        long start = -1;
-        final long jewelsNotDetectedTimeout = 5000;
+        // DON'T specify a default order, if we mess this up we lose points.
         JewelDetector.JewelOrder jewelOrder = JewelDetector.JewelOrder.UNKNOWN;
-        while (true)
+        RelicRecoveryVuMark vumark = RelicRecoveryVuMark.UNKNOWN;
+
+        // Loop through
+        ProcessConsole observedConsole = log.newProcessConsole("Observed Init stuff");
+        while (!isStarted()) // Runs until OpMode is started, then just goes from there.
         {
-            jewelOrder = jewelDetector.getCurrentOrder();
-
-            if (isStarted())
+            // Jewel detection
+            openCVCam.start(jewelDetector);
+            JewelDetector.JewelOrder newJewelOrder = JewelDetector.JewelOrder.UNKNOWN;
+            long start = System.currentTimeMillis();
+            while (System.currentTimeMillis() - start < 5000 && newJewelOrder == JewelDetector.JewelOrder.UNKNOWN)
             {
-                if (jewelOrder != JewelDetector.JewelOrder.UNKNOWN)
-                    break; // start autonomous if we can see them
+                newJewelOrder = jewelDetector.getCurrentOrder();
 
-                if (start == -1)
-                    start = System.currentTimeMillis();
-
-                if (System.currentTimeMillis() - start > jewelsNotDetectedTimeout)
+                if (isStarted() && jewelOrder != JewelDetector.JewelOrder.UNKNOWN)
                     break;
+
+                flow.yield();
             }
+            openCVCam.stop();
 
-            jewelConsole.write("Looking at " + jewelOrder.toString());
-            flow.yield();
-        }
-        jewelConsole.destroy();
-        openCVCam.stop();
+            if (newJewelOrder != JewelDetector.JewelOrder.UNKNOWN)
+                jewelOrder = newJewelOrder;
 
-        log.lines("Chose " + jewelOrder.toString());
+            observedConsole.write("Currently seeing jewels: " + jewelOrder.toString() + " and vumark: " + vumark.toString());
 
-        if (jewelOrder != JewelDetector.JewelOrder.UNKNOWN)
-        {
-            // Determine which direction we're going to have to rotate when auto starts.
-            if (getAlliance() == Alliance.RED) // since this extends competition op mode.
-            {
-                if (jewelOrder == JewelDetector.JewelOrder.BLUE_RED)
-                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
-                else
-                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
+            start = System.currentTimeMillis();
 
-            }
-            else if (getAlliance() == Alliance.BLUE)
-            {
-                if (jewelOrder == JewelDetector.JewelOrder.BLUE_RED)
-                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.RIGHT, flow);
-                else
-                    robot.ballKnocker.knockBall(BallKnocker.KnockerPosition.LEFT, flow);
-            }
-        }
-        // endregion
-
-        // region VuMark
-
-        // Init while turning
-        vuforiaCam.start();
-
-        robot.swomniDrive.turnRobotToHeading(20, 5, 4000, flow);
-
-        RelicRecoveryVuMark detectedVuMark = RelicRecoveryVuMark.UNKNOWN;
-
-        VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
-        vuforiaCam.getTrackables().activate();
-        ProcessConsole vuforiaConsole = log.newProcessConsole("Vuforia");
-
-        start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < 9000)
-        {
-            detectedVuMark = RelicRecoveryVuMark.from(relicTemplate);
-            vuforiaConsole.write("Currently seeing " + detectedVuMark.toString());
-
-            if (detectedVuMark != RelicRecoveryVuMark.UNKNOWN)
+            if (isStarted() && vumark != RelicRecoveryVuMark.UNKNOWN)
                 break;
 
+            // VuMark detection.
+            RelicRecoveryVuMark newVuMark = RelicRecoveryVuMark.UNKNOWN;
+            vuforiaCam.start(true);
+            VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
+            vuforiaCam.getTrackables().activate();
+            while (System.currentTimeMillis() - start < 10000 && newVuMark == RelicRecoveryVuMark.UNKNOWN)
+            {
+                newVuMark = RelicRecoveryVuMark.from(relicTemplate);
+
+                if (isStarted() && vumark != RelicRecoveryVuMark.UNKNOWN)
+                    break;
+
+                flow.yield();
+            }
+            vuforiaCam.stop(flow);
+
+            if (newVuMark != RelicRecoveryVuMark.UNKNOWN)
+                vumark = newVuMark;
+
+            observedConsole.write("Currently seeing jewels: " + jewelOrder.toString() + " and vumark: " + vumark.toString());
+
             flow.yield();
         }
+        observedConsole.destroy();
 
-        log.lines("Chose " + detectedVuMark.toString());
+        // default vumark if none detected.
+        if (vumark == RelicRecoveryVuMark.UNKNOWN)
+            vumark = RelicRecoveryVuMark.CENTER;
 
-        if (detectedVuMark == RelicRecoveryVuMark.UNKNOWN)
-            detectedVuMark = RelicRecoveryVuMark.CENTER;
-
-        vuforiaConsole.destroy();
-
-        robot.swomniDrive.turnRobotToHeading(0, 5, 4000, flow);
+        // endregion
 
         // Return to default mode to drive off the platform.
         for (SwomniModule module : robot.swomniDrive.swomniModules)
             module.driveMotor.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        // endregion
 
         // region Place Pre-Loaded Glyph
         robot.intake.intake();
@@ -208,7 +186,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         double desiredDriveLength = 0;
         if (getAlliance() == Alliance.BLUE)
         {
-            switch (detectedVuMark)
+            switch (vumark)
             {
                 case LEFT:
                     desiredDriveLength = DEPOSIT_LOCATIONS[0];
@@ -225,7 +203,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         }
         else
         {
-            switch (detectedVuMark)
+            switch (vumark)
             {
                 case LEFT:
                     desiredDriveLength = DEPOSIT_LOCATIONS[2];
