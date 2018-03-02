@@ -441,7 +441,8 @@ public class SwomniDrive extends ScheduledTask
 
         stop();
 
-        cumulativeRobotFieldPosition.add(movement.getVector(1));
+        // Allows any errors that may have occurred during this movement be fixed in following movements.
+        cumulativeRobotFieldPosition.add(movementEndpoint);
     }
 
     /**
@@ -481,6 +482,7 @@ public class SwomniDrive extends ScheduledTask
         stop();
         distanceConsole.destroy();
 
+        // Allows any errors that may have occurred during this movement be fixed in following movements.
         cumulativeRobotFieldPosition.add(movement.getVector(1));
     }
 

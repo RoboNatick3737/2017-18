@@ -12,9 +12,8 @@ import hankutanku.math.TimedFunction;
 public class Flipper
 {
     // region Flipper Servos
-    private final Servo left, right;
+    private final Servo left;
     private int currentStage = -1;
-    private static final double RIGHT_FLIPPER_OFFSET = .19;
     private enum FlipPosition
     {
         MIN(1),
@@ -45,15 +44,29 @@ public class Flipper
     }
     // endregion
 
+    // region Glyph Holder
+    private final Servo glyphHolder;
+    private enum GlyphHolder {
+        BLOCKING(1),
+        AWAY(0);
+
+        public final double position;
+
+        GlyphHolder(double position) {
+            this.position = position;
+        }
+    }
+    // endregion
+
     // The current servo position (getPosition() doesn't seem to work).
     private double position = FlipPosition.MIN.position;
     private TimedFunction liftFunc = null;
 
-    public Flipper(Servo left, Servo right, Servo glyphClamp)
+    public Flipper(Servo left, Servo glyphClamp, Servo glyphHolder)
     {
         this.left = left;
-        this.right = right;
         this.glyphClamp = glyphClamp;
+        this.glyphHolder = glyphHolder;
 
         advanceStage(0);
     }
@@ -61,7 +74,6 @@ public class Flipper
     private void updateFlipperPositions()
     {
         left.setPosition(Range.clip(position, 0, 1));
-        right.setPosition(Range.clip(1 + RIGHT_FLIPPER_OFFSET - position, 0, 1));
     }
 
     public void advanceStage(int stage)
@@ -76,6 +88,7 @@ public class Flipper
             case 0:
                 position = FlipPosition.MIN.position;
                 glyphClamp.setPosition(GlyphClamp.FREE.position);
+                glyphHolder.setPosition(GlyphHolder.BLOCKING.position);
                 liftFunc = null;
                 break;
 
@@ -88,11 +101,13 @@ public class Flipper
                         return -.25 * input + FlipPosition.MID_START.position; // gradient lift
                     }
                 });
+                glyphHolder.setPosition(GlyphHolder.BLOCKING.position);
                 break;
 
             case 2:
                 position = FlipPosition.MAX.position;
                 glyphClamp.setPosition(GlyphClamp.FREE.position);
+                glyphHolder.setPosition(GlyphHolder.AWAY.position);
                 liftFunc = null;
                 break;
         }
