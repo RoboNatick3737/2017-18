@@ -191,6 +191,11 @@ public class SwomniDrive extends ScheduledTask
     {
         return swomniControlMode;
     }
+    private boolean vectorControlBasedOnHeading = true;
+    public void setVectorControlBasedOnHeading(boolean vectorControlBasedOnHeading)
+    {
+        this.vectorControlBasedOnHeading = vectorControlBasedOnHeading;
+    }
     // endregion
 
     private void updateCanDrive()
@@ -279,7 +284,7 @@ public class SwomniDrive extends ScheduledTask
             angleOff = angleOff < -180 ? angleOff + 360 : angleOff;
 
             // Figure out the actual translation vector for swerve wheels based on gyro value.
-            Vector2D fieldCentricTranslation = desiredMovement.rotateBy(-desiredHeading);
+            Vector2D fieldCentricTranslation = vectorControlBasedOnHeading ? desiredMovement.rotateBy(-gyroHeading) : desiredMovement;
 
             // Don't bother trying to be more accurate than 8 degrees while turning.
             rotationSpeed = FIELD_CENTRIC_TURN_CONTROLLER.value(-angleOff);

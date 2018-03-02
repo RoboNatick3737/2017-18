@@ -311,7 +311,7 @@ public class Robot
             relicSystem = null;
 
         // Flipper init
-        flipper = new Flipper(hardware.initialize(Servo.class, "Flipper"), hardware.initialize(Servo.class, "Glyph Clamp"), hardware.initialize(Servo.class, "Holder"));
+        flipper = new Flipper(hardware.initialize(Servo.class, "Flipper"), hardware.initialize(Servo.class, "Glyph Clamp"), hardware.initialize(Servo.class, "Bottom Glyph Holder"));
 
         // Ball knocker init
         ballKnocker = new BallKnocker(hardware.initialize(Servo.class, "Knocker Holder"), hardware.initialize(Servo.class, "Mini Knocker"));

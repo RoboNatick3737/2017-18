@@ -16,6 +16,7 @@ import hankutanku.music.Tunes;
 import hankutanku.vision.opencv.OpenCVCam;
 import hankutanku.vision.vuforia.VuforiaCam;
 
+import org.firstinspires.ftc.teamcode.robot.hardware.SwomniDrive;
 import org.firstinspires.ftc.teamcode.robot.hardware.SwomniModule;
 import hankutanku.math.Function;
 import hankutanku.math.TimedFunction;
@@ -45,6 +46,8 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         // Init the bot.
         final Robot robot = new Robot(hardware, AutoOrTeleop.AUTONOMOUS);
         robot.swomniDrive.setSwerveUpdateMode(ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS);
+        robot.swomniDrive.setSwomniControlMode(SwomniDrive.SwomniControlMode.SWERVE_DRIVE);
+        robot.swomniDrive.setVectorControlBasedOnHeading(false);
 
         // Init the viewers.
         OpenCVCam openCVCam = new OpenCVCam();
@@ -397,11 +400,6 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                 new TimeMeasure(TimeMeasure.Units.SECONDS, 2),
                 .1, null, flow);
 
-        // endregion
-
-        // Multiglyph is unreliable atm
-        if (true)
-            return;
         // endregion
     }
 }
