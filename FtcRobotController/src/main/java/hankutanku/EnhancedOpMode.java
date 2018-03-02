@@ -129,9 +129,6 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
         }
         finally //Occurs after all possible endings.
         {
-            // Stop playing tunes.
-            Tunes.silence();
-
             // Disable both cameras (just in case)
             if (OpenCVCam.instance != null)
                 OpenCVCam.instance.stop();
@@ -141,6 +138,9 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
             // Disable the Android gyro (in case the op mode didn't turn it off).
             if (AndroidGyro.instance != null)
                 AndroidGyro.instance.quit();
+
+            // Stop playing tunes.
+            Tunes.silence();
 
             onStop();
         }

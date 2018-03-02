@@ -2,6 +2,8 @@ package hankutanku.music;
 
 import android.media.MediaPlayer;
 
+import com.qualcomm.ftcrobotcontroller.R;
+
 import dude.makiah.androidlib.logging.LoggingBase;
 
 import dude.makiah.androidlib.threading.TimeMeasure;
@@ -17,7 +19,12 @@ public class Tunes
      */
     public enum Option
     {
-        USSR_Anthem
+        USSR_Anthem,
+        LEFT_COL,
+        CENTER_COL,
+        RIGHT_COL,
+        LEFT_RIGHT_JEWEL,
+        RIGHT_LEFT_JEWEL
     }
 
     private static MediaPlayer mediaPlayer = null;
@@ -39,6 +46,26 @@ public class Tunes
                 case USSR_Anthem:
                     selectedSong = com.qualcomm.ftcrobotcontroller.R.raw.ussranthem;
                     break;
+
+                case LEFT_COL:
+                    selectedSong = R.raw.leftcol;
+                    break;
+
+                case CENTER_COL:
+                    selectedSong = R.raw.centercol;
+                    break;
+
+                case RIGHT_COL:
+                    selectedSong = R.raw.rightcol;
+                    break;
+
+                case LEFT_RIGHT_JEWEL:
+                    selectedSong = R.raw.leftrightjewel;
+                    break;
+
+                case RIGHT_LEFT_JEWEL:
+                    selectedSong = R.raw.rightleftjewel;
+                    break;
             }
 
             mediaPlayer = MediaPlayer.create (EnhancedOpMode.instance.hardwareMap.appContext, selectedSong);
@@ -58,6 +85,7 @@ public class Tunes
         {/**/} //Exit immediately.
         catch (Exception e)
         {
+            //#FREECICE
             EnhancedOpMode.instance.log.lines("Music error: " + e.getMessage ());
         }
     }

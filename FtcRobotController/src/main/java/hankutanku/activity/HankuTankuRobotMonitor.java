@@ -21,7 +21,6 @@ public class HankuTankuRobotMonitor extends SoundPlayingRobotMonitor
         this.noDSFoundDaemon = new NoDSFoundDaemon(this.toRestart);
     }
 
-
     @Override public void updatePeerStatus(@NonNull PeerStatus peerStatus)
     {
         if (peerStatus != this.peerStatus)
@@ -42,9 +41,7 @@ public class HankuTankuRobotMonitor extends SoundPlayingRobotMonitor
 
                 case DISCONNECTED:
                     if (noDSFoundDaemon == null)
-                    {
                         noDSFoundDaemon = new NoDSFoundDaemon(toRestart);
-                    }
 
                     playSound(soundDisconnect);
                     break;

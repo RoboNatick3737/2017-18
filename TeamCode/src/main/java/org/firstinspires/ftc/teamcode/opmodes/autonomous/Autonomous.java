@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.robot.Robot;
 import dude.makiah.androidlib.threading.TimeMeasure;
 import hankutanku.EnhancedOpMode;
 import hankutanku.math.Vector2D;
+import hankutanku.music.Tunes;
 import hankutanku.vision.opencv.OpenCVCam;
 import hankutanku.vision.vuforia.VuforiaCam;
 
@@ -88,7 +89,25 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             openCVCam.stop();
 
             if (newJewelOrder != JewelDetector.JewelOrder.UNKNOWN)
+            {
+                if (jewelOrder != newJewelOrder)
+                {
+                    switch (newJewelOrder)
+                    {
+                        case BLUE_RED:
+                            Tunes.play(Tunes.Option.LEFT_RIGHT_JEWEL);
+                            break;
+
+                        case RED_BLUE:
+                            Tunes.play(Tunes.Option.RIGHT_LEFT_JEWEL);
+                            break;
+                    }
+
+                    flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, 3));
+                }
+
                 jewelOrder = newJewelOrder;
+            }
 
             observedConsole.write("Currently seeing jewels: " + jewelOrder.toString() + " and vumark: " + vumark.toString());
 
@@ -99,7 +118,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
             // VuMark detection.
             RelicRecoveryVuMark newVuMark = RelicRecoveryVuMark.UNKNOWN;
-            vuforiaCam.start(true);
+            vuforiaCam.start();
             VuforiaTrackable relicTemplate = vuforiaCam.getTrackables().get(0);
             vuforiaCam.getTrackables().activate();
             while (System.currentTimeMillis() - start < 10000 && newVuMark == RelicRecoveryVuMark.UNKNOWN)
@@ -111,10 +130,31 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
                 flow.yield();
             }
+
             vuforiaCam.stop(flow);
 
             if (newVuMark != RelicRecoveryVuMark.UNKNOWN)
+            {
+                if (vumark != newVuMark)
+                {
+                    switch (newVuMark)
+                    {
+                        case LEFT:
+                            Tunes.play(Tunes.Option.LEFT_COL);
+                            break;
+                        case CENTER:
+                            Tunes.play(Tunes.Option.CENTER_COL);
+                            break;
+                        case RIGHT:
+                            Tunes.play(Tunes.Option.RIGHT_COL);
+                            break;
+                    }
+
+                    flow.pause(new TimeMeasure(TimeMeasure.Units.SECONDS, 2));
+                }
+
                 vumark = newVuMark;
+            }
 
             observedConsole.write("Currently seeing jewels: " + jewelOrder.toString() + " and vumark: " + vumark.toString());
 

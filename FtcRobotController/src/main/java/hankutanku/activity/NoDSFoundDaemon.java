@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity
  */
 public class NoDSFoundDaemon extends ParallelTask
 {
-    private static final long WAIT_FOR_CONNECTION_DELAY = 10000;
+    private static final long WAIT_FOR_CONNECTION_DELAY = 20000;
 
     private final Activity toRestart;
     private final long START;
