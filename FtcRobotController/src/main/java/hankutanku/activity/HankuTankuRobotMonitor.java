@@ -2,6 +2,7 @@ package hankutanku.activity;
 
 import android.app.Activity;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -11,6 +12,8 @@ import org.firstinspires.ftc.robotcore.internal.network.PeerStatus;
 
 public class HankuTankuRobotMonitor extends SoundPlayingRobotMonitor
 {
+    public static boolean gotDisconnect = false;
+
     private NoDSFoundDaemon noDSFoundDaemon = null;
     private final Activity toRestart;
 
@@ -51,5 +54,20 @@ public class HankuTankuRobotMonitor extends SoundPlayingRobotMonitor
             }
         }
         this.peerStatus = peerStatus;
+    }
+
+    /**
+     * Because I HATE THIS SOUND THAT PLAYS EVERY TIME WE CONNECT THE ROBOT REEEEE
+     */
+    @Override public synchronized void updateWarningMessage(@Nullable String warningMessage)
+    {
+        if (warningMessage != null && !warningMessage.equals(this.warningMessage))
+        {
+            gotDisconnect = true;
+
+            if (DEBUG) RobotLog.vv(SoundPlayer.TAG, "updateWarningMessage()");
+//            playSound(soundWarning);
+        }
+        this.warningMessage = warningMessage;
     }
 }

@@ -48,7 +48,7 @@ public class SwomniModule extends ScheduledTask
      * It's imperfect because we're using freely rotating coaxial omni wheels (doomed for
      * inaccuracy).
      */
-    private final Vector2D displacementVector = Vector2D.ZERO;
+    private Vector2D displacementVector = Vector2D.ZERO;
     public Vector2D getDisplacementVector()
     {
         return displacementVector;
@@ -128,10 +128,10 @@ public class SwomniModule extends ScheduledTask
     private Vector2D targetVector = Vector2D.polar(0, 0);
 
     // Swiveling properties.
-    private double currentSwivelOrientation = 0;
-    public double getCurrentSwivelOrientation()
+    private double currentAbsoluteEncoderReading = 0;
+    public double getCurrentAbsoluteEncoderReading()
     {
-        return currentSwivelOrientation;
+        return currentAbsoluteEncoderReading;
     }
     private double angleLeftToTurn = 0;
     public double getAngleLeftToTurn()
@@ -233,6 +233,12 @@ public class SwomniModule extends ScheduledTask
             turnMotor.setPosition(0.5);
             currentTurnSpeed = 0;
 
+            // Could be passively turning
+            currentAbsoluteEncoderReading = swerveEncoder.position();
+            double currentAngle = Vector2D.clampAngle(currentAbsoluteEncoderReading - physicalEncoderOffset);
+            displacementVector = displacementVector.add(Vector2D.polar(driveMotor.currentDistanceMoved() - lastDriveMotorPosition, currentAngle));
+            lastDriveMotorPosition = driveMotor.currentDistanceMoved();
+
             if (errorResponder instanceof PIDController)
                 ((PIDController) errorResponder).pauseController();
 
@@ -244,18 +250,19 @@ public class SwomniModule extends ScheduledTask
                 wheelConsole.write(
                         "Num skips: " + numAbsoluteEncoderSkips,
                         "Angle to turn: " + angleLeftToTurn,
-                        errorResponder instanceof PIDController ? ((PIDController) errorResponder).summary() : "Using constant method");
+                        errorResponder instanceof PIDController ? ((PIDController) errorResponder).summary() : "Using constant method",
+                        "Displacement Vector: " + displacementVector.toString(Vector2D.VectorCoordinates.POLAR));
         }
         else
         {
             // Whether or not we should check whether the current module position is different from the last one.
             if (ABSOLUTE_ENCODER_UPDATE_CHECK)
             {
-                // currentSwivelOrientation currently represents old swivel orientation.
+                // currentAbsoluteEncoderReading currently represents old swivel orientation.
                 double newSwivelOrientation = swerveEncoder.position();
 
                 // If we're turning but the absolute encoder hasn't registered the turn position change (latency).
-                if (Math.abs(currentTurnSpeed) > .15 && Math.abs(newSwivelOrientation - currentSwivelOrientation) < .5)
+                if (Math.abs(currentTurnSpeed) > .15 && Math.abs(newSwivelOrientation - currentAbsoluteEncoderReading) < .5)
                 {
                     // Record that this happened
                     numAbsoluteEncoderSkips++;
@@ -271,18 +278,18 @@ public class SwomniModule extends ScheduledTask
                     return TimeMeasure.IMMEDIATE;
                 }
 
-                currentSwivelOrientation = newSwivelOrientation;
+                currentAbsoluteEncoderReading = newSwivelOrientation;
             }
             else
                 // Update position.
-                currentSwivelOrientation = swerveEncoder.position();
+                currentAbsoluteEncoderReading = swerveEncoder.position();
 
             // Shortest angle from current heading to desired heading.
             double desiredAngle = targetVector.angle;
-            double currentAngle = Vector2D.clampAngle(currentSwivelOrientation - physicalEncoderOffset);
+            double currentAngle = Vector2D.clampAngle(currentAbsoluteEncoderReading - physicalEncoderOffset);
 
             // Apply this movement to the cumulative displacement vector.
-            displacementVector.add(Vector2D.polar(driveMotor.currentDistanceMoved() - lastDriveMotorPosition, currentAngle));
+            displacementVector = displacementVector.add(Vector2D.polar(driveMotor.currentDistanceMoved() - lastDriveMotorPosition, currentAngle));
             lastDriveMotorPosition = driveMotor.currentDistanceMoved();
 
             // Calculate how to turn
@@ -341,7 +348,6 @@ public class SwomniModule extends ScheduledTask
                 // Add console information.
                 wheelConsole.write(
                         "Vector target: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
-                        "Current vector: " + targetVector.toString(Vector2D.VectorCoordinates.POLAR),
                         "Angle to turn: " + angleLeftToTurn,
                         "Num skips: " + numAbsoluteEncoderSkips,
                         errorResponder instanceof PIDController ? ((PIDController) errorResponder).summary() : "Using custom function adjustment method",

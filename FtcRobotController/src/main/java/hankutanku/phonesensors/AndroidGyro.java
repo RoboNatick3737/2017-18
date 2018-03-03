@@ -102,6 +102,16 @@ public class AndroidGyro implements Gyro
         instance = this;
     }
 
+    private double currentHeadingRaw()
+    {
+        double angle = Vector2D.clampAngle(Math.sqrt(Math.pow(x, 2) + Math.pow(z, 2)));
+
+        if (x < 0)
+            angle = 360 - angle;
+
+        return angle;
+    }
+
     /**
      * Zeroes the gyro.
      */
@@ -116,7 +126,7 @@ public class AndroidGyro implements Gyro
      */
     public void startAntiDrift()
     {
-        double diff = Vector2D.clampAngle(360 - y);
+        double diff = currentHeadingRaw();
         diff = diff > 180 ? diff - 360 : diff;
 
         driftRate = diff / ((System.currentTimeMillis() - startCalibrateTime) / 1000.0);
@@ -143,9 +153,11 @@ public class AndroidGyro implements Gyro
      */
     public double getHeading()
     {
-        return Vector2D.clampAngle(Vector2D.clampAngle(360 - y)
-                - driftRate * ((System.currentTimeMillis() - startCalibrateTime) / 1000.0)
-                - offset);
+        // The phone is currently angled, so this is a bit of trig.
+//        return Vector2D.clampAngle(currentHeadingRaw()
+//                - driftRate * ((System.currentTimeMillis() - startCalibrateTime) / 1000.0)
+//                - offset);
+        return currentHeadingRaw();
     }
 
     /**

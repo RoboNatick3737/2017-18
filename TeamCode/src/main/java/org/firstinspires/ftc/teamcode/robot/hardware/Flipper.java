@@ -18,7 +18,7 @@ public class Flipper
     {
         MIN(1),
         MID_START(.65),
-        MID_END(.45),
+        MID_END(.4),
         MAX(.3);
 
         public final double position;
@@ -30,7 +30,7 @@ public class Flipper
     // endregion
 
     // region Glyph Clamper
-    private final Servo glyphClamp;
+    public final Servo glyphClamp;
     private enum GlyphClamp
     {
         CLAMP(0.8),
@@ -48,7 +48,7 @@ public class Flipper
     private final Servo glyphHolder;
     private enum GlyphHolder {
         BLOCKING(1),
-        AWAY(0);
+        AWAY(0.4);
 
         public final double position;
 

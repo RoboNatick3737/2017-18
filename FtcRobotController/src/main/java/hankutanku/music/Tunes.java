@@ -19,12 +19,18 @@ public class Tunes
      */
     public enum Option
     {
-        USSR_Anthem,
-        LEFT_COL,
-        CENTER_COL,
-        RIGHT_COL,
-        LEFT_RIGHT_JEWEL,
-        RIGHT_LEFT_JEWEL
+        USSR_Anthem (R.raw.ussranthem),
+        LEFT_COL (R.raw.leftcol),
+        CENTER_COL (R.raw.centercol),
+        RIGHT_COL(R.raw.rightcol),
+        LEFT_RIGHT_JEWEL(R.raw.rightleftjewel),
+        RIGHT_LEFT_JEWEL(R.raw.rightleftjewel);
+
+        public final int resourceAddress;
+        Option(int resourceAddress)
+        {
+            this.resourceAddress = resourceAddress;
+        }
     }
 
     private static MediaPlayer mediaPlayer = null;
@@ -38,37 +44,7 @@ public class Tunes
     {
         try
         {
-            int selectedSong = com.qualcomm.ftcrobotcontroller.R.raw.ussranthem;
-
-            //Add new mp3s here.
-            switch (choice)
-            {
-                case USSR_Anthem:
-                    selectedSong = com.qualcomm.ftcrobotcontroller.R.raw.ussranthem;
-                    break;
-
-                case LEFT_COL:
-                    selectedSong = R.raw.leftcol;
-                    break;
-
-                case CENTER_COL:
-                    selectedSong = R.raw.centercol;
-                    break;
-
-                case RIGHT_COL:
-                    selectedSong = R.raw.rightcol;
-                    break;
-
-                case LEFT_RIGHT_JEWEL:
-                    selectedSong = R.raw.leftrightjewel;
-                    break;
-
-                case RIGHT_LEFT_JEWEL:
-                    selectedSong = R.raw.rightleftjewel;
-                    break;
-            }
-
-            mediaPlayer = MediaPlayer.create (EnhancedOpMode.instance.hardwareMap.appContext, selectedSong);
+            mediaPlayer = MediaPlayer.create (EnhancedOpMode.instance.hardwareMap.appContext, choice.resourceAddress);
             mediaPlayer.start ();
             mediaPlayer.setOnCompletionListener (new MediaPlayer.OnCompletionListener ()
             {
@@ -85,7 +61,6 @@ public class Tunes
         {/**/} //Exit immediately.
         catch (Exception e)
         {
-            //#FREECICE
             EnhancedOpMode.instance.log.lines("Music error: " + e.getMessage ());
         }
     }
@@ -95,13 +70,18 @@ public class Tunes
      */
     public static void silence()
     {
-        if (mediaPlayer != null)
+        try
         {
-            if (mediaPlayer.isPlaying ())
-                mediaPlayer.stop (); //stopEasyTask playing
-            mediaPlayer.release (); //prevent resource allocation
-            mediaPlayer = null; //nullify the reference.
+            if (mediaPlayer != null)
+            {
+                if (mediaPlayer.isPlaying ())
+                    mediaPlayer.stop (); //stopEasyTask playing
+                mediaPlayer.release (); //prevent resource allocation
+                mediaPlayer = null; //nullify the reference.
+            }
         }
+        catch (IllegalStateException e)
+        {}
     }
 
     public static boolean playing ()

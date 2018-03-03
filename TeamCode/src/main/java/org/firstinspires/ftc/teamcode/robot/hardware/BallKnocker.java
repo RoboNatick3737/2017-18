@@ -18,7 +18,7 @@ public class BallKnocker
         this.knocker = knocker;
 
         setUpwardPosTo(true);
-        setKnockerTo(KnockerPosition.LEFT);
+        setKnockerTo(KnockerPosition.RIGHT);
     }
 
     private double currentPos = 0;
@@ -46,11 +46,11 @@ public class BallKnocker
         switch (pos)
         {
             case LEFT:
-                knocker.setPosition(.1);
+                knocker.setPosition(0);
                 break;
 
             case MIDDLE:
-                knocker.setPosition(0.6);
+                knocker.setPosition(0.5);
                 break;
 
             case RIGHT:

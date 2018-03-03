@@ -113,6 +113,10 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
             onRun();
         }
         catch (InterruptedException e) {} //If this is caught, then the user requested program stop.
+        catch (IllegalStateException e)
+        {
+            log.lines("Weird exception happened");
+        }
         catch (Exception e) //If this is caught, it wasn't an InterruptedException and wasn't requested, so the user is notified.
         {
             log.lines("UH OH!  An error was just thrown!");

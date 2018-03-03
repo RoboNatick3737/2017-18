@@ -141,7 +141,7 @@ public class Teleop extends EnhancedOpMode
                 robot.ballKnocker.toggleDescender();
 
             if (gamepad2.left_trigger > .02 || gamepad2.right_trigger > .02)
-                robot.ballKnocker.updatePosition(gamepad2.right_trigger * .006 - gamepad2.left_trigger * .006);
+                robot.ballKnocker.updatePosition(gamepad2.right_trigger * .018 - gamepad2.left_trigger * .018);
 
             // endregion
 

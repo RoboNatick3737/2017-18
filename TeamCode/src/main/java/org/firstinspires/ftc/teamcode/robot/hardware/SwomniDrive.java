@@ -32,7 +32,7 @@ public class SwomniDrive extends ScheduledTask
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
-    private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.0081, .001, 0, 5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 40), -1000, 1000, .95);
+    private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.0079, 0, 0, 5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 40), -1000, 1000, .95);
     private static TimeMeasure controlUpdateLatency = new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 100);
 
     // Total vector displacement from desired movement combinations, may be off from current but allows driving inaccuracies to be corrected in later drives.
@@ -76,6 +76,10 @@ public class SwomniDrive extends ScheduledTask
         // The swerve wheels.
         this.swomniModules = modules;
 
+        // for now, applies to both.
+        for (SwomniModule module : modules)
+            module.setEnableDrivePID(false);
+
         if (opModeSituation == EnhancedOpMode.AutoOrTeleop.AUTONOMOUS)
         {
             // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
@@ -90,14 +94,15 @@ public class SwomniDrive extends ScheduledTask
             // Initialize the task package regardless we need it atm, better to have it and skip the initialization sequence.
             swerveUpdatePackage = new ScheduledTaskPackage(EnhancedOpMode.instance, "Swerve Turn Alignments",
                     this, this.swomniModules[0], this.swomniModules[1], this.swomniModules[2], this.swomniModules[3]);
-
-            for (SwomniModule module : modules)
-                module.setEnableDrivePID(false);
         }
 
         setSwomniControlMode(SwomniControlMode.SWERVE_DRIVE);
 
         swerveConsole = LoggingBase.instance.newProcessConsole("Swerve Console");
+
+        // TODO remove
+        for (SwomniModule module : swomniModules)
+            module.setEnableLogging(true);
 
         stop();
     }
@@ -196,6 +201,37 @@ public class SwomniDrive extends ScheduledTask
     {
         this.vectorControlBasedOnHeading = vectorControlBasedOnHeading;
     }
+
+    private static final Function[] CVTDriveHeadings = new Function[]
+    {
+            new Function() {
+                @Override
+                public double value(double input) {
+                    return Vector2D.clampAngle(WHEEL_ORIENTATIONS[0] - input * 20);
+                }
+            },
+
+            new Function() {
+                @Override
+                public double value(double input) {
+                    return Vector2D.clampAngle(WHEEL_ORIENTATIONS[1] + input * 20);
+                }
+            },
+
+            new Function() {
+                @Override
+                public double value(double input) {
+                    return Vector2D.clampAngle(WHEEL_ORIENTATIONS[2] - input * 20);
+                }
+            },
+
+            new Function() {
+                @Override
+                public double value(double input) {
+                    return Vector2D.clampAngle(WHEEL_ORIENTATIONS[3] + input * 20);
+                }
+            }
+    };
     // endregion
 
     private void updateCanDrive()
@@ -303,7 +339,7 @@ public class SwomniDrive extends ScheduledTask
                         "Desired Angle: " + desiredHeading,
                         "Rotation Speed: " + rotationSpeed,
                         "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
-                        "Magnitude: " + fieldCentricTranslation.magnitude);
+                        "Current displacement: " + cumulativeRobotFieldPosition.toString(Vector2D.VectorCoordinates.POLAR));
         }
 
         // Robot centric control.
@@ -328,7 +364,8 @@ public class SwomniDrive extends ScheduledTask
                         "Desired Angle: " + desiredHeading,
                         "Rotation Speed: " + rotationSpeed,
                         "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
-                        FIELD_CENTRIC_TURN_CONTROLLER instanceof PIDController ? "PID: " + ((PIDController)FIELD_CENTRIC_TURN_CONTROLLER).summary() : "");
+                        FIELD_CENTRIC_TURN_CONTROLLER instanceof PIDController ? "PID: " + ((PIDController)FIELD_CENTRIC_TURN_CONTROLLER).summary() : "",
+                        "Current displacement: " + cumulativeRobotFieldPosition.toString(Vector2D.VectorCoordinates.POLAR));
         }
 
         // By setting vector targets, SwerveModules will take care of their own orientation.
@@ -343,13 +380,21 @@ public class SwomniDrive extends ScheduledTask
         {
             for (int i = 0; i < swomniModules.length; i++)
             {
-                double angleOff = (Vector2D.clampAngle(WHEEL_ORIENTATIONS[i] - driveVector.angle) + 180) % 360 - 180;
+                // Apply CVT driving enhancement.
+                double cvtFactor = 0;
+                if (driveVector.magnitude > .0001)
+                    cvtFactor = Math.abs(driveVector.y / driveVector.magnitude);
+
+                double desiredHeading = Vector2D.clampAngle(CVTDriveHeadings[i].value(Range.clip(cvtFactor, 0, 1)));
+
+                // Decide how to do a dot product with the drive vector.
+                double angleOff = (Vector2D.clampAngle(desiredHeading - driveVector.angle) + 180) % 360 - 180;
                 angleOff = angleOff < -180 ? angleOff + 360 : angleOff;
 
                 swomniModules[i].setVectorTarget(
                         Vector2D.polar(
                                 rotationSpeed * speedControl.turnSpeed + 2 * driveVector.magnitude * Math.cos(Math.toRadians(angleOff)),
-                                WHEEL_ORIENTATIONS[i]));
+                                desiredHeading));
             }
         }
 
@@ -381,6 +426,121 @@ public class SwomniDrive extends ScheduledTask
     // region Autonomous Methods
 
     /**
+     * Represents the encoder positions of each of the four drive motor encoders.
+     */
+    public double[] currentDrivePosition()
+    {
+        double[] toReturn = new double[swomniModules.length];
+        for (int i = 0; i < toReturn.length; i++)
+            toReturn[i] = swomniModules[i].driveMotor.currentDistanceMoved();
+        return toReturn;
+    }
+
+    /**
+     * Drives a certain distance with a variable heading/power.
+     * @param direction represents the direction and speed of movement, with current distance
+     *                  moved as the parameter.
+     * @param distance  the distance in inches to move.
+     * @param runnable  Optional parameter to run every loop.
+     */
+    public void driveDistance(ParametrizedVector direction, double distance, SingleParameterRunnable runnable, Flow flow) throws InterruptedException
+    {
+        if (distance <= 0)
+            return;
+
+        ProcessConsole distanceConsole = LoggingBase.instance.newProcessConsole("Distance Drive");
+
+        // Represents distance driven by each module.
+        double[] cumulativeOffsets = new double[swomniModules.length];
+
+        double[] lastPosition = currentDrivePosition();
+        boolean canStop = false; // becomes true once the average offset reaches the requested distance.
+        while (!canStop)
+        {
+            double[] currentPosition = currentDrivePosition();
+
+            // Determine how far we've moved and add that distance to the cumulative offsets.
+            for (int i = 0; i < currentPosition.length; i++)
+                cumulativeOffsets[i] += Math.abs(currentPosition[i] - lastPosition[i]);
+
+            // New anchor.
+            lastPosition = currentPosition;
+
+            // Figure out the average offset and thus whether we can stop.
+            double avgOffset = 0;
+            for (double offset : cumulativeOffsets)
+                avgOffset += offset;
+            avgOffset /= cumulativeOffsets.length;
+            canStop = avgOffset >= distance;
+
+            // Keep updating unless we can stop.
+            if (!canStop)
+            {
+                setDesiredMovement(direction.getVector(avgOffset / distance)); // 0 and 1
+
+                distanceConsole.write(
+                        "Cumulatives are: " + cumulativeOffsets[0] + " " + cumulativeOffsets[1] + " " + cumulativeOffsets[2] + " " + cumulativeOffsets[3],
+                        "Distances are " + currentPosition[0] + " " + currentPosition[1] + " " + currentPosition[2] + " " + currentPosition[3]);
+
+                if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
+                    synchronousUpdate();
+
+                if (runnable != null)
+                    runnable.run(avgOffset / distance);
+            }
+
+            flow.yield();
+        }
+
+        stop();
+        distanceConsole.destroy();
+    }
+    public void driveDistance(Vector2D direction, double distance, Flow flow) throws InterruptedException
+    {
+        driveDistance(ParametrizedVector.from(direction), distance, null, flow);
+    }
+
+    /**
+     * Drives a certain time with a variable heading/power
+     * @param direction The direction to drive
+     * @param driveTime the ms to drive
+     * @param runnable runnable to run every loop
+     * @param flow When to exit
+     */
+    public void driveTime(ParametrizedVector direction, long driveTime, SingleParameterRunnable runnable, Flow flow) throws InterruptedException
+    {
+        if (driveTime <= 0)
+            return;
+
+        ProcessConsole distanceConsole = LoggingBase.instance.newProcessConsole("Timed Drive");
+
+        long startTime = System.currentTimeMillis();
+        long elapsedTime = 0;
+        while (elapsedTime < driveTime)
+        {
+            elapsedTime = System.currentTimeMillis() - startTime;
+
+            setDesiredMovement(direction.getVector(elapsedTime / driveTime));
+            distanceConsole.write("Remaining: " + (driveTime - (System.currentTimeMillis() - startTime) + "ms"));
+            if (swerveUpdatePackage.getUpdateMode() == ScheduledTaskPackage.ScheduledUpdateMode.SYNCHRONOUS)
+                synchronousUpdate();
+
+            // Shortcut, callers can provide anonymous methods here.
+            if (runnable != null)
+                runnable.run(elapsedTime / driveTime);
+
+            flow.yield();
+        }
+
+        stop();
+        distanceConsole.destroy();
+    }
+    public void driveTime(Vector2D direction, long msDrive, Flow flow) throws InterruptedException
+    {
+        driveTime(ParametrizedVector.from(direction), msDrive, null, flow);
+    }
+
+    /**
      * Drives a certain distance with a variable heading/power.
      * @param movement  Represents the plotted movement over time (just current time is plugged
      *                   into this vector parametrization to decide where we should be).
@@ -400,6 +560,8 @@ public class SwomniDrive extends ScheduledTask
         // The end point of the movement.
         final Vector2D movementEndpoint = movement.getVector(1);
 
+        ProcessConsole purePursuit = LoggingBase.instance.newProcessConsole("Pure Pursuit");
+
         while (true)
         {
             // Current displacement vector.
@@ -413,7 +575,7 @@ public class SwomniDrive extends ScheduledTask
             long currentMSProgression = System.currentTimeMillis() - startDriveTime;
 
             // From 0 to 1 to represent how far along we are.
-            double driveCompletion = currentMSProgression / totalTime.durationIn(TimeMeasure.Units.MILLISECONDS);
+            double driveCompletion = (currentMSProgression * 1.0) / totalTime.durationIn(TimeMeasure.Units.MILLISECONDS);
 
             // Also consider lookahead, but wrap to 0 and 1.
             double movementParameter = Range.clip(driveCompletion + lookaheadFactor, 0, 1);
@@ -422,7 +584,7 @@ public class SwomniDrive extends ScheduledTask
             Vector2D desiredPositionOnField = movement.getVector(movementParameter).add(cumulativeRobotFieldPosition);
 
             // Movement vector taken by dividing by some constant which represents a conversion from distance to power.
-            Vector2D resultingTranslationVector = desiredPositionOnField.subtract(currentPositionOnField).divide(5);
+            Vector2D resultingTranslationVector = desiredPositionOnField.subtract(currentPositionOnField).divide(50);
 
             // Clip to max of 1 speed.
             if (resultingTranslationVector.magnitude > 1)
@@ -441,10 +603,17 @@ public class SwomniDrive extends ScheduledTask
             if (currentPositionOnField.subtract(movementEndpoint).magnitude < endpointLeniency)
                 break;
 
+            purePursuit.write(
+                    "Current: " + currentPositionOnField.toString(Vector2D.VectorCoordinates.RECTANGULAR),
+                    "Desired: " + desiredPositionOnField.toString(Vector2D.VectorCoordinates.RECTANGULAR),
+                    "Param: " + movementParameter,
+                    "Translation: " + resultingTranslationVector.toString(Vector2D.VectorCoordinates.POLAR));
+
             flow.yield();
         }
 
         stop();
+        purePursuit.destroy();
 
         // Allows any errors that may have occurred during this movement be fixed in following movements.
         cumulativeRobotFieldPosition.add(movementEndpoint);
@@ -560,10 +729,16 @@ public class SwomniDrive extends ScheduledTask
     /**
      * Turns the robot to some pre-specified heading according to the gyro
      */
-    public void turnRobotToHeading(double heading, double precisionRequired, TimeMeasure timeMax, Flow flow) throws InterruptedException
+    public void turnRobotToHeading(double heading, double newKp, double precisionRequired, TimeMeasure timeMax, Flow flow) throws InterruptedException
     {
+        double oldKp = 0;
+
         if (FIELD_CENTRIC_TURN_CONTROLLER instanceof PIDController)
+        {
             ((PIDController) FIELD_CENTRIC_TURN_CONTROLLER).resetController();
+            oldKp = ((PIDController) FIELD_CENTRIC_TURN_CONTROLLER).kP;
+            ((PIDController) FIELD_CENTRIC_TURN_CONTROLLER).kP = newKp;
+        }
 
         setDesiredHeading(heading);
 
@@ -588,6 +763,9 @@ public class SwomniDrive extends ScheduledTask
         }
 
         stop();
+
+        if (FIELD_CENTRIC_TURN_CONTROLLER instanceof PIDController)
+            ((PIDController) FIELD_CENTRIC_TURN_CONTROLLER).kP = oldKp;
     }
     // endregion
 

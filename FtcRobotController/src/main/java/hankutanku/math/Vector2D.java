@@ -1,13 +1,15 @@
 package hankutanku.math;
 
+import java.text.DecimalFormat;
+
 public class Vector2D
 {
     public static Vector2D average(Vector2D... toAverage)
     {
         Vector2D sum = Vector2D.ZERO;
         for (Vector2D vector : toAverage)
-            sum.add(vector);
-        sum.divide(toAverage.length);
+            sum = sum.add(vector);
+        sum = sum.divide(toAverage.length);
 
         return sum;
     }
@@ -21,6 +23,8 @@ public class Vector2D
 
         return angle;
     }
+
+    private static final DecimalFormat decimalFormat = new DecimalFormat("#.00");
 
     public static Vector2D polar(double magnitude, double angle)
     {
@@ -177,10 +181,10 @@ public class Vector2D
         switch (coordinate)
         {
             case RECTANGULAR:
-                return "<" + x + ", " + y + ">";
+                return "<" + decimalFormat.format(x) + ", " + decimalFormat.format(y) + ">";
 
             case POLAR:
-                return "<" + magnitude + ", " + angle + ">";
+                return "<" + decimalFormat.format(magnitude) + ", " + decimalFormat.format(angle) + ">";
         }
 
         return ""; // Satisfy android studio
