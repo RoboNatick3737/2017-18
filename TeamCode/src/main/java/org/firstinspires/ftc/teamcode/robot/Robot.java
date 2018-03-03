@@ -196,10 +196,10 @@ public class Robot
                 new AbsoluteEncoder(hardware.initialize(AnalogInput.class, "Front Left Vex Encoder")),
 
                 // For swerve drive mode.
-                new ModifiedPIDController(0.0052, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
+                new ModifiedPIDController(0.0057, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For holonomic mode
-                new ModifiedPIDController(0.0062, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
+                new ModifiedPIDController(0.009, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For tank drive mode
                 new ModifiedPIDController(0.0062, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
@@ -217,7 +217,7 @@ public class Robot
                 new ModifiedPIDController(0.0062, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For holonomic mode
-                new ModifiedPIDController(0.0062, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
+                new ModifiedPIDController(0.0082, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For tank drive mode
                 new ModifiedPIDController(0.0062, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
@@ -235,7 +235,7 @@ public class Robot
                 new ModifiedPIDController(0.007, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For holonomic mode
-                new ModifiedPIDController(0.007, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
+                new ModifiedPIDController(0.009, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For tank drive mode
                 new ModifiedPIDController(0.007, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
@@ -253,7 +253,7 @@ public class Robot
                 new ModifiedPIDController(0.0056, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For holonomic mode
-                new ModifiedPIDController(0.0056, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
+                new ModifiedPIDController(0.0076, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),
 
                 // For tank drive mode
                 new ModifiedPIDController(0.0056, 0, 0, .5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 50), -.5, .5, .95),

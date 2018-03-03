@@ -32,7 +32,7 @@ public class SwomniDrive extends ScheduledTask
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
-    private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.0079, 0, 0, 5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 40), -1000, 1000, .95);
+    private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.0073, 0, 0, 5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 40), -1000, 1000, .95);
     private static TimeMeasure controlUpdateLatency = new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 100);
 
     // Total vector displacement from desired movement combinations, may be off from current but allows driving inaccuracies to be corrected in later drives.
@@ -175,21 +175,9 @@ public class SwomniDrive extends ScheduledTask
     {
         this.swomniControlMode = swomniControlMode;
 
-        if (swomniControlMode == SwomniControlMode.SWERVE_DRIVE)
+        for (SwomniModule module : swomniModules)
         {
-            for (SwomniModule swomniModule : swomniModules)
-            {
-                swomniModule.setDriveMotorTorqueCorrectionEnabled(true);
-                swomniModule.setEnablePassiveAlignmentCorrection(false);
-            }
-        }
-        else
-        {
-            for (SwomniModule swomniModule : swomniModules)
-            {
-                swomniModule.setDriveMotorTorqueCorrectionEnabled(false);
-                swomniModule.setEnablePassiveAlignmentCorrection(true);
-            }
+            module.setControlMode(swomniControlMode);
         }
     }
     public SwomniControlMode getSwomniControlMode()
@@ -207,28 +195,28 @@ public class SwomniDrive extends ScheduledTask
             new Function() {
                 @Override
                 public double value(double input) {
-                    return Vector2D.clampAngle(WHEEL_ORIENTATIONS[0] - input * 20);
+                    return Vector2D.clampAngle(WHEEL_ORIENTATIONS[0] + input * 20 - 5);
                 }
             },
 
             new Function() {
                 @Override
                 public double value(double input) {
-                    return Vector2D.clampAngle(WHEEL_ORIENTATIONS[1] + input * 20);
+                    return Vector2D.clampAngle(WHEEL_ORIENTATIONS[1] - input * 20 + 5);
                 }
             },
 
             new Function() {
                 @Override
                 public double value(double input) {
-                    return Vector2D.clampAngle(WHEEL_ORIENTATIONS[2] - input * 20);
+                    return Vector2D.clampAngle(WHEEL_ORIENTATIONS[2] + input * 20 - 5);
                 }
             },
 
             new Function() {
                 @Override
                 public double value(double input) {
-                    return Vector2D.clampAngle(WHEEL_ORIENTATIONS[3] + input * 20);
+                    return Vector2D.clampAngle(WHEEL_ORIENTATIONS[3] - input * 20 + 5);
                 }
             }
     };
@@ -249,6 +237,8 @@ public class SwomniDrive extends ScheduledTask
         for (SwomniModule wheel : swomniModules)
             wheel.setDrivingState(drivingCanStart);
     }
+
+    double cvtRn = 0;
 
     /**
      * Runs every update, just does a lot of vector algebra depending on the drive mode we're in.
@@ -365,7 +355,8 @@ public class SwomniDrive extends ScheduledTask
                         "Rotation Speed: " + rotationSpeed,
                         "Translation Vector: " + desiredMovement.toString(Vector2D.VectorCoordinates.POLAR),
                         FIELD_CENTRIC_TURN_CONTROLLER instanceof PIDController ? "PID: " + ((PIDController)FIELD_CENTRIC_TURN_CONTROLLER).summary() : "",
-                        "Current displacement: " + cumulativeRobotFieldPosition.toString(Vector2D.VectorCoordinates.POLAR));
+                        "Current displacement: " + cumulativeRobotFieldPosition.toString(Vector2D.VectorCoordinates.POLAR),
+                        "CVT: " + cvtRn);
         }
 
         // By setting vector targets, SwerveModules will take care of their own orientation.
@@ -382,8 +373,8 @@ public class SwomniDrive extends ScheduledTask
             {
                 // Apply CVT driving enhancement.
                 double cvtFactor = 0;
-                if (driveVector.magnitude > .0001)
-                    cvtFactor = Math.abs(driveVector.y / driveVector.magnitude);
+                if (driveVector.magnitude > .1)
+                    cvtFactor = Math.abs(driveVector.x / driveVector.magnitude);
 
                 double desiredHeading = Vector2D.clampAngle(CVTDriveHeadings[i].value(Range.clip(cvtFactor, 0, 1)));
 
@@ -395,6 +386,8 @@ public class SwomniDrive extends ScheduledTask
                         Vector2D.polar(
                                 rotationSpeed * speedControl.turnSpeed + 2 * driveVector.magnitude * Math.cos(Math.toRadians(angleOff)),
                                 desiredHeading));
+
+                cvtRn = cvtFactor;
             }
         }
 

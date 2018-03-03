@@ -108,11 +108,11 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     switch (newJewelOrder)
                     {
                         case BLUE_RED:
-                            Tunes.play(Tunes.Option.LEFT_RIGHT_JEWEL);
+                            Tunes.play(getAlliance() == Alliance.RED ? Tunes.Option.LEFT_RIGHT_JEWEL : Tunes.Option.RIGHT_LEFT_JEWEL);
                             break;
 
                         case RED_BLUE:
-                            Tunes.play(Tunes.Option.RIGHT_LEFT_JEWEL);
+                            Tunes.play(getAlliance() == Alliance.RED ? Tunes.Option.RIGHT_LEFT_JEWEL : Tunes.Option.LEFT_RIGHT_JEWEL);
                             break;
                     }
 
@@ -243,7 +243,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
             // Now turn to the heading which faces the cryptobox.
             robot.swomniDrive.turnRobotToHeading(depositAngle, .009 + (1 - batteryCoefficient) * .05, 5, new TimeMeasure(TimeMeasure.Units.SECONDS, 9), flow);
 
-            DEPOSIT_LOCATIONS = new double[]{21.2, 39.2, 57.8};
+            DEPOSIT_LOCATIONS = new double[]{5, 21.2, 44.3};
         }
 
         // battery adjustment

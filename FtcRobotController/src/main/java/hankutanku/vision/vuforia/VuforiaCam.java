@@ -51,6 +51,11 @@ public class VuforiaCam
          */
         parameters.cameraDirection = useFrontCam ? VuforiaLocalizer.CameraDirection.FRONT : VuforiaLocalizer.CameraDirection.BACK;
 
+        /*
+         * Don't try to do fancy stuff
+         */
+        parameters.useExtendedTracking = false;
+
         vuforia = new CloseableVuforiaLocalizer(parameters);
 
         /**
