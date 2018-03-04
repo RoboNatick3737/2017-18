@@ -9,7 +9,7 @@
 	url = https://github.com/makiah/AndroidCV-JNILibs
 [submodule "TeamCode/src/main/java/org/firstinspires/ftc/teamcode/vision/relicrecoveryvisionpipelines"]
 	path = TeamCode/src/main/java/org/firstinspires/ftc/teamcode/vision/relicrecoveryvisionpipelines
-	url = https://gitlab.com/makiahtbennett/relicrecoveryvisionpipelines
+	url = https://github.com/makiah/relicrecoveryvisionpipelines
 [submodule "FtcRobotController/src/main/cpp/relicrecoveryvisionpipelinescpp"]
 	path = FtcRobotController/src/main/cpp/relicrecoveryvisionpipelinescpp
-	url = https://gitlab.com/makiahtbennett/relicrecoveryvisionpipelinescpp
+	url = https://github.com/makiah/relicrecoveryvisionpipelinescpp
