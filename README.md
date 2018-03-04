@@ -1,5 +1,8 @@
+# Our bot
+Unfortunately, our season's over, but we had a blast!
+
 <p align="center"> 
-<img src="/doc/hankstanks/hankstanks.jpg">
+<img src="/doc/hankstanks/hanku.png">
 </p>
 
 # Included in this project: 

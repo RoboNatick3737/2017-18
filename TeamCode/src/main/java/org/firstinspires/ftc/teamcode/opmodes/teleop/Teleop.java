@@ -107,11 +107,15 @@ public class Teleop extends EnhancedOpMode
                     robot.intake.expel();
                 else if (C1.gamepad.right_bumper)
                     robot.intake.intake();
-                else if (C1.gamepad.left_trigger > .03 || C1.gamepad.right_trigger > .03) {
-                    robot.intake.leftIntake(C1.gamepad.left_trigger);
+                else if (C1.gamepad.right_trigger > .03) {
                     robot.intake.rightIntake(C1.gamepad.right_trigger);
                     robot.intake.secondaryIntake(1);
-                } else
+                }
+                else if (C1.gamepad.left_trigger > .03)
+                {
+                    robot.intake.weirdIntake(C1.gamepad.left_trigger);
+                }
+                else
                     robot.intake.stop();
             }
 

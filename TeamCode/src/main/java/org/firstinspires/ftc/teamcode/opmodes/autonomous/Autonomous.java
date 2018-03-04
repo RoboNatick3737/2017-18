@@ -181,6 +181,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
 
         // Anti-drift measures (any movement thus far is drift).
 //        robot.gyro.startAntiDrift();
+        robot.gyro.zero();
 
         // endregion
 
@@ -293,7 +294,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                 new Function() {
                     @Override
                     public double value(double input) {
-                        return 0.25 + (1 - batteryCoefficient) * .05 - .12 * input;
+                        return 0.28 + (1 - batteryCoefficient) * .05 - .12 * input;
                     }
                 },
                 new Function() {
@@ -359,7 +360,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
                     new Function() {
                         @Override
                         public double value(double input) {
-                            return 0.4 - .2 * input;
+                            return 0.4 - .15 * input;
                         }
                     },
                     new Function() {
@@ -375,7 +376,7 @@ public abstract class Autonomous extends EnhancedOpMode implements CompetitionPr
         double glyphPlacementAngle = 30 * (getAlliance() == Alliance.BLUE ? -1 : 1);
         robot.swomniDrive.turnRobotToHeading(
                 Vector2D.clampAngle(depositAngle + glyphPlacementAngle),
-                .009 + (1 - batteryCoefficient) * .05, 5, new TimeMeasure(TimeMeasure.Units.SECONDS, 3),
+                .009 + (1 - batteryCoefficient) * .05, 5, new TimeMeasure(TimeMeasure.Units.SECONDS, 8),
                 flow);
 
         // Dump glyph

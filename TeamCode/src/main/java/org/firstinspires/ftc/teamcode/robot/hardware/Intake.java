@@ -64,4 +64,11 @@ public class Intake
 
         this.secondaryHarvester.setPower(speed);
     }
+
+    public void weirdIntake(double speed)
+    {
+        secondaryIntake(-speed);
+        leftIntake(speed);
+        rightIntake(speed);
+    }
 }

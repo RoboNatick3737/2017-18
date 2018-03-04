@@ -32,7 +32,7 @@ public class SwomniDrive extends ScheduledTask
     private static final double ROBOT_WIDTH = 18, ROBOT_LENGTH = 18;
     private static final double ROBOT_PHI = Math.toDegrees(Math.atan2(ROBOT_LENGTH, ROBOT_WIDTH)); // Will be 45 degrees with perfect square dimensions.
     private static final double[] WHEEL_ORIENTATIONS = {ROBOT_PHI - 90, (180 - ROBOT_PHI) - 90, (180 + ROBOT_PHI) - 90, (360 - ROBOT_PHI) - 90};
-    private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.0073, 0, 0, 5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 40), -1000, 1000, .95);
+    private static final Function FIELD_CENTRIC_TURN_CONTROLLER = new ModifiedPIDController(.0036, 0, 0, 5, new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 40), -1000, 1000, .95);
     private static TimeMeasure controlUpdateLatency = new TimeMeasure(TimeMeasure.Units.MILLISECONDS, 100);
 
     // Total vector displacement from desired movement combinations, may be off from current but allows driving inaccuracies to be corrected in later drives.

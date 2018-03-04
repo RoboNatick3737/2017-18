@@ -52,7 +52,7 @@ public abstract class EnhancedOpMode extends LinearOpMode implements TaskParent
             }
 
             if (batteryVoltageCheck < minVolts)
-                AppUtil.getInstance().showToast(UILocation.BOTH, "Change the fucking battery >:(");
+                AppUtil.getInstance().showToast(UILocation.BOTH, "Change the battery >:(");
 
             batteryCoefficient = (batteryVoltageCheck - minVolts) / (maxVolts - minVolts);
             batteryCoefficient = Range.clip(batteryCoefficient, 0, 1);
